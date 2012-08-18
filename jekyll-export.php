@@ -213,7 +213,7 @@ class Jekyll_Export {
 	 */
 	function write( $output, $post ) {
 
-		$filename = ( get_post_type( $post ) == 'post' ) ? date( 'Y-m-d' ) . '-' . $post->post_name . '.md': $post->post_name . '.md';
+		$filename = ( get_post_type( $post ) == 'post' ) ? date( 'Y-m-d', strtotime( $post->post_date ) ) . '-' . $post->post_name . '.md': $post->post_name . '.md';
 		$prefix = ( get_post_type( $post ) == 'post' ) ? '_posts/' : '';
 		file_put_contents( $this->dir . $prefix . $filename, $output );
 
