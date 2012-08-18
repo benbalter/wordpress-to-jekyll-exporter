@@ -61,7 +61,7 @@ class Jekyll_Export {
 	 */
 	function register_menu() {
 
-		add_submenu_page( 'tools.php', __( 'Export to Jekyll', 'jekyll-export' ), __( 'Export to Jekyll', 'jekyll-export' ), 'manage_options', 'jekyll-export', null );
+		add_management_page( __( 'Export to Jekyll', 'jekyll-export' ), __( 'Export to Jekyll', 'jekyll-export' ), 'manage_options', 'jekyll-export', null );
 
 	}
 
