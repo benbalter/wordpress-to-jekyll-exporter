@@ -91,12 +91,19 @@ class Jekyll_Export {
 
 			if ( $key == 'post_content' )
 				continue;
-
+			
+			//convert author from ID to display name
+			if ( $key == 'post_author' )
+				$value = get_userdata( $post->post_author )->display_name;
+		
 			//strip post_ from the key, as it will be page.foo in jekyll
 			$key = str_replace( 'post_', '', $key );
 			$output[ strtolower( $key)  ] = $value;
 
 		}
+		
+		//force post_type -> layout for ease of use on the Jekyll side
+		$output[ 'layout' ] = get_post_type( $post );
 
 		//convert traditional post_meta values, hide hidden values
 		foreach ( get_post_custom( $post ) as $key => $value ) {
@@ -120,8 +127,15 @@ class Jekyll_Export {
 
 		$output = array();
 		foreach ( get_taxonomies( array( 'object_type' => array( get_post_type( $post ) ) ) ) as $tax ) {
+		
 			$terms = wp_get_post_terms( $post, $tax );
+			
+			//convert tax name for Jekyll
+			if ( $tax == 'post_tags' )
+				$tax = 'tags';
+				
 			$output[ $tax ] = wp_list_pluck( $terms, 'name' );
+		
 		}
 
 		return $output;
