@@ -44,7 +44,10 @@ class Jekyll_Export {
 	 */
 	function callback() {
 
-		if ( get_current_screen()->id != 'jekyll-export' )
+		if ( get_current_screen()->id != 'export' )
+			return;
+			
+		if ( !isset( $_GET['type'] ) || $_GET['type'] != 'jekyll' )
 			return;
 
 		if ( !current_user_can( 'manage_options' ) )
@@ -61,7 +64,7 @@ class Jekyll_Export {
 	 */
 	function register_menu() {
 
-		add_management_page( __( 'Export to Jekyll', 'jekyll-export' ), __( 'Export to Jekyll', 'jekyll-export' ), 'manage_options', 'jekyll-export', null );
+		add_management_page( __( 'Export to Jekyll', 'jekyll-export' ), __( 'Export to Jekyll', 'jekyll-export' ), 'manage_options', 'export.php?type=jekyll' );
 
 	}
 
