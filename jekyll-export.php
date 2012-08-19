@@ -168,7 +168,7 @@ class Jekyll_Export {
 	function convert_posts() {
 
 		foreach ( $this->get_posts() as $postID ) {
-			$md = new Markdownify_Extra( null, false, $this->extra_html_include );
+			$md = new Markdownify( null, false, $this->extra_html_include );
 			$post = get_post( $postID );
 			$meta = array_merge( $this->convert_meta( $post ), $this->convert_terms( $postID ) );
 			$output = Spyc::YAMLDump($meta);
