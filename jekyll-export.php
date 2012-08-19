@@ -26,7 +26,21 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 class Jekyll_Export {
 
 	private $zip_folder = 'jekyll-export/'; //folder zip file extracts to
+	
 	public $rename_options = array( 'site', 'blog' ); //strings to strip from option keys on export
+	
+	public $options = array( 	//array of wp_options value to convert to _config.yml
+								'name', 
+								'description', 
+								'url' 
+							);
+							
+	public $posts = array( 	//array of wp_posts fields to convert to YAML front matter
+							//will convert all post_meta and all taxonomies
+							'author',
+							'title',
+							'excerpt',
+					);
 
 	/**
 	 * Hook into WP Core
@@ -37,7 +51,6 @@ class Jekyll_Export {
 		add_action( 'current_screen', array( &$this, 'callback' ) );
 
 	}
-
 
 	/**
 	 * Listens for page callback, intercepts and runs export
@@ -98,6 +111,10 @@ class Jekyll_Export {
 		
 			//strip post_ from the key, as it will be page.foo in jekyll
 			$key = str_replace( 'post_', '', $key );
+			
+			if ( !in_array( $key, $this->posts ) )
+				continue;
+				
 			$output[ strtolower( $key)  ] = $value;
 
 		}
@@ -149,7 +166,7 @@ class Jekyll_Export {
 	function convert_posts() {
 
 		foreach ( $this->get_posts() as $postID ) {
-			$md = new Markdownify_Extra();
+			$md = new Markdownify_Extra( null, null, false );
 			$post = get_post( $postID );
 			$meta = array_merge( $this->convert_meta( $post ), $this->convert_terms( $postID ) );
 			$output = Spyc::YAMLDump($meta);
@@ -179,7 +196,8 @@ class Jekyll_Export {
 
 		$this->convert_options();
 		$this->convert_posts();
-		$this->zip();
+		$this->convert_uploads();
+		$this->zip(); 
 		$this->send();
 		$this->cleanup();
 
@@ -211,6 +229,13 @@ class Jekyll_Export {
 			$option = maybe_unserialize( $option );
 
 		}
+		
+		foreach ( $options as $key => $value ) {
+			
+			if ( !in_array( $key, $this->options ) )
+				unset( $options[ $key ] );
+				
+		}
 
 		$output = Spyc::YAMLDump( $options );
 
@@ -227,9 +252,14 @@ class Jekyll_Export {
 	 */
 	function write( $output, $post ) {
 
-		$filename = ( get_post_type( $post ) == 'post' ) ? date( 'Y-m-d', strtotime( $post->post_date ) ) . '-' . $post->post_name . '.md': $post->post_name . '.md';
-		$prefix = ( get_post_type( $post ) == 'post' ) ? '_posts/' : '';
-		file_put_contents( $this->dir . $prefix . $filename, $output );
+		if ( get_post_type( $post ) == 'page' ) {
+			mkdir( $this->dir . $post->post_name );
+			$filename = $post->post_name . '/index.md';
+		} else {
+			$filename = '_posts/' . date( 'Y-m-d', strtotime( $post->post_date ) ) . '-' . $post->post_name . '.md';
+		}
+				
+		file_put_contents( $this->dir . $filename, $output );
 
 	}
 
@@ -242,10 +272,7 @@ class Jekyll_Export {
 		//create zip
 		$zip = new ZipArchive();
 		$zip->open( $this->zip, ZIPARCHIVE::CREATE );
-
-		$this->_zip( $this->dir . '_config.yml', $zip );
-		$this->_zip( $this->dir . '*.md', $zip );
-		$this->_zip( $this->dir . '_posts/*.md', $zip );
+		$this->_zip( $this->dir, $zip );
 		$zip->close();
 
 	}
@@ -254,13 +281,18 @@ class Jekyll_Export {
 	/**
 	 * Helper function to add a file to the zip
 	 */
-	function _zip( $q, &$zip ) {
-
+	function _zip( $dir, &$zip ) {
+	
 		//loop through all files in directory
-		foreach ( glob( $q ) as $path ) {
-
+		foreach ( glob( trailingslashit( $dir ) . '*' ) as $path ) {
+			
+			if ( is_dir( $path ) ) {
+				$this->_zip( $path, $zip );
+				continue;
+			}
+			
 			//make path within zip relative to zip base, not server root
-			$local_path = str_replace( $this->dir, $this->zip_folder, $path );
+			$local_path = '/' . str_replace( $this->dir, $this->zip_folder, $path );
 
 			//add file
 			$zip->addFile( realpath( $path ), $local_path );
@@ -291,15 +323,7 @@ class Jekyll_Export {
 	 */
 	function cleanup( ) {
 
-		foreach ( glob( $this->dir . '_posts/*' ) as $file )
-			unlink( $file );
-
-		foreach ( glob( $this->dir . '*' ) as $file )
-			unlink( $file );
-
-		rmdir( $this->dir . '_posts/' );
-		rmdir( $this->dir );
-
+		$this->rmdir_recursive( $this->dir );
 		unlink( $this->zip );
 
 	}
@@ -321,8 +345,72 @@ class Jekyll_Export {
 
 
 	}
+	
+	function rmdir_recursive( $dir ) {
 
+   		foreach( glob($dir . '/*' ) as $file ) {
+   		    if( is_dir( $file ) )
+   		        $this->rmdir_recursive( $file );
+   		    else
+   		        unlink( $file );
+   		}
+   		
+   		rmdir( $dir );
+   	
+   	}
+   	
+   	function convert_uploads() {
+   	
+   		$upload_dir = wp_upload_dir();
+	   	$this->copy_recursive( $upload_dir['basedir'], $this->dir . str_replace( trailingslashit( get_home_url() ), '', $upload_dir['baseurl'] )  );
+	   	
+   	}
+   	
+	/**
+	 * Copy a file, or recursively copy a folder and its contents
+	 *
+	 * @author      Aidan Lister <aidan@php.net>
+	 * @version     1.0.1
+	 * @link        http://aidanlister.com/2004/04/recursively-copying-directories-in-php/
+	 * @param       string   $source    Source path
+	 * @param       string   $dest      Destination path
+	 * @return      bool     Returns TRUE on success, FALSE on failure
+	 */
+	function copy_recursive($source, $dest) {
 
+	    // Check for symlinks
+	    if ( is_link( $source ) ) { 
+	        return symlink( readlink( $source ), $dest );
+	    }
+	    	     
+	    // Simple copy for a file
+	    if ( is_file( $source ) ) { 
+	        return copy( $source, $dest );
+	    }
+	 
+	    // Make destination directory
+	    if ( !is_dir($dest) ) { 
+	        mkdir($dest, null, true );
+	    }
+
+	    // Loop through the folder
+	    $dir = dir($source);
+	    while (false !== $entry = $dir->read()) {
+	        // Skip pointers
+	        if ($entry == '.' || $entry == '..') {
+	            continue;
+	        }
+	 
+	        // Deep copy directories
+	        $this->copy_recursive("$source/$entry", "$dest/$entry");
+	    }
+	 
+	    // Clean up
+	    $dir->close();
+	    return true;
+	    
+	}
+	
 }
 
 
