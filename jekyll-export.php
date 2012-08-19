@@ -150,7 +150,7 @@ class Jekyll_Export {
 			$terms = wp_get_post_terms( $post, $tax );
 			
 			//convert tax name for Jekyll
-			if ( $tax == 'post_tags' )
+			if ( $tax == 'post_tag' )
 				$tax = 'tags';
 				
 			$output[ $tax ] = wp_list_pluck( $terms, 'name' );
@@ -168,7 +168,7 @@ class Jekyll_Export {
 	function convert_posts() {
 
 		foreach ( $this->get_posts() as $postID ) {
-			$md = new Markdownify_Extra( null, null, $this->extra_html_include );
+			$md = new Markdownify_Extra( null, false, $this->extra_html_include );
 			$post = get_post( $postID );
 			$meta = array_merge( $this->convert_meta( $post ), $this->convert_terms( $postID ) );
 			$output = Spyc::YAMLDump($meta);
