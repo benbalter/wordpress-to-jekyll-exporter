@@ -41,6 +41,8 @@ class Jekyll_Export {
 							'title',
 							'excerpt',
 					);
+	
+	public $extra_html_include = false; //should un-markdownify-able HTML be included or skipped?
 
 	/**
 	 * Hook into WP Core
@@ -89,7 +91,7 @@ class Jekyll_Export {
 	function get_posts() {
 
 		global $wpdb;
-		return $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE post_status IN ( 'publish', 'draft' ) AND post_type IN ('post', 'page' )" );
+		return $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE post_status = 'publish' AND post_type IN ('post', 'page' )" );
 
 	}
 
@@ -166,12 +168,13 @@ class Jekyll_Export {
 	function convert_posts() {
 
 		foreach ( $this->get_posts() as $postID ) {
-			$md = new Markdownify_Extra( null, null, false );
+			$md = new Markdownify_Extra( null, null, $this->extra_html_include );
 			$post = get_post( $postID );
 			$meta = array_merge( $this->convert_meta( $post ), $this->convert_terms( $postID ) );
 			$output = Spyc::YAMLDump($meta);
 			$output .= "---\n";
-			$output .= $md->parseString( apply_filters( 'the_content', $post->post_content ) );
+			$body = $md->parseString( apply_filters( 'the_content', $post->post_content ) );
+			$output .= $this->convert_links( $body );
 			$this->write( $output, $post );
 		}
 
@@ -188,7 +191,7 @@ class Jekyll_Export {
 
 		if ( !function_exists( 'Markdown' ) )
 			require_once dirname( __FILE__ ) . '/includes/markdownify/markdownify_extra.php';
-
+			
 		$this->dir = sys_get_temp_dir() . '/wp-jekyll-' . md5( time() ) . '/';
 		$this->zip = sys_get_temp_dir() . '/wp-jekyll.zip';
 		mkdir( $this->dir );
@@ -197,7 +200,7 @@ class Jekyll_Export {
 		$this->convert_options();
 		$this->convert_posts();
 		$this->convert_uploads();
-		$this->zip(); 
+		$this->zip();
 		$this->send();
 		$this->cleanup();
 
@@ -409,6 +412,39 @@ class Jekyll_Export {
 	    $dir->close();
 	    return true;
 	    
+	}
+	
+	/**
+	 * Manually convert links to markdown because markdownify does it in a really strange way
+	 */
+	function convert_links( $body ) {
+	
+		//links = in body, footnotes = below body
+		preg_match_all( '/\[([^\]]+?)\]\[([0-9]+)\]/', $body, $links, PREG_SET_ORDER );
+		preg_match_all( '/\[([0-9]+)\]: (.+)/', $body, $footnotes, PREG_SET_ORDER );
+		
+		$find = array();
+		$replace = array();
+		
+		//build find and replace array
+		foreach ( $links as $key => $link ) {
+			
+			$find[] = '#' . preg_quote( $link[0], '#' ) . '#';
+			$replace[] = "[{$link[1]}]({$footnotes[$key][2]})";
+		}
+		
+		//clear out footnotes
+		foreach ( $footnotes as $footnote ) {
+			
+			$find[] = '#' . preg_quote( $footnote[0], '#' ) . '#'; 
+			$replace[] = '';
+			
+		}
+		
+		$body = trim( preg_replace( $find, $replace, $body ) );
+
+		return $body;
+
 	}
 	
 }
