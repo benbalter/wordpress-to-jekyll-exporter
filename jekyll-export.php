@@ -419,6 +419,9 @@ class Jekyll_Export {
 	 */
 	function convert_links( $body ) {
 	
+		//disabeled for now
+		return $body;
+	
 		//links = in body, footnotes = below body
 		preg_match_all( '/\[([^\]]+?)\]\[([0-9]+)\]/', $body, $links, PREG_SET_ORDER );
 		preg_match_all( '/\[([0-9]+)\]: (.+)/', $body, $footnotes, PREG_SET_ORDER );
