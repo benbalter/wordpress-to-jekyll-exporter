@@ -168,13 +168,12 @@ class Jekyll_Export {
 	function convert_posts() {
 
 		foreach ( $this->get_posts() as $postID ) {
-			$md = new Markdownify( null, false, $this->extra_html_include );
+			$md = new Markdownify_Extra( null, false, $this->extra_html_include );
 			$post = get_post( $postID );
 			$meta = array_merge( $this->convert_meta( $post ), $this->convert_terms( $postID ) );
 			$output = Spyc::YAMLDump($meta);
 			$output .= "---\n";
-			$body = $md->parseString( apply_filters( 'the_content', $post->post_content ) );
-			$output .= $this->convert_links( $body );
+			$output .= $md->parseString( apply_filters( 'the_content', $post->post_content ) );
 			$this->write( $output, $post );
 		}
 
@@ -412,42 +411,6 @@ class Jekyll_Export {
 	    $dir->close();
 	    return true;
 	    
-	}
-	
-	/**
-	 * Manually convert links to markdown because markdownify does it in a really strange way
-	 */
-	function convert_links( $body ) {
-	
-		//disabeled for now
-		return $body;
-	
-		//links = in body, footnotes = below body
-		preg_match_all( '/\[([^\]]+?)\]\[([0-9]+)\]/', $body, $links, PREG_SET_ORDER );
-		preg_match_all( '/\[([0-9]+)\]: (.+)/', $body, $footnotes, PREG_SET_ORDER );
-		
-		$find = array();
-		$replace = array();
-		
-		//build find and replace array
-		foreach ( $links as $key => $link ) {
-			
-			$find[] = '#' . preg_quote( $link[0], '#' ) . '#';
-			$replace[] = "[{$link[1]}]({$footnotes[$key][2]})";
-		}
-		
-		//clear out footnotes
-		foreach ( $footnotes as $footnote ) {
-			
-			$find[] = '#' . preg_quote( $footnote[0], '#' ) . '#'; 
-			$replace[] = '';
-			
-		}
-		
-		$body = trim( preg_replace( $find, $replace, $body ) );
-
-		return $body;
-
 	}
 	
 }
