@@ -188,7 +188,7 @@ class Jekyll_Export {
 		if ( !class_exists( 'spyc' ) )
 			require_once dirname( __FILE__ ) . '/includes/spyc.php';
 
-		if ( !function_exists( 'Markdown' ) )
+		if ( !class_exists( 'Markdownify_Extra' ) )
 			require_once dirname( __FILE__ ) . '/includes/markdownify/markdownify_extra.php';
 			
 		$this->dir = sys_get_temp_dir() . '/wp-jekyll-' . md5( time() ) . '/';
