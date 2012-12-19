@@ -170,19 +170,29 @@ class Jekyll_Export {
 
 	}
 
+	/**
+	 * Convert the main post content to Markdown.
+	 */
+	function convert_content( $post ) {
+		$md = new Markdownify_Extra( null, false, $this->extra_html_include );
+
+		return $md->parseString( apply_filters( 'the_content', $post->post_content ) );
+	}
 
 	/**
 	 * Loop through and convert all posts to MD files with YAML headers
 	 */
 	function convert_posts() {
+		global $post;
 
 		foreach ( $this->get_posts() as $postID ) {
-			$md = new Markdownify_Extra( null, false, $this->extra_html_include );
 			$post = get_post( $postID );
+			setup_postdata( $post );
+
 			$meta = array_merge( $this->convert_meta( $post ), $this->convert_terms( $postID ) );
 			$output = Spyc::YAMLDump($meta);
 			$output .= "---\n";
-			$output .= $md->parseString( apply_filters( 'the_content', $post->post_content ) );
+			$output .= $this->convert_content( $post );
 			$this->write( $output, $post );
 		}
 
