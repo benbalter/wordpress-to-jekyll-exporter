@@ -150,8 +150,14 @@ class Jekyll_Export {
 			$terms = wp_get_post_terms( $post, $tax );
 			
 			//convert tax name for Jekyll
-			if ( $tax == 'post_tag' )
+			switch ( $tax ) {
+			case 'post_tag':
 				$tax = 'tags';
+				break;
+			case 'category':
+				$tax = 'categories';
+				break;
+			}
 
 			if ( $tax == 'post_format' ) {
 				$output['format'] = get_post_format( $post );
