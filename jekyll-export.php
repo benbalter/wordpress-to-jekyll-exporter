@@ -152,9 +152,12 @@ class Jekyll_Export {
 			//convert tax name for Jekyll
 			if ( $tax == 'post_tag' )
 				$tax = 'tags';
-				
-			$output[ $tax ] = wp_list_pluck( $terms, 'name' );
-		
+
+			if ( $tax == 'post_format' ) {
+				$output['format'] = get_post_format( $post );
+			} else {
+				$output[ $tax ] = wp_list_pluck( $terms, 'name' );
+			}
 		}
 
 		return $output;
