@@ -190,6 +190,13 @@ class Jekyll_Export {
 			setup_postdata( $post );
 
 			$meta = array_merge( $this->convert_meta( $post ), $this->convert_terms( $postID ) );
+
+			// remove falsy values, which just add clutter
+			foreach ( $meta as $key => $value ) {
+				if ( !is_numeric( $value ) && !$value )
+					unset( $meta[ $key ] );
+			}
+
 			$output = Spyc::YAMLDump($meta);
 			$output .= "---\n";
 			$output .= $this->convert_content( $post );
