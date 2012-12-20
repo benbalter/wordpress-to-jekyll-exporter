@@ -34,14 +34,7 @@ class Jekyll_Export {
 								'description', 
 								'url' 
 							);
-							
-	public $posts = array( 	//array of wp_posts fields to convert to YAML front matter
-							//will convert all post_meta and all taxonomies
-							'author',
-							'title',
-							'excerpt',
-					);
-	
+
 	public $extra_html_include = false; //should un-markdownify-able HTML be included or skipped?
 
 	/**
@@ -101,33 +94,17 @@ class Jekyll_Export {
 	 */
 	function convert_meta( $post ) {
 
-		//convert non-content columns in wp_posts table
-		foreach ( $post as $key => $value ) {
-
-			if ( $key == 'post_content' )
-				continue;
-			
-			//convert author from ID to display name
-			if ( $key == 'post_author' )
-				$value = get_userdata( $post->post_author )->display_name;
-		
-			//strip post_ from the key, as it will be page.foo in jekyll
-			$key = str_replace( 'post_', '', $key );
-			
-			if ( !in_array( $key, $this->posts ) )
-				continue;
-				
-			$output[ strtolower( $key)  ] = $value;
-
-		}
+		$output = array(
+			'title' => get_the_title( $post ),
+			'author' => get_userdata( $post->post_author )->display_name,
+			'excerpt' => $post->post_excerpt,
+			'layout' => get_post_type( $post ),
+		);
 
 		//preserve exact permalink, since Jekyll doesn't support redirection
 		if ( 'page' != $post->post_type ) {
 			$output[ 'permalink' ] = str_replace( home_url(), '', get_permalink( $post ) );
 		}
-
-		//force post_type -> layout for ease of use on the Jekyll side
-		$output[ 'layout' ] = get_post_type( $post );
 
 		//convert traditional post_meta values, hide hidden values
 		foreach ( get_post_custom( $post ) as $key => $value ) {
