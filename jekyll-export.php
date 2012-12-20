@@ -26,13 +26,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 class Jekyll_Export {
 
 	private $zip_folder = 'jekyll-export/'; //folder zip file extracts to
-	
+
 	public $rename_options = array( 'site', 'blog' ); //strings to strip from option keys on export
-	
+
 	public $options = array( 	//array of wp_options value to convert to _config.yml
-								'name', 
-								'description', 
-								'url' 
+								'name',
+								'description',
+								'url'
 							);
 
 	public $extra_html_include = false; //should un-markdownify-able HTML be included or skipped?
@@ -54,7 +54,7 @@ class Jekyll_Export {
 
 		if ( get_current_screen()->id != 'export' )
 			return;
-			
+
 		if ( !isset( $_GET['type'] ) || $_GET['type'] != 'jekyll' )
 			return;
 
@@ -117,7 +117,6 @@ class Jekyll_Export {
 		}
 
 		return $output;
-
 	}
 
 
@@ -128,9 +127,9 @@ class Jekyll_Export {
 
 		$output = array();
 		foreach ( get_taxonomies( array( 'object_type' => array( get_post_type( $post ) ) ) ) as $tax ) {
-		
+
 			$terms = wp_get_post_terms( $post, $tax );
-			
+
 			//convert tax name for Jekyll
 			switch ( $tax ) {
 			case 'post_tag':
@@ -149,7 +148,6 @@ class Jekyll_Export {
 		}
 
 		return $output;
-
 	}
 
 	/**
@@ -189,7 +187,6 @@ class Jekyll_Export {
 
 	}
 
-
 	/**
 	 * Main function, bootstraps, converts, and cleans up
 	 */
@@ -201,7 +198,7 @@ class Jekyll_Export {
 
 		if ( !class_exists( 'Markdownify_Extra' ) )
 			require_once dirname( __FILE__ ) . '/includes/markdownify/markdownify_extra.php';
-			
+
 		$this->dir = sys_get_temp_dir() . '/wp-jekyll-' . md5( time() ) . '/';
 		$this->zip = sys_get_temp_dir() . '/wp-jekyll.zip';
 		mkdir( $this->dir );
@@ -242,12 +239,12 @@ class Jekyll_Export {
 			$option = maybe_unserialize( $option );
 
 		}
-		
+
 		foreach ( $options as $key => $value ) {
-			
+
 			if ( !in_array( $key, $this->options ) )
 				unset( $options[ $key ] );
-				
+
 		}
 
 		$output = Spyc::YAMLDump( $options );
@@ -271,7 +268,7 @@ class Jekyll_Export {
 		} else {
 			$filename = '_posts/' . date( 'Y-m-d', strtotime( $post->post_date ) ) . '-' . $post->post_name . '.md';
 		}
-				
+
 		file_put_contents( $this->dir . $filename, $output );
 
 	}
@@ -295,15 +292,15 @@ class Jekyll_Export {
 	 * Helper function to add a file to the zip
 	 */
 	function _zip( $dir, &$zip ) {
-	
+
 		//loop through all files in directory
 		foreach ( glob( trailingslashit( $dir ) . '*' ) as $path ) {
-			
+
 			if ( is_dir( $path ) ) {
 				$this->_zip( $path, $zip );
 				continue;
 			}
-			
+
 			//make path within zip relative to zip base, not server root
 			$local_path = '/' . str_replace( $this->dir, $this->zip_folder, $path );
 
@@ -358,7 +355,7 @@ class Jekyll_Export {
 
 
 	}
-	
+
 	function rmdir_recursive( $dir ) {
 
    		foreach( glob($dir . '/*' ) as $file ) {
@@ -367,18 +364,18 @@ class Jekyll_Export {
    		    else
    		        unlink( $file );
    		}
-   		
+
    		rmdir( $dir );
-   	
+
    	}
-   	
+
    	function convert_uploads() {
-   	
+
    		$upload_dir = wp_upload_dir();
 	   	$this->copy_recursive( $upload_dir['basedir'], $this->dir . str_replace( trailingslashit( get_home_url() ), '', $upload_dir['baseurl'] )  );
-	   	
+
    	}
-   	
+
 	/**
 	 * Copy a file, or recursively copy a folder and its contents
 	 *
@@ -392,17 +389,17 @@ class Jekyll_Export {
 	function copy_recursive($source, $dest) {
 
 	    // Check for symlinks
-	    if ( is_link( $source ) ) { 
+	    if ( is_link( $source ) ) {
 	        return symlink( readlink( $source ), $dest );
 	    }
-	    	     
+
 	    // Simple copy for a file
-	    if ( is_file( $source ) ) { 
+	    if ( is_file( $source ) ) {
 	        return copy( $source, $dest );
 	    }
-	 
+
 	    // Make destination directory
-	    if ( !is_dir($dest) ) { 
+	    if ( !is_dir($dest) ) {
 	        mkdir($dest, null, true );
 	    }
 
@@ -413,17 +410,17 @@ class Jekyll_Export {
 	        if ($entry == '.' || $entry == '..') {
 	            continue;
 	        }
-	 
+
 	        // Deep copy directories
 	        $this->copy_recursive("$source/$entry", "$dest/$entry");
 	    }
-	 
+
 	    // Clean up
 	    $dir->close();
 	    return true;
-	    
+
 	}
-	
+
 }
 
 
