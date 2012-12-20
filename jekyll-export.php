@@ -35,8 +35,6 @@ class Jekyll_Export {
 								'url'
 							);
 
-	public $extra_html_include = false; //should un-markdownify-able HTML be included or skipped?
-
 	/**
 	 * Hook into WP Core
 	 */
@@ -154,7 +152,7 @@ class Jekyll_Export {
 	 * Convert the main post content to Markdown.
 	 */
 	function convert_content( $post ) {
-		$md = new Markdownify_Extra( null, false, $this->extra_html_include );
+		$md = new Markdownify_Extra;
 
 		return $md->parseString( apply_filters( 'the_content', $post->post_content ) );
 	}
