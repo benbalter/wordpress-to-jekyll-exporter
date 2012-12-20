@@ -120,7 +120,12 @@ class Jekyll_Export {
 			$output[ strtolower( $key)  ] = $value;
 
 		}
-		
+
+		//preserve exact permalink, since Jekyll doesn't support redirection
+		if ( 'page' != $post->post_type ) {
+			$output[ 'permalink' ] = str_replace( home_url(), '', get_permalink( $post ) );
+		}
+
 		//force post_type -> layout for ease of use on the Jekyll side
 		$output[ 'layout' ] = get_post_type( $post );
 
@@ -197,7 +202,9 @@ class Jekyll_Export {
 					unset( $meta[ $key ] );
 			}
 
-			$output = Spyc::YAMLDump($meta);
+			// Jekyll doesn't like word-wrapped permalinks
+			$output = Spyc::YAMLDump( $meta, false, 80 );
+
 			$output .= "---\n";
 			$output .= $this->convert_content( $post );
 			$this->write( $output, $post );
