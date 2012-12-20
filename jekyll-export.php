@@ -194,6 +194,7 @@ class Jekyll_Export {
 	 * Main function, bootstraps, converts, and cleans up
 	 */
 	function export() {
+		define( 'DOING_JEKYLL_EXPORT', true );
 
 		if ( !class_exists( 'spyc' ) )
 			require_once dirname( __FILE__ ) . '/includes/spyc.php';
