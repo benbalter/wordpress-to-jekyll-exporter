@@ -26,23 +26,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 class Jekyll_Export {
 
 	private $zip_folder = 'jekyll-export/'; //folder zip file extracts to
-	
+
 	public $rename_options = array( 'site', 'blog' ); //strings to strip from option keys on export
-	
+
 	public $options = array( 	//array of wp_options value to convert to _config.yml
-								'name', 
-								'description', 
-								'url' 
+								'name',
+								'description',
+								'url'
 							);
-							
-	public $posts = array( 	//array of wp_posts fields to convert to YAML front matter
-							//will convert all post_meta and all taxonomies
-							'author',
-							'title',
-							'excerpt',
-					);
-	
-	public $extra_html_include = false; //should un-markdownify-able HTML be included or skipped?
 
 	/**
 	 * Hook into WP Core
@@ -61,7 +52,7 @@ class Jekyll_Export {
 
 		if ( get_current_screen()->id != 'export' )
 			return;
-			
+
 		if ( !isset( $_GET['type'] ) || $_GET['type'] != 'jekyll' )
 			return;
 
@@ -101,28 +92,17 @@ class Jekyll_Export {
 	 */
 	function convert_meta( $post ) {
 
-		//convert non-content columns in wp_posts table
-		foreach ( $post as $key => $value ) {
+		$output = array(
+			'title' => get_the_title( $post ),
+			'author' => get_userdata( $post->post_author )->display_name,
+			'excerpt' => $post->post_excerpt,
+			'layout' => get_post_type( $post ),
+		);
 
-			if ( $key == 'post_content' )
-				continue;
-			
-			//convert author from ID to display name
-			if ( $key == 'post_author' )
-				$value = get_userdata( $post->post_author )->display_name;
-		
-			//strip post_ from the key, as it will be page.foo in jekyll
-			$key = str_replace( 'post_', '', $key );
-			
-			if ( !in_array( $key, $this->posts ) )
-				continue;
-				
-			$output[ strtolower( $key)  ] = $value;
-
+		//preserve exact permalink, since Jekyll doesn't support redirection
+		if ( 'page' != $post->post_type ) {
+			$output[ 'permalink' ] = str_replace( home_url(), '', get_permalink( $post ) );
 		}
-		
-		//force post_type -> layout for ease of use on the Jekyll side
-		$output[ 'layout' ] = get_post_type( $post );
 
 		//convert traditional post_meta values, hide hidden values
 		foreach ( get_post_custom( $post ) as $key => $value ) {
@@ -135,7 +115,6 @@ class Jekyll_Export {
 		}
 
 		return $output;
-
 	}
 
 
@@ -146,51 +125,78 @@ class Jekyll_Export {
 
 		$output = array();
 		foreach ( get_taxonomies( array( 'object_type' => array( get_post_type( $post ) ) ) ) as $tax ) {
-		
+
 			$terms = wp_get_post_terms( $post, $tax );
-			
+
 			//convert tax name for Jekyll
-			if ( $tax == 'post_tag' )
+			switch ( $tax ) {
+			case 'post_tag':
 				$tax = 'tags';
-				
-			$output[ $tax ] = wp_list_pluck( $terms, 'name' );
-		
+				break;
+			case 'category':
+				$tax = 'categories';
+				break;
+			}
+
+			if ( $tax == 'post_format' ) {
+				$output['format'] = get_post_format( $post );
+			} else {
+				$output[ $tax ] = wp_list_pluck( $terms, 'name' );
+			}
 		}
 
 		return $output;
-
 	}
 
+	/**
+	 * Convert the main post content to Markdown.
+	 */
+	function convert_content( $post ) {
+		$md = new Markdownify_Extra;
+
+		return $md->parseString( apply_filters( 'the_content', $post->post_content ) );
+	}
 
 	/**
 	 * Loop through and convert all posts to MD files with YAML headers
 	 */
 	function convert_posts() {
+		global $post;
 
 		foreach ( $this->get_posts() as $postID ) {
-			$md = new Markdownify_Extra( null, false, $this->extra_html_include );
 			$post = get_post( $postID );
+			setup_postdata( $post );
+
 			$meta = array_merge( $this->convert_meta( $post ), $this->convert_terms( $postID ) );
-			$output = Spyc::YAMLDump($meta);
+
+			// remove falsy values, which just add clutter
+			foreach ( $meta as $key => $value ) {
+				if ( !is_numeric( $value ) && !$value )
+					unset( $meta[ $key ] );
+			}
+
+			// Jekyll doesn't like word-wrapped permalinks
+			$output = Spyc::YAMLDump( $meta, false, 80 );
+
 			$output .= "---\n";
-			$output .= $md->parseString( apply_filters( 'the_content', $post->post_content ) );
+			$output .= $this->convert_content( $post );
 			$this->write( $output, $post );
 		}
 
 	}
 
-
 	/**
 	 * Main function, bootstraps, converts, and cleans up
 	 */
 	function export() {
+		define( 'DOING_JEKYLL_EXPORT', true );
 
 		if ( !class_exists( 'spyc' ) )
 			require_once dirname( __FILE__ ) . '/includes/spyc.php';
 
 		if ( !class_exists( 'Markdownify_Extra' ) )
 			require_once dirname( __FILE__ ) . '/includes/markdownify/markdownify_extra.php';
-			
+
 		$this->dir = sys_get_temp_dir() . '/wp-jekyll-' . md5( time() ) . '/';
 		$this->zip = sys_get_temp_dir() . '/wp-jekyll.zip';
 		mkdir( $this->dir );
@@ -231,12 +237,12 @@ class Jekyll_Export {
 			$option = maybe_unserialize( $option );
 
 		}
-		
+
 		foreach ( $options as $key => $value ) {
-			
+
 			if ( !in_array( $key, $this->options ) )
 				unset( $options[ $key ] );
-				
+
 		}
 
 		$output = Spyc::YAMLDump( $options );
@@ -260,7 +266,7 @@ class Jekyll_Export {
 		} else {
 			$filename = '_posts/' . date( 'Y-m-d', strtotime( $post->post_date ) ) . '-' . $post->post_name . '.md';
 		}
-				
+
 		file_put_contents( $this->dir . $filename, $output );
 
 	}
@@ -284,15 +290,15 @@ class Jekyll_Export {
 	 * Helper function to add a file to the zip
 	 */
 	function _zip( $dir, &$zip ) {
-	
+
 		//loop through all files in directory
 		foreach ( glob( trailingslashit( $dir ) . '*' ) as $path ) {
-			
+
 			if ( is_dir( $path ) ) {
 				$this->_zip( $path, $zip );
 				continue;
 			}
-			
+
 			//make path within zip relative to zip base, not server root
 			$local_path = '/' . str_replace( $this->dir, $this->zip_folder, $path );
 
@@ -347,7 +353,7 @@ class Jekyll_Export {
 
 
 	}
-	
+
 	function rmdir_recursive( $dir ) {
 
    		foreach( glob($dir . '/*' ) as $file ) {
@@ -356,18 +362,18 @@ class Jekyll_Export {
    		    else
    		        unlink( $file );
    		}
-   		
+
    		rmdir( $dir );
-   	
+
    	}
-   	
+
    	function convert_uploads() {
-   	
+
    		$upload_dir = wp_upload_dir();
 	   	$this->copy_recursive( $upload_dir['basedir'], $this->dir . str_replace( trailingslashit( get_home_url() ), '', $upload_dir['baseurl'] )  );
-	   	
+
    	}
-   	
+
 	/**
 	 * Copy a file, or recursively copy a folder and its contents
 	 *
@@ -381,17 +387,17 @@ class Jekyll_Export {
 	function copy_recursive($source, $dest) {
 
 	    // Check for symlinks
-	    if ( is_link( $source ) ) { 
+	    if ( is_link( $source ) ) {
 	        return symlink( readlink( $source ), $dest );
 	    }
-	    	     
+
 	    // Simple copy for a file
-	    if ( is_file( $source ) ) { 
+	    if ( is_file( $source ) ) {
 	        return copy( $source, $dest );
 	    }
-	 
+
 	    // Make destination directory
-	    if ( !is_dir($dest) ) { 
+	    if ( !is_dir($dest) ) {
 	        mkdir($dest, null, true );
 	    }
 
@@ -402,17 +408,17 @@ class Jekyll_Export {
 	        if ($entry == '.' || $entry == '..') {
 	            continue;
 	        }
-	 
+
 	        // Deep copy directories
 	        $this->copy_recursive("$source/$entry", "$dest/$entry");
 	    }
-	 
+
 	    // Clean up
 	    $dir->close();
 	    return true;
-	    
+
 	}
-	
+
 }
 
 
