@@ -25,399 +25,399 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 class Jekyll_Export {
 
-	private $zip_folder = 'jekyll-export/'; //folder zip file extracts to
+  private $zip_folder = 'jekyll-export/'; //folder zip file extracts to
 
-	public $rename_options = array( 'site', 'blog' ); //strings to strip from option keys on export
+  public $rename_options = array( 'site', 'blog' ); //strings to strip from option keys on export
 
-	public $options = array( 	//array of wp_options value to convert to _config.yml
-								'name',
-								'description',
-								'url'
-							);
+  public $options = array(  //array of wp_options value to convert to _config.yml
+    'name',
+    'description',
+    'url'
+  );
 
-	/**
-	 * Hook into WP Core
-	 */
-	function __construct() {
+  /**
+   * Hook into WP Core
+   */
+  function __construct() {
 
-		add_action( 'admin_menu', array( &$this, 'register_menu' ) );
-		add_action( 'current_screen', array( &$this, 'callback' ) );
+    add_action( 'admin_menu', array( &$this, 'register_menu' ) );
+    add_action( 'current_screen', array( &$this, 'callback' ) );
 
-	}
+  }
 
-	/**
-	 * Listens for page callback, intercepts and runs export
-	 */
-	function callback() {
+  /**
+   * Listens for page callback, intercepts and runs export
+   */
+  function callback() {
 
-		if ( get_current_screen()->id != 'export' )
-			return;
+    if ( get_current_screen()->id != 'export' )
+      return;
 
-		if ( !isset( $_GET['type'] ) || $_GET['type'] != 'jekyll' )
-			return;
+    if ( !isset( $_GET['type'] ) || $_GET['type'] != 'jekyll' )
+      return;
 
-		if ( !current_user_can( 'manage_options' ) )
-			return;
+    if ( !current_user_can( 'manage_options' ) )
+      return;
 
-		$this->export();
-		exit();
+    $this->export();
+    exit();
 
-	}
+  }
 
 
-	/**
-	 * Add menu option to tools list
-	 */
-	function register_menu() {
+  /**
+   * Add menu option to tools list
+   */
+  function register_menu() {
 
-		add_management_page( __( 'Export to Jekyll', 'jekyll-export' ), __( 'Export to Jekyll', 'jekyll-export' ), 'manage_options', 'export.php?type=jekyll' );
+    add_management_page( __( 'Export to Jekyll', 'jekyll-export' ), __( 'Export to Jekyll', 'jekyll-export' ), 'manage_options', 'export.php?type=jekyll' );
 
-	}
+  }
 
 
-	/**
-	 * Get an array of all post and page IDs
-	 * Note: We don't use core's get_posts as it doesn't scale as well on large sites
-	 */
-	function get_posts() {
+  /**
+   * Get an array of all post and page IDs
+   * Note: We don't use core's get_posts as it doesn't scale as well on large sites
+   */
+  function get_posts() {
 
-		global $wpdb;
-		return $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE post_status = 'publish' AND post_type IN ('post', 'page' )" );
+    global $wpdb;
+    return $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE post_status = 'publish' AND post_type IN ('post', 'page' )" );
 
-	}
+  }
 
 
-	/**
-	 * Convert a posts meta data (both post_meta and the fields in wp_posts) to key value pairs for export
-	 */
-	function convert_meta( $post ) {
+  /**
+   * Convert a posts meta data (both post_meta and the fields in wp_posts) to key value pairs for export
+   */
+  function convert_meta( $post ) {
 
-		$output = array(
-			'title' => get_the_title( $post ),
-			'author' => get_userdata( $post->post_author )->display_name,
-			'excerpt' => $post->post_excerpt,
-			'layout' => get_post_type( $post ),
-		);
+    $output = array(
+      'title'   => get_the_title( $post ),
+      'author'  => get_userdata( $post->post_author )->display_name,
+      'excerpt' => $post->post_excerpt,
+      'layout'  => get_post_type( $post ),
+    );
 
-		//preserve exact permalink, since Jekyll doesn't support redirection
-		if ( 'page' != $post->post_type ) {
-			$output[ 'permalink' ] = str_replace( home_url(), '', get_permalink( $post ) );
-		}
+    //preserve exact permalink, since Jekyll doesn't support redirection
+    if ( 'page' != $post->post_type ) {
+      $output[ 'permalink' ] = str_replace( home_url(), '', get_permalink( $post ) );
+    }
 
-		//convert traditional post_meta values, hide hidden values
-		foreach ( get_post_custom( $post ) as $key => $value ) {
+    //convert traditional post_meta values, hide hidden values
+    foreach ( get_post_custom( $post ) as $key => $value ) {
 
-			if ( substr( $key, 0, 1 ) == '_' )
-				continue;
+      if ( substr( $key, 0, 1 ) == '_' )
+        continue;
 
-			$output[ $key ] = $value;
+      $output[ $key ] = $value;
 
-		}
+    }
 
-		return $output;
-	}
+    return $output;
+  }
 
 
-	/**
-	 * Convert post taxonomies for export
-	 */
-	function convert_terms( $post ) {
+  /**
+   * Convert post taxonomies for export
+   */
+  function convert_terms( $post ) {
 
-		$output = array();
-		foreach ( get_taxonomies( array( 'object_type' => array( get_post_type( $post ) ) ) ) as $tax ) {
+    $output = array();
+    foreach ( get_taxonomies( array( 'object_type' => array( get_post_type( $post ) ) ) ) as $tax ) {
 
-			$terms = wp_get_post_terms( $post, $tax );
-
-			//convert tax name for Jekyll
-			switch ( $tax ) {
-			case 'post_tag':
-				$tax = 'tags';
-				break;
-			case 'category':
-				$tax = 'categories';
-				break;
-			}
+      $terms = wp_get_post_terms( $post, $tax );
+
+      //convert tax name for Jekyll
+      switch ( $tax ) {
+      case 'post_tag':
+        $tax = 'tags';
+        break;
+      case 'category':
+        $tax = 'categories';
+        break;
+      }
 
-			if ( $tax == 'post_format' ) {
-				$output['format'] = get_post_format( $post );
-			} else {
-				$output[ $tax ] = wp_list_pluck( $terms, 'name' );
-			}
-		}
+      if ( $tax == 'post_format' ) {
+        $output['format'] = get_post_format( $post );
+      } else {
+        $output[ $tax ] = wp_list_pluck( $terms, 'name' );
+      }
+    }
 
-		return $output;
-	}
+    return $output;
+  }
 
-	/**
-	 * Convert the main post content to Markdown.
-	 */
-	function convert_content( $post ) {
-		$md = new Markdownify_Extra;
+  /**
+   * Convert the main post content to Markdown.
+   */
+  function convert_content( $post ) {
+    $md = new Markdownify_Extra;
 
-		return $md->parseString( apply_filters( 'the_content', $post->post_content ) );
-	}
+    return $md->parseString( apply_filters( 'the_content', $post->post_content ) );
+  }
 
-	/**
-	 * Loop through and convert all posts to MD files with YAML headers
-	 */
-	function convert_posts() {
-		global $post;
+  /**
+   * Loop through and convert all posts to MD files with YAML headers
+   */
+  function convert_posts() {
+    global $post;
 
-		foreach ( $this->get_posts() as $postID ) {
-			$post = get_post( $postID );
-			setup_postdata( $post );
+    foreach ( $this->get_posts() as $postID ) {
+      $post = get_post( $postID );
+      setup_postdata( $post );
 
-			$meta = array_merge( $this->convert_meta( $post ), $this->convert_terms( $postID ) );
+      $meta = array_merge( $this->convert_meta( $post ), $this->convert_terms( $postID ) );
 
-			// remove falsy values, which just add clutter
-			foreach ( $meta as $key => $value ) {
-				if ( !is_numeric( $value ) && !$value )
-					unset( $meta[ $key ] );
-			}
+      // remove falsy values, which just add clutter
+      foreach ( $meta as $key => $value ) {
+        if ( !is_numeric( $value ) && !$value )
+          unset( $meta[ $key ] );
+      }
 
-			// Jekyll doesn't like word-wrapped permalinks
-			$output = Spyc::YAMLDump( $meta, false, 80 );
+      // Jekyll doesn't like word-wrapped permalinks
+      $output = Spyc::YAMLDump( $meta, false, 80 );
 
-			$output .= "---\n";
-			$output .= $this->convert_content( $post );
-			$this->write( $output, $post );
-		}
+      $output .= "---\n";
+      $output .= $this->convert_content( $post );
+      $this->write( $output, $post );
+    }
 
-	}
+  }
 
-	/**
-	 * Main function, bootstraps, converts, and cleans up
-	 */
-	function export() {
-		define( 'DOING_JEKYLL_EXPORT', true );
+  /**
+   * Main function, bootstraps, converts, and cleans up
+   */
+  function export() {
+    define( 'DOING_JEKYLL_EXPORT', true );
 
-		if ( !class_exists( 'spyc' ) )
-			require_once dirname( __FILE__ ) . '/includes/spyc.php';
+    if ( !class_exists( 'spyc' ) )
+      require_once dirname( __FILE__ ) . '/includes/spyc.php';
 
-		if ( !class_exists( 'Markdownify_Extra' ) )
-			require_once dirname( __FILE__ ) . '/includes/markdownify/markdownify_extra.php';
+    if ( !class_exists( 'Markdownify_Extra' ) )
+      require_once dirname( __FILE__ ) . '/includes/markdownify/markdownify_extra.php';
 
-		$this->dir = sys_get_temp_dir() . '/wp-jekyll-' . md5( time() ) . '/';
-		$this->zip = sys_get_temp_dir() . '/wp-jekyll.zip';
-		mkdir( $this->dir );
-		mkdir( $this->dir . '_posts/' );
+    $this->dir = sys_get_temp_dir() . '/wp-jekyll-' . md5( time() ) . '/';
+    $this->zip = sys_get_temp_dir() . '/wp-jekyll.zip';
+    mkdir( $this->dir );
+    mkdir( $this->dir . '_posts/' );
 
-		$this->convert_options();
-		$this->convert_posts();
-		$this->convert_uploads();
-		$this->zip();
-		$this->send();
-		$this->cleanup();
+    $this->convert_options();
+    $this->convert_posts();
+    $this->convert_uploads();
+    $this->zip();
+    $this->send();
+    $this->cleanup();
 
-	}
+  }
 
 
-	/**
-	 * Convert options table to _config.yml file
-	 */
-	function convert_options() {
+  /**
+   * Convert options table to _config.yml file
+   */
+  function convert_options() {
 
-		$options = wp_load_alloptions();
-		foreach ( $options as $key => &$option ) {
+    $options = wp_load_alloptions();
+    foreach ( $options as $key => &$option ) {
 
-			if ( substr( $key, 0, 1 ) == '_' )
-				unset( $options[$key] );
+      if ( substr( $key, 0, 1 ) == '_' )
+        unset( $options[$key] );
 
-			//strip site and blog from key names, since it will become site. when in Jekyll
-			foreach ( $this->rename_options as $rename ) {
+      //strip site and blog from key names, since it will become site. when in Jekyll
+      foreach ( $this->rename_options as $rename ) {
 
-				$len = strlen( $rename );
-				if ( substr( $key, 0, $len ) != $rename )
-					continue;
+        $len = strlen( $rename );
+        if ( substr( $key, 0, $len ) != $rename )
+          continue;
 
-				$this->rename_key( $options, $key, substr( $key, $len ) );
+        $this->rename_key( $options, $key, substr( $key, $len ) );
 
-			}
+      }
 
-			$option = maybe_unserialize( $option );
+      $option = maybe_unserialize( $option );
 
-		}
+    }
 
-		foreach ( $options as $key => $value ) {
+    foreach ( $options as $key => $value ) {
 
-			if ( !in_array( $key, $this->options ) )
-				unset( $options[ $key ] );
+      if ( !in_array( $key, $this->options ) )
+        unset( $options[ $key ] );
 
-		}
+    }
 
-		$output = Spyc::YAMLDump( $options );
+    $output = Spyc::YAMLDump( $options );
 
-		//strip starting "---"
-		$output = substr( $output, 4 );
+    //strip starting "---"
+    $output = substr( $output, 4 );
 
-		file_put_contents( $this->dir . '_config.yml', $output );
+    file_put_contents( $this->dir . '_config.yml', $output );
 
-	}
+  }
 
 
-	/**
-	 * Write file to temp dir
-	 */
-	function write( $output, $post ) {
+  /**
+   * Write file to temp dir
+   */
+  function write( $output, $post ) {
 
-		if ( get_post_type( $post ) == 'page' ) {
-			mkdir( $this->dir . $post->post_name );
-			$filename = $post->post_name . '/index.md';
-		} else {
-			$filename = '_posts/' . date( 'Y-m-d', strtotime( $post->post_date ) ) . '-' . $post->post_name . '.md';
-		}
+    if ( get_post_type( $post ) == 'page' ) {
+      mkdir( $this->dir . $post->post_name );
+      $filename = $post->post_name . '/index.md';
+    } else {
+      $filename = '_posts/' . date( 'Y-m-d', strtotime( $post->post_date ) ) . '-' . $post->post_name . '.md';
+    }
 
-		file_put_contents( $this->dir . $filename, $output );
+    file_put_contents( $this->dir . $filename, $output );
 
-	}
+  }
 
 
-	/**
-	 * Zip temp dir
-	 */
-	function zip() {
+  /**
+   * Zip temp dir
+   */
+  function zip() {
 
-		//create zip
-		$zip = new ZipArchive();
-		$zip->open( $this->zip, ZIPARCHIVE::CREATE );
-		$this->_zip( $this->dir, $zip );
-		$zip->close();
+    //create zip
+    $zip = new ZipArchive();
+    $zip->open( $this->zip, ZIPARCHIVE::CREATE );
+    $this->_zip( $this->dir, $zip );
+    $zip->close();
 
-	}
+  }
 
 
-	/**
-	 * Helper function to add a file to the zip
-	 */
-	function _zip( $dir, &$zip ) {
+  /**
+   * Helper function to add a file to the zip
+   */
+  function _zip( $dir, &$zip ) {
 
-		//loop through all files in directory
-		foreach ( glob( trailingslashit( $dir ) . '*' ) as $path ) {
+    //loop through all files in directory
+    foreach ( glob( trailingslashit( $dir ) . '*' ) as $path ) {
 
-			if ( is_dir( $path ) ) {
-				$this->_zip( $path, $zip );
-				continue;
-			}
+      if ( is_dir( $path ) ) {
+        $this->_zip( $path, $zip );
+        continue;
+      }
 
-			//make path within zip relative to zip base, not server root
-			$local_path = '/' . str_replace( $this->dir, $this->zip_folder, $path );
+      //make path within zip relative to zip base, not server root
+      $local_path = '/' . str_replace( $this->dir, $this->zip_folder, $path );
 
-			//add file
-			$zip->addFile( realpath( $path ), $local_path );
+      //add file
+      $zip->addFile( realpath( $path ), $local_path );
 
-		}
+    }
 
-	}
+  }
 
 
-	/**
-	 * Send headers and zip file to user
-	 */
-	function send() {
+  /**
+   * Send headers and zip file to user
+   */
+  function send() {
 
-		//send headers
-		header( 'Content-Type: application/zip' );
-		header( "Content-Disposition: attachment; filename=jekyll-export.zip" );
-		header( 'Content-Length: ' . filesize( $this->zip ) );
+    //send headers
+    header( 'Content-Type: application/zip' );
+    header( "Content-Disposition: attachment; filename=jekyll-export.zip" );
+    header( 'Content-Length: ' . filesize( $this->zip ) );
 
-		//read file
-		readfile( $this->zip );
+    //read file
+    readfile( $this->zip );
 
-	}
+  }
 
 
-	/**
-	 * Clear temp files
-	 */
-	function cleanup( ) {
+  /**
+   * Clear temp files
+   */
+  function cleanup( ) {
 
-		$this->rmdir_recursive( $this->dir );
-		unlink( $this->zip );
+    $this->rmdir_recursive( $this->dir );
+    unlink( $this->zip );
 
-	}
+  }
 
 
-	/**
-	 * Rename an assoc. array's key without changing the order
-	 */
-	function rename_key( &$array, $from, $to ) {
+  /**
+   * Rename an assoc. array's key without changing the order
+   */
+  function rename_key( &$array, $from, $to ) {
 
-		$keys = array_keys( $array );
-		$index = array_search( $from, $keys );
+    $keys = array_keys( $array );
+    $index = array_search( $from, $keys );
 
-		if ( $index === false )
-			return;
+    if ( $index === false )
+      return;
 
-		$keys[ $index ] = $to;
-		$array = array_combine( $keys, $array );
+    $keys[ $index ] = $to;
+    $array = array_combine( $keys, $array );
 
 
-	}
+  }
 
-	function rmdir_recursive( $dir ) {
+  function rmdir_recursive( $dir ) {
 
-   		foreach( glob($dir . '/*' ) as $file ) {
-   		    if( is_dir( $file ) )
-   		        $this->rmdir_recursive( $file );
-   		    else
-   		        unlink( $file );
-   		}
+    foreach( glob($dir . '/*' ) as $file ) {
+      if( is_dir( $file ) )
+        $this->rmdir_recursive( $file );
+      else
+        unlink( $file );
+    }
 
-   		rmdir( $dir );
+    rmdir( $dir );
 
-   	}
+  }
 
-   	function convert_uploads() {
+  function convert_uploads() {
 
-   		$upload_dir = wp_upload_dir();
-	   	$this->copy_recursive( $upload_dir['basedir'], $this->dir . str_replace( trailingslashit( get_home_url() ), '', $upload_dir['baseurl'] )  );
+    $upload_dir = wp_upload_dir();
+    $this->copy_recursive( $upload_dir['basedir'], $this->dir . str_replace( trailingslashit( get_home_url() ), '', $upload_dir['baseurl'] )  );
 
-   	}
+  }
 
-	/**
-	 * Copy a file, or recursively copy a folder and its contents
-	 *
-	 * @author      Aidan Lister <aidan@php.net>
-	 * @version     1.0.1
-	 * @link        http://aidanlister.com/2004/04/recursively-copying-directories-in-php/
-	 * @param       string   $source    Source path
-	 * @param       string   $dest      Destination path
-	 * @return      bool     Returns TRUE on success, FALSE on failure
-	 */
-	function copy_recursive($source, $dest) {
+  /**
+   * Copy a file, or recursively copy a folder and its contents
+   *
+   * @author      Aidan Lister <aidan@php.net>
+   * @version     1.0.1
+   * @link        http://aidanlister.com/2004/04/recursively-copying-directories-in-php/
+   * @param       string   $source    Source path
+   * @param       string   $dest      Destination path
+   * @return      bool     Returns TRUE on success, FALSE on failure
+   */
+  function copy_recursive($source, $dest) {
 
-	    // Check for symlinks
-	    if ( is_link( $source ) ) {
-	        return symlink( readlink( $source ), $dest );
-	    }
+    // Check for symlinks
+    if ( is_link( $source ) ) {
+      return symlink( readlink( $source ), $dest );
+    }
 
-	    // Simple copy for a file
-	    if ( is_file( $source ) ) {
-	        return copy( $source, $dest );
-	    }
+    // Simple copy for a file
+    if ( is_file( $source ) ) {
+      return copy( $source, $dest );
+    }
 
-	    // Make destination directory
-	    if ( !is_dir($dest) ) {
-	        mkdir($dest, null, true );
-	    }
+    // Make destination directory
+    if ( !is_dir($dest) ) {
+      mkdir($dest, null, true );
+    }
 
-	    // Loop through the folder
-	    $dir = dir($source);
-	    while (false !== $entry = $dir->read()) {
-	        // Skip pointers
-	        if ($entry == '.' || $entry == '..') {
-	            continue;
-	        }
+    // Loop through the folder
+    $dir = dir($source);
+    while (false !== $entry = $dir->read()) {
+      // Skip pointers
+      if ($entry == '.' || $entry == '..') {
+        continue;
+      }
 
-	        // Deep copy directories
-	        $this->copy_recursive("$source/$entry", "$dest/$entry");
-	    }
+      // Deep copy directories
+      $this->copy_recursive("$source/$entry", "$dest/$entry");
+    }
 
-	    // Clean up
-	    $dir->close();
-	    return true;
+    // Clean up
+    $dir->close();
+    return true;
 
-	}
+  }
 
 }
 
