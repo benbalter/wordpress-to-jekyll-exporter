@@ -197,8 +197,16 @@ class Jekyll_Export {
     if ( !class_exists( 'Markdownify_Extra' ) )
       require_once dirname( __FILE__ ) . '/includes/markdownify/markdownify_extra.php';
 
-    $this->dir = sys_get_temp_dir() . '/wp-jekyll-' . md5( time() ) . '/';
-    $this->zip = sys_get_temp_dir() . '/wp-jekyll.zip';
+    $temp_dir = sys_get_temp_dir();
+
+    //fallback to wp-content/uploads if tmp dir is not writable (e.g. shared host)
+    if !is_writable( $temp_dir ) {
+      $upload_dir = wp_upload_dir();
+      $temp_dir =  $upload_dir['baseurl'];
+    }
+
+    $this->dir = $temp_dir . '/wp-jekyll-' . md5( time() ) . '/';
+    $this->zip = $temp_dir . '/wp-jekyll.zip';
     mkdir( $this->dir );
     mkdir( $this->dir . '_posts/' );
 
