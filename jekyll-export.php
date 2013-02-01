@@ -227,10 +227,11 @@ class Jekyll_Export {
     WP_Filesystem();
 
     $temp_dir = get_temp_dir();
-    $this->dir = $temp_dir . '/wp-jekyll-' . md5( time() ) . '/';
-    $this->zip = $temp_dir . '/wp-jekyll.zip';
+    $this->dir = $temp_dir . 'wp-jekyll-' . md5( time() ) . '/';
+    $this->zip = $temp_dir . 'wp-jekyll.zip';
     $wp_filesystem->mkdir( $this->dir );
     $wp_filesystem->mkdir( $this->dir . '_posts/' );
+    $wp_filesystem->mkdir( $this->dir . 'wp-content/' );
 
     $this->convert_options();
     $this->convert_posts();
@@ -423,7 +424,7 @@ class Jekyll_Export {
 
     // Make destination directory
     if ( !is_dir($dest) ) {
-      $wp_filesystem->mkdir($dest, null, true );
+      $wp_filesystem->mkdir( $dest );
     }
 
     // Loop through the folder
