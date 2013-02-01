@@ -2,7 +2,7 @@
 /*
 Plugin Name: WordPress to Jekyll Exporter
 Description: Exports WordPress posts, pages, and options as YAML files parsable by Jekyll
-Version: 1.0
+Version: 1.1
 Author: Benjamin J. Balter
 Author URI: http://ben.balter.com
 License: GPLv3 or Later
@@ -33,6 +33,11 @@ class Jekyll_Export {
     'name',
     'description',
     'url'
+  );
+
+  public  $required_classes = array( 
+    'spyc' => '%pwd%/includes/spyc.php',
+    'Markdownify_Extra' => '%pwd%/includes/markdownify/markdownify_extra.php',
   );
 
   /**
@@ -105,7 +110,7 @@ class Jekyll_Export {
     }
 
     //convert traditional post_meta values, hide hidden values
-    foreach ( get_post_custom( $post ) as $key => $value ) {
+    foreach ( get_post_custom( $post->ID ) as $key => $value ) {
 
       if ( substr( $key, 0, 1 ) == '_' )
         continue;
@@ -185,23 +190,47 @@ class Jekyll_Export {
 
   }
 
+  function filesystem_method_filter() {
+    return 'direct';
+  }
+
+  /** 
+   *  Conditionally Include required classes
+   */
+  function require_classes() {
+
+      foreach ( $this->required_classes as $class => $path ) {
+        
+        if ( class_exists( $class ) )
+            continue;
+
+        $path = str_replace( "%pwd%", dirname( __FILE__ ), $path );
+
+        require_once( $path );
+
+      }
+
+  }
+
   /**
    * Main function, bootstraps, converts, and cleans up
    */
   function export() {
+    global $wp_filesystem;
+
     define( 'DOING_JEKYLL_EXPORT', true );
 
-    if ( !class_exists( 'spyc' ) )
-      require_once dirname( __FILE__ ) . '/includes/spyc.php';
+    $this->require_classes();
 
-    if ( !class_exists( 'Markdownify_Extra' ) )
-      require_once dirname( __FILE__ ) . '/includes/markdownify/markdownify_extra.php';
+    add_filter( 'filesystem_method', array( &$this, 'filesystem_method_filter' ) );
+
+    WP_Filesystem();
 
     $temp_dir = get_temp_dir();
     $this->dir = $temp_dir . '/wp-jekyll-' . md5( time() ) . '/';
     $this->zip = $temp_dir . '/wp-jekyll.zip';
-    mkdir( $this->dir );
-    mkdir( $this->dir . '_posts/' );
+    $wp_filesystem->mkdir( $this->dir );
+    $wp_filesystem->mkdir( $this->dir . '_posts/' );
 
     $this->convert_options();
     $this->convert_posts();
@@ -217,6 +246,8 @@ class Jekyll_Export {
    * Convert options table to _config.yml file
    */
   function convert_options() {
+
+    global $wp_filesystem;
 
     $options = wp_load_alloptions();
     foreach ( $options as $key => &$option ) {
@@ -251,7 +282,7 @@ class Jekyll_Export {
     //strip starting "---"
     $output = substr( $output, 4 );
 
-    file_put_contents( $this->dir . '_config.yml', $output );
+    $wp_filesystem->put_contents( $this->dir . '_config.yml', $output );
 
   }
 
@@ -261,14 +292,16 @@ class Jekyll_Export {
    */
   function write( $output, $post ) {
 
+    global $wp_filesystem;
+
     if ( get_post_type( $post ) == 'page' ) {
-      mkdir( $this->dir . $post->post_name );
+      $wp_filesystem->mkdir( $this->dir . $post->post_name );
       $filename = $post->post_name . '/index.md';
     } else {
       $filename = '_posts/' . date( 'Y-m-d', strtotime( $post->post_date ) ) . '-' . $post->post_name . '.md';
     }
 
-    file_put_contents( $this->dir . $filename, $output );
+    $wp_filesystem->put_contents( $this->dir . $filename, $output );
 
   }
 
@@ -317,9 +350,9 @@ class Jekyll_Export {
   function send() {
 
     //send headers
-    header( 'Content-Type: application/zip' );
-    header( "Content-Disposition: attachment; filename=jekyll-export.zip" );
-    header( 'Content-Length: ' . filesize( $this->zip ) );
+    @header( 'Content-Type: application/zip' );
+    @header( "Content-Disposition: attachment; filename=jekyll-export.zip" );
+    @header( 'Content-Length: ' . filesize( $this->zip ) );
 
     //read file
     readfile( $this->zip );
@@ -332,8 +365,10 @@ class Jekyll_Export {
    */
   function cleanup( ) {
 
-    $this->rmdir_recursive( $this->dir );
-    unlink( $this->zip );
+    global $wp_filesystem;
+
+    $wp_filesystem->delete( $this->dir, true );
+    $wp_filesystem->delete( $this->zip );
 
   }
 
@@ -352,19 +387,6 @@ class Jekyll_Export {
     $keys[ $index ] = $to;
     $array = array_combine( $keys, $array );
 
-
-  }
-
-  function rmdir_recursive( $dir ) {
-
-    foreach( glob($dir . '/*' ) as $file ) {
-      if( is_dir( $file ) )
-        $this->rmdir_recursive( $file );
-      else
-        unlink( $file );
-    }
-
-    rmdir( $dir );
 
   }
 
@@ -387,6 +409,8 @@ class Jekyll_Export {
    */
   function copy_recursive($source, $dest) {
 
+    global $wp_filesystem;
+
     // Check for symlinks
     if ( is_link( $source ) ) {
       return symlink( readlink( $source ), $dest );
@@ -394,12 +418,12 @@ class Jekyll_Export {
 
     // Simple copy for a file
     if ( is_file( $source ) ) {
-      return copy( $source, $dest );
+      return $wp_filesystem->copy( $source, $dest );
     }
 
     // Make destination directory
     if ( !is_dir($dest) ) {
-      mkdir($dest, null, true );
+      $wp_filesystem->mkdir($dest, null, true );
     }
 
     // Loop through the folder

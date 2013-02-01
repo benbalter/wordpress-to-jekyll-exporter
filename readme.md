@@ -20,3 +20,14 @@ Usage
 1. Place plugin in `/wp-content/plugins/` folder
 2. Activate plugin in WordPress dashboard
 3. Select `Export to Jekyll` from the `Tools` menu
+
+Changelog
+---------
+
+### 1.1
+
+* Use WP_Filesystem for better compatability
+
+### 1.0 
+
+* Initial Release
