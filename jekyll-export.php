@@ -36,9 +36,12 @@ class Jekyll_Export {
   );
 
   public  $required_classes = array( 
-    'spyc' => '%pwd%/includes/spyc.php',
-    'Markdownify_Extra' => '%pwd%/includes/markdownify/markdownify_extra.php',
+    'spyc' => '%pwd%/includes/spyc.php'
   );
+
+  public $api_base = 'http://heckyesmarkdown.com/go/?';
+
+  public $api_args = array( 'output' => 'json', 'read' => 0, 'md' => 1 );
 
   /**
    * Hook into WP Core
@@ -157,9 +160,18 @@ class Jekyll_Export {
    * Convert the main post content to Markdown.
    */
   function convert_content( $post ) {
-    $md = new Markdownify_Extra;
 
-    return $md->parseString( apply_filters( 'the_content', $post->post_content ) );
+    $content = apply_filters( 'the_content', $post->post_content );
+    $data = wp_remote_post( $this->api_base, array( 
+        'body' => array_merge( $this->api_args, array( 'html' => $content ) ) 
+      )
+    );
+   
+    if ( is_wp_error( $data ) )
+        return '';
+
+    return json_decode( wp_remote_retrieve_body( $data ) )->content;
+
   }
 
   /**
