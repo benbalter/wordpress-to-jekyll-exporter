@@ -9,9 +9,9 @@
  * Must be run in the wordpress-to-jekyll-exporter/ directory.
  *
  */
- 
-include("jekyll-export.php");
-include("../../../wp-config.php");
+
+include "../../../wp-load.php";
+require_once "jekyll-export.php"; //ensure plugin is "activated"
 
 $je = new Jekyll_Export();
 $je->export();

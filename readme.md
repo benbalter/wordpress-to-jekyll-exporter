@@ -25,11 +25,19 @@ Usage
 Command-line Usage
 ------------------
 
-If you're having trouble with your web server timing out before the export is complete, you may enjoy the command-line tool.
+If you're having trouble with your web server timing out before the export is complete, or if you just like terminal better, you may enjoy the command-line tool.
+
 It works just like the plugin, but produces the zipfile on STDOUT:
 
     php jekyll-export-cli.php > jekyll-export.zip
 
+Alternatively, if you have [WP-CLI](http://wp-cli.org) installed, you can run:
+
+```
+wp jekyll-export > export.zip
+```
+
+The WP-CLI version will provide greater compatibility for alternate WordPress environments, such as when `wp-config.php` is in a usual location.
 
 Changelog
 ---------
@@ -38,6 +46,10 @@ Changelog
 
 * Use [fork of Markdownify](https://github.com/Pixel418/Markdownify) rather than external API to convert content from HTML to markdown
 
+### 1.2
+
+* Commmand-line support, props @ghelleks and @scribu
+
 ### 1.1
 
 * Use WP_Filesystem for better compatability
@@ -45,3 +57,4 @@ Changelog
 ### 1.0 
 
 * Initial Release
+

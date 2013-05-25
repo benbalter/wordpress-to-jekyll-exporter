@@ -7,7 +7,7 @@ Author: Benjamin J. Balter
 Author URI: http://ben.balter.com
 License: GPLv3 or Later
 
-Copyright 2012  Benjamin J. Balter  (email : Ben@Balter.com)
+Copyright 2012-2013  Benjamin J. Balter  (email : Ben@Balter.com)
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License, version 2, as
@@ -451,5 +451,24 @@ class Jekyll_Export {
 
 }
 
+<<<<<<< HEAD
 
 $je = new Jekyll_Export();
+=======
+$je = new Jekyll_Export();
+
+if ( defined('WP_CLI') && WP_CLI ) {
+  
+  class Jekyll_Export_Command extends WP_CLI_Command {
+
+    function __invoke() {
+      global $je;
+
+      $je->export();
+    }
+  }
+
+  WP_CLI::add_command( 'jekyll-export', 'Jekyll_Export_Command' );
+
+}
+>>>>>>> 777653cc7503096869582148f8b7e434ac5dbab9
