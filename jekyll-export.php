@@ -451,10 +451,6 @@ class Jekyll_Export {
 
 }
 
-<<<<<<< HEAD
-
-$je = new Jekyll_Export();
-=======
 $je = new Jekyll_Export();
 
 if ( defined('WP_CLI') && WP_CLI ) {
@@ -471,4 +467,3 @@ if ( defined('WP_CLI') && WP_CLI ) {
   WP_CLI::add_command( 'jekyll-export', 'Jekyll_Export_Command' );
 
 }
->>>>>>> 777653cc7503096869582148f8b7e434ac5dbab9
