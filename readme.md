@@ -22,6 +22,15 @@ Usage
 3. Activate plugin in WordPress dashboard
 4. Select `Export to Jekyll` from the `Tools` menu
 
+Command-line Usage
+------------------
+
+If you're having trouble with your web server timing out before the export is complete, you may enjoy the command-line tool.
+It works just like the plugin, but produces the zipfile on STDOUT:
+
+    php jekyll-export-cli.php > jekyll-export.zip
+
+
 Changelog
 ---------
 
