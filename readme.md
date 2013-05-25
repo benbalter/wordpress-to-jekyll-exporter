@@ -34,6 +34,10 @@ It works just like the plugin, but produces the zipfile on STDOUT:
 Changelog
 ---------
 
+### 1.3
+
+* Use [fork of Markdownify](https://github.com/Pixel418/Markdownify) rather than external API to convert content from HTML to markdown
+
 ### 1.1
 
 * Use WP_Filesystem for better compatability

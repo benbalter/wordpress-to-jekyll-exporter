@@ -15,5 +15,3 @@ include("../../../wp-config.php");
 
 $je = new Jekyll_Export();
 $je->export();
-
-?>
