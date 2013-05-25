@@ -191,7 +191,7 @@ class Jekyll_Export {
       }
 
       // Jekyll doesn't like word-wrapped permalinks
-      $output = Spyc::YAMLDump( $meta, false, 80 );
+      $output = Spyc::YAMLDump( $meta, false, 0 );
 
       $output .= "---\n";
       $output .= $this->convert_content( $post );
