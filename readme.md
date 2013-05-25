@@ -44,6 +44,11 @@ Changelog
 
 **[View Past Releases](https://github.com/benbalter/wordpress-to-jekyll-exporter/tags)**
 
+### 1.4
+
+* Made license explicit
+* Removed word-wrap from YAML export to prevent breaking permalinks
+
 ### 1.3
 
 * Use [fork of Markdownify](https://github.com/Pixel418/Markdownify) rather than external API to convert content from HTML to markdown
