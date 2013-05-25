@@ -42,6 +42,8 @@ The WP-CLI version will provide greater compatibility for alternate WordPress en
 Changelog
 ---------
 
+**[View Past Releases](https://github.com/benbalter/wordpress-to-jekyll-exporter/releases)**
+
 ### 1.3
 
 * Use [fork of Markdownify](https://github.com/Pixel418/Markdownify) rather than external API to convert content from HTML to markdown
@@ -54,6 +56,8 @@ Changelog
 ### 1.1
 
 * Use WP_Filesystem for better compatability
+* 1.1.1 - Use heckyeahmarkdown to prevent PHP errors when Markdownify chokes on malformed HTML
+* 1.1.2 - clarify zip.so requirement in readme
 
 ### 1.0 
 
