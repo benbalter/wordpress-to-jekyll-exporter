@@ -2,7 +2,7 @@
 /*
 Plugin Name: WordPress to Jekyll Exporter
 Description: Exports WordPress posts, pages, and options as YAML files parsable by Jekyll
-Version: 1.2
+Version: 1.3
 Author: Benjamin J. Balter
 Author URI: http://ben.balter.com
 License: GPLv3 or Later
@@ -36,12 +36,11 @@ class Jekyll_Export {
   );
 
   public  $required_classes = array( 
-    'spyc' => '%pwd%/includes/spyc.php'
+    'spyc' => '%pwd%/includes/spyc.php',
+    'Markdownify\Parser' => '%pwd%/includes/markdownify/Parser.php',
+    'Markdownify\Converter' => '%pwd%/includes/markdownify/Converter.php',
+    'Markdownify\ConverterExtra' => '%pwd%/includes/markdownify/ConverterExtra.php',
   );
-
-  public $api_base = 'http://heckyesmarkdown.com/go/?';
-
-  public $api_args = array( 'output' => 'json', 'read' => 0, 'md' => 1 );
 
   /**
    * Hook into WP Core
@@ -162,16 +161,15 @@ class Jekyll_Export {
   function convert_content( $post ) {
 
     $content = apply_filters( 'the_content', $post->post_content );
-    $data = wp_remote_post( $this->api_base, array( 
-        'body' => array_merge( $this->api_args, array( 'html' => $content ) ) 
-      )
-    );
-   
-    if ( is_wp_error( $data ) )
-        return '';
+    $converter = new Markdownify\ConverterExtra;
+    $markdown = $converter->parseString( $content );
 
-    return json_decode( wp_remote_retrieve_body( $data ) )->content;
+    if ( false !== strpos( $markdown, '[]: ' ) ) {
+      // faulty links; return plain HTML
+      return $content;
+    }
 
+    return $markdown;
   }
 
   /**

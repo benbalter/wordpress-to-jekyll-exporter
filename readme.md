@@ -42,6 +42,10 @@ The WP-CLI version will provide greater compatibility for alternate WordPress en
 Changelog
 ---------
 
+### 1.3
+
+* Use [fork of Markdownify](https://github.com/Pixel418/Markdownify) rather than external API to convert content from HTML to markdown
+
 ### 1.2
 
 * Commmand-line support, props @ghelleks and @scribu
