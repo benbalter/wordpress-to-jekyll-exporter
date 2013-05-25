@@ -45,6 +45,7 @@ Changelog
 ### 1.3
 
 * Use [fork of Markdownify](https://github.com/Pixel418/Markdownify) rather than external API to convert content from HTML to markdown
+* Better memory utilization for larger sites, props @ghelleks
 
 ### 1.2
 
