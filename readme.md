@@ -59,3 +59,8 @@ Changelog
 
 * Initial Release
 
+License
+-------
+
+The project is licensed under the GPLv3 or later
+
