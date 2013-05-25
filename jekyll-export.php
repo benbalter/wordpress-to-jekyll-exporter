@@ -162,8 +162,14 @@ class Jekyll_Export {
 
     $content = apply_filters( 'the_content', $post->post_content );
     $converter = new Markdownify\ConverterExtra;
-    return $converter->parseString( $content );
+    $markdown = $converter->parseString( $content );
 
+    if ( false !== strpos( $markdown, '[]: ' ) ) {
+      // faulty links; return plain HTML
+      return $content;
+    }
+
+    return $markdown;
   }
 
   /**
