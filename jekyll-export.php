@@ -341,6 +341,13 @@ class Jekyll_Export {
     //loop through all files in directory
     foreach ( glob( trailingslashit( $dir ) . '*' ) as $path ) {
 
+      // periodically flush the zipfile to avoid OOM errors
+      if ((($zip->numFiles+1) % 250) == 0) {
+         $filename = $zip->filename;
+         $zip->close();
+         $zip->open($filename);
+      }
+
       if ( is_dir( $path ) ) {
         $this->_zip( $path, $zip );
         continue;
@@ -368,6 +375,7 @@ class Jekyll_Export {
     @header( 'Content-Length: ' . filesize( $this->zip ) );
 
     //read file
+    ob_clean(); flush();
     readfile( $this->zip );
 
   }
