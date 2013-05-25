@@ -462,5 +462,16 @@ class Jekyll_Export {
 $je = new Jekyll_Export();
 
 if ( defined('WP_CLI') && WP_CLI ) {
-		include __DIR__ . '/jekyll-export-cli.php';
+  
+  class Jekyll_Export_Command extends WP_CLI_Command {
+
+    function __invoke() {
+      global $je;
+
+      $je->export();
+    }
+  }
+
+  WP_CLI::add_command( 'jekyll-export', 'Jekyll_Export_Command' );
+
 }

@@ -37,7 +37,7 @@ Alternatively, if you have [WP-CLI](http://wp-cli.org) installed, you can run:
 wp jekyll-export > export.zip
 ```
 
-The WP-CLI version will provide greater compatibility for alternate WordPress environments, such as when `wp-config.php` is in a non-standard location.
+The WP-CLI version will provide greater compatibility for alternate WordPress environments, such as when `wp-config.php` is in a usual location.
 
 Changelog
 ---------
