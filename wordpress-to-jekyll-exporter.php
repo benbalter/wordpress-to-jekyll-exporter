@@ -3,7 +3,7 @@
 Plugin Name: WordPress to Jekyll Exporter
 Description: Exports WordPress posts, pages, and options as YAML files parsable by Jekyll
 Version: 1.3
-Author: Benjamin J. Balter
+Author: Ben Balter
 Author URI: http://ben.balter.com
 License: GPLv3 or Later
 
@@ -35,7 +35,7 @@ class Jekyll_Export {
     'url'
   );
 
-  public  $required_classes = array( 
+  public  $required_classes = array(
     'spyc' => '%pwd%/includes/spyc.php',
     'Markdownify\Parser' => '%pwd%/includes/markdownify/Parser.php',
     'Markdownify\Converter' => '%pwd%/includes/markdownify/Converter.php',
@@ -204,13 +204,13 @@ class Jekyll_Export {
     return 'direct';
   }
 
-  /** 
+  /**
    *  Conditionally Include required classes
    */
   function require_classes() {
 
       foreach ( $this->required_classes as $class => $path ) {
-        
+
         if ( class_exists( $class ) )
             continue;
 
@@ -468,7 +468,7 @@ class Jekyll_Export {
 $je = new Jekyll_Export();
 
 if ( defined('WP_CLI') && WP_CLI ) {
-  
+
   class Jekyll_Export_Command extends WP_CLI_Command {
 
     function __invoke() {
