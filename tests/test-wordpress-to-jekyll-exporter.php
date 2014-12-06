@@ -1,5 +1,7 @@
 <?php
 
+use Alchemy\Zippy\Zippy;
+
 class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 
   function setUp() {
@@ -32,6 +34,16 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
       "post_author"  => $author,
     ));
 
+    global $jekyll_export;
+    $jekyll_export->init_temp_dir();
+
+  }
+
+  function tearDown() {
+    global $jekyll_export;
+    $jekyll_export->cleanup();
+    $upload_dir = wp_upload_dir();
+    @array_map('unlink', glob($upload_dir['basedir'] . "/*"));
   }
 
   function test_activated() {
@@ -84,14 +96,12 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 
   function test_init_temp_dir() {
     global $jekyll_export;
-    $jekyll_export->init_temp_dir();
     $this->assertTrue(file_exists($jekyll_export->dir));
     $this->assertTrue(file_exists($jekyll_export->dir . "/_posts"));
   }
 
   function test_convert_posts() {
     global $jekyll_export;
-    $jekyll_export->init_temp_dir();
     $posts = $jekyll_export->convert_posts();
     $post = $jekyll_export->dir . "/_posts/2014-01-01-test-post.md";
 
@@ -122,7 +132,6 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 
   function test_export_options() {
     global $jekyll_export;
-    $jekyll_export->init_temp_dir();
     $jekyll_export->convert_options();
     $config = $jekyll_export->dir . "/_config.yml";
 
@@ -142,7 +151,6 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 
   function test_write() {
     global $jekyll_export;
-    $jekyll_export->init_temp_dir();
     $posts = $jekyll_export->get_posts();
     $post = get_post($posts[1]);
     $jekyll_export->write("Foo", $post);
@@ -153,12 +161,25 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 
   function test_zip() {
 
+    global $jekyll_export;
 
+    file_put_contents( $jekyll_export->dir . "/foo.txt", "bar");
+    $jekyll_export->zip();
+    $this->assertTrue(file_exists($jekyll_export->zip));
+
+    $zippy = Zippy::load();
+    $archive = $zippy->open($jekyll_export->zip);
+
+    $temp_dir = get_temp_dir() . "jekyll-export-extract";
+    system("rm -rf ".escapeshellarg($temp_dir));
+    mkdir($temp_dir);
+    $archive->extract($temp_dir);
+    $this->assertTrue(file_exists($temp_dir . "/foo.txt"));
+    $this->assertEquals("bar", file_get_contents($temp_dir . "/foo.txt"));
   }
 
   function test_cleanup() {
     global $jekyll_export;
-    $jekyll_export->init_temp_dir();
     $this->assertTrue(file_exists($jekyll_export->dir));
     $jekyll_export->cleanup();
     $this->assertFalse(file_exists($jekyll_export->dir));
@@ -174,7 +195,6 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 
   function test_convert_uploads() {
     global $jekyll_export;
-    $jekyll_export->init_temp_dir();
     $upload_dir = wp_upload_dir();
     file_put_contents($upload_dir["basedir"] . "/foo.txt", "bar");
     $jekyll_export->convert_uploads();
@@ -183,14 +203,17 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 
   function test_copy_recursive() {
     global $jekyll_export;
-    $jekyll_export->init_temp_dir();
     $upload_dir = wp_upload_dir();
-    mkdir($upload_dir["basedir"] . "/folder");
+
+    if (!file_exists($upload_dir["basedir"] . "/folder"))
+      mkdir($upload_dir["basedir"] . "/folder");
+
     file_put_contents($upload_dir["basedir"] . "/foo.txt", "bar");
     file_put_contents($upload_dir["basedir"] . "/folder/foo.txt", "bar");
     $jekyll_export->copy_recursive($upload_dir["basedir"], $jekyll_export->dir);
+
     $this->assertTrue(file_exists($jekyll_export->dir . "/foo.txt"));
     $this->assertTrue(file_exists($jekyll_export->dir . "/folder/foo.txt"));
   }
-  
+
 }

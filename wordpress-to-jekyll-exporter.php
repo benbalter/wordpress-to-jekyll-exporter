@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 require_once dirname( __FILE__ ) . "/vendor/autoload.php";
+use Alchemy\Zippy\Zippy;
 
 class Jekyll_Export {
 
@@ -296,46 +297,9 @@ class Jekyll_Export {
    * Zip temp dir
    */
   function zip() {
-
-    //create zip
-    $zip = new ZipArchive();
-    $zip->open( $this->zip, ZIPARCHIVE::CREATE );
-    $this->_zip( $this->dir, $zip );
-    $zip->close();
-
+    $zippy = Zippy::load();
+    $zippy->create($this->zip, array("./" => $this->dir), true);
   }
-
-
-  /**
-   * Helper function to add a file to the zip
-   */
-  function _zip( $dir, &$zip ) {
-
-    //loop through all files in directory
-    foreach ( glob( trailingslashit( $dir ) . '*' ) as $path ) {
-
-      // periodically flush the zipfile to avoid OOM errors
-      if ((($zip->numFiles+1) % 250) == 0) {
-         $filename = $zip->filename;
-         $zip->close();
-         $zip->open($filename);
-      }
-
-      if ( is_dir( $path ) ) {
-        $this->_zip( $path, $zip );
-        continue;
-      }
-
-      //make path within zip relative to zip base, not server root
-      $local_path = '/' . str_replace( $this->dir, $this->zip_folder, $path );
-
-      //add file
-      $zip->addFile( realpath( $path ), $local_path );
-
-    }
-
-  }
-
 
   /**
    * Send headers and zip file to user
@@ -348,7 +312,7 @@ class Jekyll_Export {
     @header( 'Content-Length: ' . filesize( $this->zip ) );
 
     //read file
-    ob_clean(); flush();
+    flush();
     readfile( $this->zip );
 
   }
