@@ -23,6 +23,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+require_once dirname( __FILE__ ) . "/vendor/autoload.php";
+
 class Jekyll_Export {
 
   private $zip_folder = 'jekyll-export/'; //folder zip file extracts to
@@ -33,13 +35,6 @@ class Jekyll_Export {
     'name',
     'description',
     'url'
-  );
-
-  public  $required_classes = array(
-    'spyc' => '%pwd%/includes/spyc.php',
-    'Markdownify\Parser' => '%pwd%/includes/markdownify/Parser.php',
-    'Markdownify\Converter' => '%pwd%/includes/markdownify/Converter.php',
-    'Markdownify\ConverterExtra' => '%pwd%/includes/markdownify/ConverterExtra.php',
   );
 
   /**
@@ -205,32 +200,12 @@ class Jekyll_Export {
   }
 
   /**
-   *  Conditionally Include required classes
-   */
-  function require_classes() {
-
-      foreach ( $this->required_classes as $class => $path ) {
-
-        if ( class_exists( $class ) )
-            continue;
-
-        $path = str_replace( "%pwd%", dirname( __FILE__ ), $path );
-
-        require_once( $path );
-
-      }
-
-  }
-
-  /**
    * Main function, bootstraps, converts, and cleans up
    */
   function export() {
     global $wp_filesystem;
 
     define( 'DOING_JEKYLL_EXPORT', true );
-
-    $this->require_classes();
 
     add_filter( 'filesystem_method', array( &$this, 'filesystem_method_filter' ) );
 

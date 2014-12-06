@@ -1,0 +1,117 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "This file is @generated automatically"
+    ],
+    "hash": "46548835b290a962e55b27a1dbb0f6a9",
+    "packages": [
+        {
+            "name": "mustangostang/spyc",
+            "version": "0.5.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mustangostang/spyc.git",
+                "reference": "dc4785b4d7227fd9905e086d499fb8abfadf9977"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mustangostang/spyc/zipball/dc4785b4d7227fd9905e086d499fb8abfadf9977",
+                "reference": "dc4785b4d7227fd9905e086d499fb8abfadf9977",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.1"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "0.5.x-dev"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "Spyc.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT License"
+            ],
+            "authors": [
+                {
+                    "name": "mustangostang",
+                    "email": "vlad.andersen@gmail.com"
+                }
+            ],
+            "description": "A simple YAML loader/dumper class for PHP",
+            "homepage": "https://github.com/mustangostang/spyc/",
+            "keywords": [
+                "spyc",
+                "yaml",
+                "yml"
+            ],
+            "time": "2013-02-21 10:52:01"
+        },
+        {
+            "name": "pixel418/markdownify",
+            "version": "v2.1.7",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Elephant418/Markdownify.git",
+                "reference": "5b8a0190f6546854e79c539bd5e146a2c358f5a0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Elephant418/Markdownify/zipball/5b8a0190f6546854e79c539bd5e146a2c358f5a0",
+                "reference": "5b8a0190f6546854e79c539bd5e146a2c358f5a0",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "type": "lib",
+            "autoload": {
+                "psr-0": {
+                    "Markdownify": "src",
+                    "Test\\Markdownify": "test"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Peter Kruithof",
+                    "email": "pkruithof@gmail.com",
+                    "homepage": "http://pkruithof.tumblr.com/"
+                },
+                {
+                    "name": "Milian Wolff",
+                    "email": "mail@milianw.de",
+                    "homepage": "http://milianw.de"
+                },
+                {
+                    "name": "Thomas Zilliox",
+                    "email": "hello@tzi.fr",
+                    "homepage": "http://tzi.fr"
+                }
+            ],
+            "description": "The HTML to Markdown converter for PHP ",
+            "homepage": "https://github.com/elephant418/Markdownify",
+            "keywords": [
+                "markdown",
+                "markdownify"
+            ],
+            "time": "2014-11-07 15:20:05"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": [],
+    "prefer-stable": false,
+    "platform": [],
+    "platform-dev": []
+}

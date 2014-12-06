@@ -107,11 +107,25 @@ class Parser
     public $tagAttributes = null;
 
     /**
-     * wether the current tag is a block element
+     * whether or not the actual context is a inline context
+     *
+     * @var bool | null
+     */
+    public $isInlineContext = null;
+
+    /**
+     * whether the current tag is a block element
      *
      * @var bool | null
      */
     public $isBlockElement = null;
+
+    /**
+     * whether the previous tag (browser) is a block element
+     *
+     * @var bool | null
+     */
+    public $isNextToInlineContext = null;
 
     /**
      * keep whitespace
@@ -135,8 +149,8 @@ class Parser
      * TODO: what shall we do with <del> and <ins> ?!
      */
     public $blockElements = array(
-        # tag name => <bool> is block
-        # block elements
+        // tag name => <bool> is block
+        // block elements
         'address' => true,
         'blockquote' => true,
         'center' => true,
@@ -163,7 +177,7 @@ class Parser
         'pre' => true,
         'table' => true,
         'ul' => true,
-        # set table elements and list items to block as well
+        // set table elements and list items to block as well
         'thead' => true,
         'tbody' => true,
         'tfoot' => true,
@@ -173,7 +187,7 @@ class Parser
         'li' => true,
         'dd' => true,
         'dt' => true,
-        # header items and html / body as well
+        // header items and html / body as well
         'html' => true,
         'body' => true,
         'head' => true,
@@ -181,13 +195,13 @@ class Parser
         'link' => true,
         'style' => true,
         'title' => true,
-        # unfancy media tags, when indented should be rendered as block
+        // unfancy media tags, when indented should be rendered as block
         'map' => true,
         'object' => true,
         'param' => true,
         'embed' => true,
         'area' => true,
-        # inline elements
+        // inline elements
         'a' => false,
         'abbr' => false,
         'acronym' => false,
@@ -234,7 +248,7 @@ class Parser
     public function nextNode()
     {
         if (empty($this->html)) {
-            # we are done with parsing the html string
+            // we are done with parsing the html string
 
             return false;
         }
@@ -242,7 +256,7 @@ class Parser
         if ($this->isStartTag && !$this->isEmptyTag) {
             array_push($this->openTags, $this->tagName);
             if (in_array($this->tagName, $this->preformattedTags)) {
-                # dont truncate whitespaces for <code> or <pre> contents
+                // dont truncate whitespaces for <code> or <pre> contents
                 $this->keepWhitespace++;
             }
         }
@@ -250,20 +264,20 @@ class Parser
         if ($this->html[0] == '<') {
             $token = substr($this->html, 0, 9);
             if (substr($token, 0, 2) == '<?') {
-                # xml prolog or other pi's
+                // xml prolog or other pi's
                 /** TODO **/
-                #trigger_error('this might need some work', E_USER_NOTICE);
+                // trigger_error('this might need some work', E_USER_NOTICE);
                 $pos = strpos($this->html, '>');
                 $this->setNode('pi', $pos + 1);
 
                 return true;
             }
             if (substr($token, 0, 4) == '<!--') {
-                # comment
+                // comment
                 $pos = strpos($this->html, '-->');
                 if ($pos === false) {
-                    # could not find a closing -->, use next gt instead
-                    # this is firefox' behaviour
+                    // could not find a closing -->, use next gt instead
+                    // this is firefox' behaviour
                     $pos = strpos($this->html, '>') + 1;
                 } else {
                     $pos += 3;
@@ -275,7 +289,7 @@ class Parser
                 return true;
             }
             if ($token == '<!DOCTYPE') {
-                # doctype
+                // doctype
                 $this->setNode('doctype', strpos($this->html, '>') + 1);
 
                 static::$skipWhitespace = true;
@@ -283,14 +297,14 @@ class Parser
                 return true;
             }
             if ($token == '<![CDATA[') {
-                # cdata, use text node
+                // cdata, use text node
 
-                # remove leading <![CDATA[
+                // remove leading <![CDATA[
                 $this->html = substr($this->html, 9);
 
                 $this->setNode('text', strpos($this->html, ']]>') + 3);
 
-                # remove trailing ]]> and trim
+                // remove trailing ]]> and trim
                 $this->node = substr($this->node, 0, -3);
                 $this->handleWhitespaces();
 
@@ -299,8 +313,8 @@ class Parser
                 return true;
             }
             if ($this->parseTag()) {
-                # seems to be a tag
-                # handle whitespaces
+                // seems to be a tag
+                // handle whitespaces
                 if ($this->isBlockElement) {
                     static::$skipWhitespace = true;
                 } else {
@@ -313,7 +327,7 @@ class Parser
         if ($this->keepWhitespace) {
             static::$skipWhitespace = false;
         }
-        # when we get here it seems to be a text node
+        // when we get here it seems to be a text node
         $pos = strpos($this->html, '<');
         if ($pos === false) {
             $pos = strlen($this->html);
@@ -323,6 +337,7 @@ class Parser
         if (static::$skipWhitespace && $this->node == ' ') {
             return $this->nextNode();
         }
+        $this->isInlineContext = true;
         static::$skipWhitespace = false;
 
         return true;
@@ -352,7 +367,7 @@ class Parser
         if (!$isStartTag) {
             $pos++;
         }
-        # get tagName
+        // get tagName
         while (isset($this->html[$pos])) {
             $pos_ord = ord(strtolower($this->html[$pos]));
             if (($pos_ord >= static::$a_ord && $pos_ord <= static::$z_ord) || (!empty($tagName) && is_numeric($this->html[$pos]))) {
@@ -366,26 +381,26 @@ class Parser
 
         $tagName = strtolower($tagName);
         if (empty($tagName) || !isset($this->blockElements[$tagName])) {
-            # something went wrong => invalid tag
+            // something went wrong => invalid tag
             $this->invalidTag();
 
             return false;
         }
         if ($this->noTagsInCode && end($this->openTags) == 'code' && !($tagName == 'code' && !$isStartTag)) {
-            # we supress all HTML tags inside code tags
+            // we supress all HTML tags inside code tags
             $this->invalidTag();
 
             return false;
         }
 
-        # get tag attributes
+        // get tag attributes
         /** TODO: in html 4 attributes do not need to be quoted **/
         $isEmptyTag = false;
         $attributes = array();
         $currAttrib = '';
         while (isset($this->html[$pos + 1])) {
             $pos++;
-            # close tag
+            // close tag
             if ($this->html[$pos] == '>' || $this->html[$pos] . $this->html[$pos + 1] == '/>') {
                 if ($this->html[$pos] == '/') {
                     $isEmptyTag = true;
@@ -396,14 +411,14 @@ class Parser
 
             $pos_ord = ord(strtolower($this->html[$pos]));
             if (($pos_ord >= static::$a_ord && $pos_ord <= static::$z_ord) || in_array($pos_ord, static::$special_ords)) {
-                # attribute name
+                // attribute name
                 $currAttrib .= $this->html[$pos];
             } elseif (in_array($this->html[$pos], array(' ', "\t", "\n"))) {
-                # drop whitespace
+                // drop whitespace
             } elseif (in_array($this->html[$pos] . $this->html[$pos + 1], array('="', "='"))) {
-                # get attribute value
+                // get attribute value
                 $pos++;
-                $await = $this->html[$pos]; # single or double quote
+                $await = $this->html[$pos]; // single or double quote
                 $pos++;
                 $value = '';
                 while (isset($this->html[$pos]) && $this->html[$pos] != $await) {
@@ -425,13 +440,13 @@ class Parser
         }
 
         if (!empty($currAttrib)) {
-            # html 4 allows something like <option selected> instead of <option selected="selected">
+            // html 4 allows something like <option selected> instead of <option selected="selected">
             $attributes[$currAttrib] = $currAttrib;
         }
         if (!$isStartTag) {
             if (!empty($attributes) || $tagName != end($this->openTags)) {
-                # end tags must not contain any attributes
-                # or maybe we did not expect a different tag to be closed
+                // end tags must not contain any attributes
+                // or maybe we did not expect a different tag to be closed
                 $this->invalidTag();
 
                 return false;
@@ -449,12 +464,13 @@ class Parser
         $this->isStartTag = $isStartTag;
         $this->isEmptyTag = $isEmptyTag || in_array($tagName, $this->emptyTags);
         if ($this->isEmptyTag) {
-            # might be not well formed
+            // might be not well formed
             $this->node = preg_replace('# */? *>$#', ' />', $this->node);
         }
         $this->nodeType = 'tag';
         $this->isBlockElement = $this->blockElements[$tagName];
-
+        $this->isNextToInlineContext = $isStartTag && $this->isInlineContext;
+        $this->isInlineContext = !$this->isBlockElement;
         return true;
     }
 
@@ -479,9 +495,9 @@ class Parser
     protected function setNode($type, $pos)
     {
         if ($this->nodeType == 'tag') {
-            # set tag specific vars to null
-            # $type == tag should not be called here
-            # see this::parseTag() for more
+            // set tag specific vars to null
+            // $type == tag should not be called here
+            // see this::parseTag() for more
             $this->tagName = null;
             $this->tagAttributes = null;
             $this->isStartTag = null;
@@ -514,11 +530,11 @@ class Parser
     protected function handleWhitespaces()
     {
         if ($this->keepWhitespace) {
-            # <pre> or <code> before...
+            // <pre> or <code> before...
 
             return;
         }
-        # truncate multiple whitespaces to a single one
+        // truncate multiple whitespaces to a single one
         $this->node = preg_replace('#\s+#s', ' ', $this->node);
     }
 
