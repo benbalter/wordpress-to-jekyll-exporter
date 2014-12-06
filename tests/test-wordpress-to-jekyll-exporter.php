@@ -120,4 +120,35 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
     $this->assertEquals("\nThis is a test **post**.", $parts[2]);
   }
 
+  function test_export_options() {
+    global $jekyll_export;
+    $jekyll_export->init_temp_dir();
+    $jekyll_export->convert_options();
+    $config = $jekyll_export->dir . "/_config.yml";
+
+    // write the file to the temp dir
+    $this->assertTrue(file_exists($config));
+
+    // writes the file content
+    $contents = file_get_contents($config);
+    $this->assertContains("description: Just another WordPress site", $contents);
+
+    // writes valid YAML
+    $yaml = spyc_load($contents);
+    $this->assertEquals("Just another WordPress site", $yaml["description"]);
+    $this->assertEquals("http://example.org", $yaml["url"]);
+    $this->assertEquals("Test Blog", $yaml["name"]);
+  }
+
+  function test_write() {
+    global $jekyll_export;
+    $jekyll_export->init_temp_dir();
+    $posts = $jekyll_export->get_posts();
+    $post = get_post($posts[1]);
+    $jekyll_export->write("Foo", $post);
+    $post = $jekyll_export->dir . "/_posts/2014-01-01-test-post.md";
+    $this->assertTrue(file_exists($post));
+    $this->assertEquals("Foo",file_get_contents($post));
+  }
+
 }
