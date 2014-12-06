@@ -27,3 +27,5 @@ Usage
 2. Make sure `extension=zip.so` line is uncommented in your `php.ini`
 3. Activate plugin in WordPress dashboard
 4. Select `Export to Jekyll` from the `Tools` menu
+
+See https://github.com/benbalter/wordpress-to-jekyll-exporter for more information.
