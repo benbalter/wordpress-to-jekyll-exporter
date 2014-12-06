@@ -3,6 +3,8 @@ WordPress to Jekyll Exporter
 
 One-click WordPress plugin that converts all posts, pages, taxonomies, metadata, and settings to Markdown and YAML which can be dropped into Jekyll.
 
+[![Build Status](https://travis-ci.org/benbalter/wordpress-to-jekyll-exporter.svg?branch=master)](https://travis-ci.org/benbalter/wordpress-to-jekyll-exporter)
+
 Features
 --------
 
