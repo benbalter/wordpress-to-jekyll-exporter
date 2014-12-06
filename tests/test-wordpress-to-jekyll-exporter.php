@@ -80,9 +80,6 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
     $this->assertEquals("This is a test **post**.", $content);
   }
 
-  functions test_convert_posts() {
-
-    
-  }
+  
 
 }
