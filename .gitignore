@@ -1,0 +1,11 @@
+#composer bloat
+vendor/alchemy/zippy/docs
+vendor/alchemy/zippy/tests
+vendor/alchemy/zippy/composer.lock
+vendor/mustangostang/spyc/examples
+vendor/mustangostang/spyc/tests
+vendor/pimple/pimple/tests
+vendor/pixel418/markdownify/test
+vendor/guzzle/guzzle/docs
+vendor/guzzle/guzzle/tests
+vendor/doctrine/collections/tests
