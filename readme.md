@@ -42,7 +42,7 @@ The WP-CLI version will provide greater compatibility for alternate WordPress en
 Changelog
 ---------
 
-**[View Past Releases](https://github.com/benbalter/wordpress-to-jekyll-exporter/tags)**
+[View Past Releases](https://github.com/benbalter/wordpress-to-jekyll-exporter/releases)
 
 License
 -------
