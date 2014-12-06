@@ -151,4 +151,46 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
     $this->assertEquals("Foo",file_get_contents($post));
   }
 
+  function test_zip() {
+
+
+  }
+
+  function test_cleanup() {
+    global $jekyll_export;
+    $jekyll_export->init_temp_dir();
+    $this->assertTrue(file_exists($jekyll_export->dir));
+    $jekyll_export->cleanup();
+    $this->assertFalse(file_exists($jekyll_export->dir));
+  }
+
+  function test_rename_key() {
+    global $jekyll_export;
+    $array = array( "foo" => "bar", "foo2" => "bar2" );
+    $jekyll_export->rename_key($array, "foo", "baz");
+    $expected = array( "baz" => "bar", "foo2" => "bar2" );
+    $this->assertEquals($expected, $array);
+  }
+
+  function test_convert_uploads() {
+    global $jekyll_export;
+    $jekyll_export->init_temp_dir();
+    $upload_dir = wp_upload_dir();
+    file_put_contents($upload_dir["basedir"] . "/foo.txt", "bar");
+    $jekyll_export->convert_uploads();
+    $this->assertTrue(file_exists($jekyll_export->dir . "/wp-content/uploads/foo.txt"));
+  }
+
+  function test_copy_recursive() {
+    global $jekyll_export;
+    $jekyll_export->init_temp_dir();
+    $upload_dir = wp_upload_dir();
+    mkdir($upload_dir["basedir"] . "/folder");
+    file_put_contents($upload_dir["basedir"] . "/foo.txt", "bar");
+    file_put_contents($upload_dir["basedir"] . "/folder/foo.txt", "bar");
+    $jekyll_export->copy_recursive($upload_dir["basedir"], $jekyll_export->dir);
+    $this->assertTrue(file_exists($jekyll_export->dir . "/foo.txt"));
+    $this->assertTrue(file_exists($jekyll_export->dir . "/folder/foo.txt"));
+  }
+  
 }

@@ -387,7 +387,9 @@ class Jekyll_Export {
   function convert_uploads() {
 
     $upload_dir = wp_upload_dir();
-    $this->copy_recursive( $upload_dir['basedir'], $this->dir . str_replace( trailingslashit( get_site_url() ), '', $upload_dir['baseurl'] )  );
+    $source = $upload_dir['basedir'];
+    $dest = $this->dir . str_replace( trailingslashit( get_site_url() ), '', $upload_dir['baseurl'] );
+    $this->copy_recursive( $source, $dest );
 
   }
 
