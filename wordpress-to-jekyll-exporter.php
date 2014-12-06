@@ -416,7 +416,7 @@ if ( defined('WP_CLI') && WP_CLI ) {
     function __invoke() {
       global $jekyll_export;
 
-      $je->export();
+      $jekyll_export->export();
     }
   }
 
