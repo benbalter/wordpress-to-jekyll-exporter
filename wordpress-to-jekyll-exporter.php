@@ -199,13 +199,8 @@ class Jekyll_Export {
     return 'direct';
   }
 
-  /**
-   * Main function, bootstraps, converts, and cleans up
-   */
-  function export() {
+  function init_temp_dir() {
     global $wp_filesystem;
-
-    define( 'DOING_JEKYLL_EXPORT', true );
 
     add_filter( 'filesystem_method', array( &$this, 'filesystem_method_filter' ) );
 
@@ -217,14 +212,19 @@ class Jekyll_Export {
     $wp_filesystem->mkdir( $this->dir );
     $wp_filesystem->mkdir( $this->dir . '_posts/' );
     $wp_filesystem->mkdir( $this->dir . 'wp-content/' );
+  }
 
+  /**
+   * Main function, bootstraps, converts, and cleans up
+   */
+  function export() {
+    $this->init_temp_dir();
     $this->convert_options();
     $this->convert_posts();
     $this->convert_uploads();
     $this->zip();
     $this->send();
     $this->cleanup();
-
   }
 
 

@@ -20,6 +20,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
       "post_author"   => $author,
       "post_category" => array($category_id),
       "tags_input"    => array("tag1", "tag2"),
+      "post_date"     => "2014-01-01",
     ));
 
     wp_insert_post(array(
@@ -30,6 +31,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
       "post_type"    => "page",
       "post_author"  => $author,
     ));
+
   }
 
   function test_activated() {
@@ -80,6 +82,42 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
     $this->assertEquals("This is a test **post**.", $content);
   }
 
-  
+  function test_init_temp_dir() {
+    global $jekyll_export;
+    $jekyll_export->init_temp_dir();
+    $this->assertTrue(file_exists($jekyll_export->dir));
+    $this->assertTrue(file_exists($jekyll_export->dir . "/_posts"));
+  }
+
+  function test_convert_posts() {
+    global $jekyll_export;
+    $jekyll_export->init_temp_dir();
+    $posts = $jekyll_export->convert_posts();
+    $post = $jekyll_export->dir . "/_posts/2014-01-01-test-post.md";
+
+    // write the file to the temp dir
+    $this->assertTrue(file_exists($post));
+
+    // writes the file contents
+    $contents = file_get_contents($post);
+    $this->assertContains("title: Test Post", $contents);
+
+    // writes valid YAML
+    $parts = explode("---", $contents);
+    $this->assertEquals(3,count($parts));
+    $yaml = spyc_load($parts[1]);
+    $this->assertNotEmpty($yaml);
+
+    // writes the front matter
+    $this->assertEquals("Test Post", $yaml["title"]);
+    $this->assertEquals("Tester", $yaml["author"]);
+    $this->assertEquals("post", $yaml["layout"]);
+    $this->assertEquals("/?p=17", $yaml["permalink"]);
+    $this->assertEquals(array(0 => "Testing"), $yaml["categories"]);
+    $this->assertEquals(array(0 => "tag1", 1 => "tag2"), $yaml["tags"]);
+
+    // writes the post body
+    $this->assertEquals("\nThis is a test **post**.", $parts[2]);
+  }
 
 }
