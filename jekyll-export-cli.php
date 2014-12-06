@@ -14,5 +14,5 @@ include "../../../wp-load.php";
 include "../../../wp-admin/includes/file.php";
 require_once "jekyll-export.php"; //ensure plugin is "activated"
 
-$je = new Jekyll_Export();
-$je->export();
+$jekyll_export = new Jekyll_Export();
+$jekyll_export->export();
