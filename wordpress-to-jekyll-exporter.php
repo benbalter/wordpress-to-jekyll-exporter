@@ -440,14 +440,15 @@ class Jekyll_Export {
 
 }
 
-$je = new Jekyll_Export();
+global $jekyll_export;
+$jekyll_export = new Jekyll_Export();
 
 if ( defined('WP_CLI') && WP_CLI ) {
 
   class Jekyll_Export_Command extends WP_CLI_Command {
 
     function __invoke() {
-      global $je;
+      global $jekyll_export;
 
       $je->export();
     }
