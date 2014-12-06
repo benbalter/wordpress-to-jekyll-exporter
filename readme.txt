@@ -24,8 +24,7 @@ Usage
 -----
 
 1. Place plugin in `/wp-content/plugins/` folder
-2. Make sure `extension=zip.so` line is uncommented in your `php.ini`
-3. Activate plugin in WordPress dashboard
-4. Select `Export to Jekyll` from the `Tools` menu
+2. Activate plugin in WordPress dashboard
+3. Select `Export to Jekyll` from the `Tools` menu
 
 See https://github.com/benbalter/wordpress-to-jekyll-exporter for more information.
