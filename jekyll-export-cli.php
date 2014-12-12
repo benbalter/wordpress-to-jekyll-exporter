@@ -12,7 +12,7 @@
 
 include "../../../wp-load.php";
 include "../../../wp-admin/includes/file.php";
-require_once "wordpress-to-jekyll-exporter.php"; //ensure plugin is "activated"
+require_once "jekyll-exporter.php"; //ensure plugin is "activated"
 
 $jekyll_export = new Jekyll_Export();
 $jekyll_export->export();
