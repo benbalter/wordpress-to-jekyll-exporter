@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "alchemy/zippy",
-            "version": "0.2.0",
+            "version": "0.2.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/alchemy-fr/Zippy.git",
-                "reference": "e652161e1d99f647b34c3ff9695bb4bb0b8837cf"
+                "reference": "16285231eb37587c6c32b86fa483c35853cd7515"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/alchemy-fr/Zippy/zipball/e652161e1d99f647b34c3ff9695bb4bb0b8837cf",
-                "reference": "e652161e1d99f647b34c3ff9695bb4bb0b8837cf",
+                "url": "https://api.github.com/repos/alchemy-fr/Zippy/zipball/16285231eb37587c6c32b86fa483c35853cd7515",
+                "reference": "16285231eb37587c6c32b86fa483c35853cd7515",
                 "shasum": ""
             },
             "require": {
@@ -66,7 +66,7 @@
                 "tar",
                 "zip"
             ],
-            "time": "2014-04-04 16:24:46"
+            "time": "2014-12-10 15:03:17"
         },
         {
             "name": "doctrine/collections",

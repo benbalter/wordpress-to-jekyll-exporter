@@ -11,25 +11,16 @@
 
 namespace Alchemy\Zippy\FileStrategy;
 
-use Alchemy\Zippy\Adapter\AdapterContainer;
-
-class ZipFileStrategy implements FileStrategyInterface
+class ZipFileStrategy extends AbstractFileStrategy
 {
-    private $container;
-
-    public function __construct(AdapterContainer $container)
-    {
-        $this->container = $container;
-    }
-
     /**
      * {@inheritdoc}
      */
-    public function getAdapters()
+    protected function getServiceNames()
     {
         return array(
-            $this->container['Alchemy\\Zippy\\Adapter\\ZipAdapter'],
-            $this->container['Alchemy\\Zippy\\Adapter\\ZipExtensionAdapter'],
+            'Alchemy\\Zippy\\Adapter\\ZipAdapter',
+            'Alchemy\\Zippy\\Adapter\\ZipExtensionAdapter'
         );
     }
 

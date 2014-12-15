@@ -112,7 +112,7 @@ abstract class AbstractTarAdapter extends AbstractBinaryAdapter
             $builder->add('--no-recursion');
         }
 
-        $builder->add('--create');
+        $builder->add('-c');
 
         foreach ((array) $options as $option) {
             $builder->add((string) $option);
@@ -121,9 +121,10 @@ abstract class AbstractTarAdapter extends AbstractBinaryAdapter
         if (0 === count($files)) {
             $nullFile = defined('PHP_WINDOWS_VERSION_BUILD') ? 'NUL' : '/dev/null';
 
-            $builder->add('-');
-            $builder->add(sprintf('--files-from %s', $nullFile));
-            $builder->add(sprintf('> %s', $path));
+            $builder->add('-f');
+            $builder->add($path);
+            $builder->add('-T');
+            $builder->add( $nullFile);
 
             $process = $builder->getProcess();
             $process->run();

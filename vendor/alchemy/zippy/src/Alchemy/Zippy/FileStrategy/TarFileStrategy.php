@@ -11,25 +11,16 @@
 
 namespace Alchemy\Zippy\FileStrategy;
 
-use Alchemy\Zippy\Adapter\AdapterContainer;
-
-class TarFileStrategy implements FileStrategyInterface
+class TarFileStrategy extends AbstractFileStrategy
 {
-    private $container;
-
-    public function __construct(AdapterContainer $container)
-    {
-        $this->container = $container;
-    }
-
     /**
      * {@inheritdoc}
      */
-    public function getAdapters()
+    protected function getServiceNames()
     {
         return array(
-            $this->container['Alchemy\\Zippy\\Adapter\\GNUTar\\TarGNUTarAdapter'],
-            $this->container['Alchemy\\Zippy\\Adapter\\BSDTar\\TarBSDTarAdapter'],
+            'Alchemy\\Zippy\\Adapter\\GNUTar\\TarGNUTarAdapter',
+            'Alchemy\\Zippy\\Adapter\\BSDTar\\TarBSDTarAdapter'
         );
     }
 
