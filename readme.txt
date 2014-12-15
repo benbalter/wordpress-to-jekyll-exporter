@@ -4,7 +4,7 @@ Donate link: http://ben.balter.com/donate
 Tags: jekyll, github, github pages, yaml, export
 Requires at least: 3.0
 Tested up to: 4.0.1
-Stable tag: 2.0
+Stable tag: 2.0.1
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
