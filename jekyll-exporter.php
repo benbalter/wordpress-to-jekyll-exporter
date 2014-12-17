@@ -96,6 +96,7 @@ class Jekyll_Export {
   function convert_meta( $post ) {
 
     $output = array(
+      'id'      => $post->ID,
       'title'   => get_the_title( $post ),
       'author'  => get_userdata( $post->post_author )->display_name,
       'excerpt' => $post->post_excerpt,
