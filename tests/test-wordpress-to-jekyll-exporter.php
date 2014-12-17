@@ -68,6 +68,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
     $post = get_post($posts[1]);
     $meta = $jekyll_export->convert_meta($post);
     $expected = Array (
+      'id'        => $post->ID,
       'title'     => 'Test Post',
       'author'    => 'Tester',
       'excerpt'   => '',
