@@ -101,6 +101,7 @@ class Jekyll_Export {
       'author'  => get_userdata( $post->post_author )->display_name,
       'excerpt' => $post->post_excerpt,
       'layout'  => get_post_type( $post ),
+      'guid'    => $post->guid
     );
 
     //preserve exact permalink, since Jekyll doesn't support redirection

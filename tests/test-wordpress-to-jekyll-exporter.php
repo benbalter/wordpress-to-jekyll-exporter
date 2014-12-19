@@ -74,6 +74,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
       'excerpt'   => '',
       'layout'    => 'post',
       'permalink' => '/?p=9',
+      'guid'      => $post->guid
     );
     $this->assertEquals($expected, $meta);
   }
