@@ -7,7 +7,7 @@ Author: Ben Balter
 Author URI: http://ben.balter.com
 License: GPLv3 or Later
 
-Copyright 2012-2013  Benjamin J. Balter  (email : Ben@Balter.com)
+Copyright 2012-2014  Benjamin J. Balter  (email : Ben@Balter.com)
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License, version 2, as
@@ -23,9 +23,12 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-require_once dirname( __FILE__ ) . "/vendor/autoload.php";
-require_once dirname( __FILE__ ) . "/lib/cli.php";
+if (version_compare(PHP_VERSION, '5.3.0', '<')) {
+  wp_die("Jekyll Export requires PHP 5.3 or later");
+}
 
+require_once dirname( __FILE__ ) . "/lib/cli.php";
+require_once dirname( __FILE__ ) . "/vendor/autoload.php";
 use Alchemy\Zippy\Zippy;
 
 class Jekyll_Export {
