@@ -70,6 +70,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
     $expected = Array (
       'id'        => $post->ID,
       'title'     => 'Test Post',
+      'date'      => '2014-01-01T00:00:00+00:00',
       'author'    => 'Tester',
       'excerpt'   => '',
       'layout'    => 'post',
