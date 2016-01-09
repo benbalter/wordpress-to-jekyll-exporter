@@ -290,8 +290,8 @@ class Jekyll_Export {
     global $wp_filesystem;
 
     if ( get_post_type( $post ) == 'page' ) {
-      $wp_filesystem->mkdir( $this->dir . $post->post_name );
-      $filename = $post->post_name . '/index.md';
+      $wp_filesystem->mkdir( $this->dir . get_page_uri( $post->id ) );
+      $filename = get_page_uri( $post->id ) . '.md';
     } else {
       $filename = '_' . get_post_type( $post ) . 's/' . date( 'Y-m-d', strtotime( $post->post_date ) ) . '-' . $post->post_name . '.md';
     }
