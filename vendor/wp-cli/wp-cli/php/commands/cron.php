@@ -58,13 +58,6 @@ class Cron_Event_Command extends WP_CLI_Command {
 			$events = array();
 		}
 
-		if ( in_array( $formatter->format, array( 'table', 'csv' ) ) ) {
-			$events = array_map( function( $event ){
-				$event->args = json_encode( $event->args );
-				return $event;
-			}, $events );
-		}
-
 		if ( 'ids' == $formatter->format ) {
 			echo implode( ' ', wp_list_pluck( $events, 'hook' ) );
 		} else {
@@ -101,10 +94,10 @@ class Cron_Event_Command extends WP_CLI_Command {
 	public function schedule( $args, $assoc_args ) {
 
 		$hook = $args[0];
-		$next_run = ( isset( $args[1] ) ) ? $args[1] : 'now';
-		$recurrence = ( isset( $args[2] ) ) ? $args[2] : false;
+		$next_run = \WP_CLI\Utils\get_flag_value( $args, 1, 'now' );
+		$recurrence = \WP_CLI\Utils\get_flag_value( $args, 2, false );
 
-		if ( ! empty( $next_run ) ) {
+		if ( empty( $next_run ) ) {
 			$timestamp = time();
 		} else if ( is_numeric( $next_run ) ) {
 			$timestamp = absint( $next_run );
@@ -145,37 +138,49 @@ class Cron_Event_Command extends WP_CLI_Command {
 	 *
 	 * ## OPTIONS
 	 *
-	 * <hook>
-	 * : The hook name
+	 * [<hook>...]
+	 * : One or more hooks to run.
+	 *
+	 * [--all]
+	 * : Run all hooks.
 	 */
 	public function run( $args, $assoc_args ) {
 
-		$hook   = $args[0];
+		if ( empty( $args ) && ! \WP_CLI\Utils\get_flag_value( $assoc_args, 'all' ) ) {
+			WP_CLI::error( 'Please specify one or more cron events, or use --all.' );
+		}
+
 		$events = self::get_cron_events();
 
 		if ( is_wp_error( $events ) ) {
 			WP_CLI::error( $events );
 		}
 
-		$executed = 0;
-		foreach ( $events as $id => $event ) {
-			if ( $event->hook == $hook ) {
-				$result = self::run_event( $event );
-				if ( $result ) {
-					$executed++;
-				} else {
-					WP_CLI::warning( sprintf( "Failed to the execute the cron event '%s'", $hook ) );
+
+		if ( ! \WP_CLI\Utils\get_flag_value( $assoc_args, 'all' ) ) {
+			$hooks = wp_list_pluck( $events, 'hook' );
+			foreach( $args as $hook ) {
+				if ( ! in_array( $hook, $hooks ) ) {
+					WP_CLI::error( sprintf( "Invalid cron event '%s'", $hook ) );
 				}
 			}
 		}
 
-		if ( $executed ) {
-			$message = ( 1 == $executed ) ? "Executed the cron event '%2\$s'" : "Executed %1\$d instances of the cron event '%2\$s'";
-			WP_CLI::success( sprintf( $message, $executed, $hook ) );
-		} else {
-			WP_CLI::error( sprintf( "Invalid cron event '%s'", $hook ) );
+		$executed = 0;
+		foreach ( $events as $event ) {
+			if ( in_array( $event->hook, $args ) || \WP_CLI\Utils\get_flag_value( $assoc_args, 'all' ) ) {
+				$result = self::run_event( $event );
+				if ( $result ) {
+					$executed++;
+					WP_CLI::log( sprintf( "Executed the cron event '%s'.", $event->hook ) );
+				} else {
+					WP_CLI::warning( sprintf( "Failed to the execute the cron event '%s'.", $event->hook ) );
+				}
+			}
 		}
 
+		$message = 'Executed a total of %d cron event(s).';
+		WP_CLI::success( sprintf( $message, $executed ) );
 	}
 
 	/**
@@ -221,7 +226,7 @@ class Cron_Event_Command extends WP_CLI_Command {
 		}
 
 		$deleted = 0;
-		foreach ( $events as $id => $event ) {
+		foreach ( $events as $event ) {
 			if ( $event->hook == $hook ) {
 				$result = self::delete_event( $event );
 				if ( $result ) {
@@ -301,7 +306,7 @@ class Cron_Event_Command extends WP_CLI_Command {
 						'sig'      => $sig,
 						'args'     => $data['args'],
 						'schedule' => $data['schedule'],
-						'interval' => isset( $data['interval'] ) ? $data['interval'] : null,
+						'interval' => \WP_CLI\Utils\get_flag_value( $data, 'interval' ),
 					);
 
 				}
@@ -517,6 +522,7 @@ class Cron_Command extends WP_CLI_Command {
 	 */
 	protected static function get_cron_spawn() {
 
+		$sslverify     = \WP_CLI\Utils\wp_version_compare( 4.0, '<' );
 		$doing_wp_cron = sprintf( '%.22F', microtime( true ) );
 
 		$cron_request = apply_filters( 'cron_request', array(
@@ -525,7 +531,7 @@ class Cron_Command extends WP_CLI_Command {
 			'args' => array(
 				'timeout'   => 3,
 				'blocking'  => true,
-				'sslverify' => apply_filters( 'https_local_ssl_verify', true )
+				'sslverify' => apply_filters( 'https_local_ssl_verify', $sslverify )
 			)
 		) );
 

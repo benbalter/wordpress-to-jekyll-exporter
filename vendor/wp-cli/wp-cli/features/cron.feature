@@ -4,7 +4,7 @@ Feature: Manage WP-Cron events and schedules
     Given a WP install
 
   Scenario: Scheduling and then deleting an event
-    When I run `wp cron event schedule wp_cli_test_event_1 '+1 hour' --apple=banana`
+    When I run `wp cron event schedule wp_cli_test_event_1 '+1 hour 5 minutes' --apple=banana`
     Then STDOUT should contain:
       """
       Success: Scheduled event with hook 'wp_cli_test_event_1'
@@ -12,8 +12,14 @@ Feature: Manage WP-Cron events and schedules
 
     When I run `wp cron event list --format=csv --fields=hook,recurrence,args`
     Then STDOUT should be CSV containing:
-      | hook                | recurrence    | args                |
-      | wp_cli_test_event_1 | Non-repeating | {"apple":"banana"}  |
+      | hook                | recurrence      | args                |
+      | wp_cli_test_event_1 | Non-repeating   | {"apple":"banana"}  |
+
+    When I run `wp cron event list --fields=hook,next_run_relative | grep wp_cli_test_event_1`
+    Then STDOUT should contain:
+      """
+      1 hour
+      """
 
     When I run `wp cron event delete wp_cli_test_event_1`
     Then STDOUT should contain:
@@ -68,7 +74,9 @@ Feature: Manage WP-Cron events and schedules
     When I run `wp cron event run wp_cli_test_event_5`
     Then STDOUT should be:
       """
-      Success: Executed 2 instances of the cron event 'wp_cli_test_event_5'
+      Executed the cron event 'wp_cli_test_event_5'.
+      Executed the cron event 'wp_cli_test_event_5'.
+      Success: Executed a total of 2 cron event(s).
       """
 
     When I run `wp cron event list`
@@ -167,4 +175,43 @@ Feature: Manage WP-Cron events and schedules
     Then STDERR should not contain:
       """
       Error:
+      """
+
+  Scenario: Run multiple cron events
+    When I try `wp cron event run`
+    Then STDERR should be:
+      """
+      Error: Please specify one or more cron events, or use --all.
+      """
+
+    When I run `wp cron event run wp_version_check wp_update_plugins`
+    Then STDOUT should contain:
+      """
+      Executed the cron event 'wp_version_check'.
+      """
+    And STDOUT should contain:
+      """
+      Executed the cron event 'wp_update_plugins'.
+      """
+    And STDOUT should contain:
+      """
+      Success: Executed a total of 2 cron event(s).
+      """
+
+    When I run `wp cron event run --all`
+    Then STDOUT should contain:
+      """
+      Executed the cron event 'wp_version_check'.
+      """
+    And STDOUT should contain:
+      """
+      Executed the cron event 'wp_update_plugins'.
+      """
+    And STDOUT should contain:
+      """
+      Executed the cron event 'wp_update_themes'.
+      """
+    And STDOUT should contain:
+      """
+      Success: Executed a total of
       """

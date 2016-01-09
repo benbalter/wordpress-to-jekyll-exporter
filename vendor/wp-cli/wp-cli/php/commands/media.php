@@ -15,6 +15,12 @@ class Media_Command extends WP_CLI_Command {
 	 * [<attachment-id>...]
 	 * : One or more IDs of the attachments to regenerate.
 	 *
+	 * [--skip-delete]
+	 * : Skip deletion of the original thumbnails. If your thumbnails are linked from sources outside your control, it's likely best to leave them around. Defaults to false.
+	 *
+	 * [--only-missing]
+	 * : Only generate thumbnails for images missing image sizes.
+	 *
 	 * [--yes]
 	 * : Answer yes to the confirmation message.
 	 *
@@ -28,7 +34,13 @@ class Media_Command extends WP_CLI_Command {
 	 */
 	function regenerate( $args, $assoc_args = array() ) {
 		if ( empty( $args ) ) {
-			WP_CLI::confirm( 'Do you realy want to regenerate all images?', $assoc_args );
+			WP_CLI::confirm( 'Do you really want to regenerate all images?', $assoc_args );
+		}
+
+		$skip_delete = \WP_CLI\Utils\get_flag_value( $assoc_args, 'skip-delete' );
+		$only_missing = \WP_CLI\Utils\get_flag_value( $assoc_args, 'only-missing' );
+		if ( $only_missing ) {
+			$skip_delete = true;
 		}
 
 		$query_args = array(
@@ -52,14 +64,21 @@ class Media_Command extends WP_CLI_Command {
 		WP_CLI::log( sprintf( 'Found %1$d %2$s to regenerate.', $count,
 			_n( 'image', 'images', $count ) ) );
 
+		$errored = false;
 		foreach ( $images->posts as $id ) {
-			$this->_process_regeneration( $id );
+			if ( ! $this->_process_regeneration( $id, $skip_delete, $only_missing ) ) {
+				$errored = true;
+			}
 		}
 
-		WP_CLI::success( sprintf(
-			'Finished regenerating %1$s.',
-			_n('the image', 'all images', $count)
-		) );
+		if ( $errored ) {
+			WP_CLI::log( _n( 'An error occurred with image regeneration.', 'An error occurred regenerating one or more images.', $count ) );
+		} else {
+			WP_CLI::success( sprintf(
+				'Finished regenerating %1$s.',
+				_n('the image', 'all images', $count)
+			) );
+		}
 	}
 
 	/**
@@ -106,10 +125,10 @@ class Media_Command extends WP_CLI_Command {
 	 */
 	function import( $args, $assoc_args = array() ) {
 		$assoc_args = wp_parse_args( $assoc_args, array(
-			'title' => null,
-			'caption' => null,
-			'alt' => null,
-			'desc' => null
+			'title' => '',
+			'caption' => '',
+			'alt' => '',
+			'desc' => '',
 		) );
 
 		if ( isset( $assoc_args['post_id'] ) ) {
@@ -122,7 +141,7 @@ class Media_Command extends WP_CLI_Command {
 		}
 
 		foreach ( $args as $file ) {
-			$is_file_remote = parse_url( $file, PHP_URL_SCHEME );
+			$is_file_remote = parse_url( $file, PHP_URL_HOST );
 			$orig_filename = $file;
 
 			if ( empty( $is_file_remote ) ) {
@@ -162,18 +181,18 @@ class Media_Command extends WP_CLI_Command {
 			}
 
 			// Set as featured image, if --post_id and --featured_image are set
-			if ( $assoc_args['post_id'] && isset( $assoc_args['featured_image'] ) ) {
+			if ( $assoc_args['post_id'] && \WP_CLI\Utils\get_flag_value( $assoc_args, 'featured_image' ) ) {
 				update_post_meta( $assoc_args['post_id'], '_thumbnail_id', $success );
 			}
 
 			$attachment_success_text = '';
 			if ( $assoc_args['post_id'] ) {
 				$attachment_success_text = " and attached to post {$assoc_args['post_id']}";
-				if ( isset($assoc_args['featured_image']) )
+				if ( \WP_CLI\Utils\get_flag_value( $assoc_args, 'featured_image' ) )
 					$attachment_success_text .= ' as featured image';
 			}
 
-			if ( isset( $assoc_args['porcelain'] ) ) {
+			if ( \WP_CLI\Utils\get_flag_value( $assoc_args, 'porcelain' ) ) {
 				WP_CLI::line( $success );
 			} else {
 				WP_CLI::success( sprintf(
@@ -198,41 +217,52 @@ class Media_Command extends WP_CLI_Command {
 		return $filename;
 	}
 
-	private function _process_regeneration( $id ) {
-		$image = get_post( $id );
+	private function _process_regeneration( $id, $skip_delete = false, $only_missing = false ) {
 
-		$fullsizepath = get_attached_file( $image->ID );
+		$fullsizepath = get_attached_file( $id );
 
-		$att_desc = sprintf( '"%1$s" (ID %2$d).', get_the_title( $image->ID ), $image->ID );
+		$att_desc = sprintf( '"%1$s" (ID %2$d).', get_the_title( $id ), $id );
 
 		if ( false === $fullsizepath || !file_exists( $fullsizepath ) ) {
 			WP_CLI::warning( "Can't find $att_desc" );
-			return;
+			return false;
 		}
 
-		$this->remove_old_images( $image->ID );
-
-		$metadata = wp_generate_attachment_metadata( $image->ID, $fullsizepath );
-		if ( is_wp_error( $metadata ) ) {
-			WP_CLI::warning( $metadata->get_error_message() );
-			return;
+		if ( ! $skip_delete ) {
+			$this->remove_old_images( $id );
 		}
 
-		if ( empty( $metadata ) ) {
-			WP_CLI::warning( "Couldn't regenerate thumbnails for $att_desc." );
-			return;
+		if ( ! $only_missing || $this->needs_regeneration( $id ) ) {
+
+			$metadata = wp_generate_attachment_metadata( $id, $fullsizepath );
+			if ( is_wp_error( $metadata ) ) {
+				WP_CLI::warning( $metadata->get_error_message() );
+				return false;
+			}
+
+			if ( empty( $metadata ) ) {
+				WP_CLI::warning( "Couldn't regenerate thumbnails for $att_desc." );
+				return false;
+			}
+
+			wp_update_attachment_metadata( $id, $metadata );
+
+			WP_CLI::log( "Regenerated thumbnails for $att_desc" );
+			return true;
+		} else {
+			WP_CLI::log( "No thumbnail regeneration needed for $att_desc" );
+			return true;
 		}
-
-		wp_update_attachment_metadata( $image->ID, $metadata );
-
-		WP_CLI::log( "Regenerated thumbnails for $att_desc" );
-
 	}
 
 	private function remove_old_images( $att_id ) {
 		$wud = wp_upload_dir();
 
 		$metadata = wp_get_attachment_metadata( $att_id );
+
+		if ( empty( $metadata['file'] ) ) {
+			return;
+		}
 
 		$dir_path = $wud['basedir'] . '/' . dirname( $metadata['file'] ) . '/';
 		$original_path = $dir_path . basename( $metadata['file'] );
@@ -241,7 +271,7 @@ class Media_Command extends WP_CLI_Command {
 			return;
 		}
 
-		foreach ( $metadata['sizes'] as $size => $size_info ) {
+		foreach ( $metadata['sizes'] as $size_info ) {
 			$intermediate_path = $dir_path . $size_info['file'];
 
 			if ( $intermediate_path == $original_path )
@@ -250,6 +280,35 @@ class Media_Command extends WP_CLI_Command {
 			if ( file_exists( $intermediate_path ) )
 				unlink( $intermediate_path );
 		}
+	}
+
+	private function needs_regeneration( $att_id ) {
+		$wud = wp_upload_dir();
+
+		$metadata = wp_get_attachment_metadata($att_id);
+
+		if ( empty($metadata['file'] ) ) {
+			return false;
+		}
+
+		$dir_path = $wud['basedir'] . '/' . dirname( $metadata['file'] ) . '/';
+		$original_path = $dir_path . basename( $metadata['file'] );
+
+		if ( empty( $metadata['sizes'] ) ) {
+			return false;
+		}
+
+		foreach( $metadata['sizes'] as $size_info ) {
+			$intermediate_path = $dir_path . $size_info['file'];
+
+			if ( $intermediate_path == $original_path )
+				continue;
+
+			if ( ! file_exists( $intermediate_path ) ) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
 

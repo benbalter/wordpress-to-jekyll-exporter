@@ -5,13 +5,13 @@ phpunit --debug DataProviderDebugTest ../_files/DataProviderDebugTest.php
 $_SERVER['argv'][1] = '--no-configuration';
 $_SERVER['argv'][2] = '--debug';
 $_SERVER['argv'][3] = 'DataProviderDebugTest';
-$_SERVER['argv'][4] = dirname(__FILE__).'/../_files/DataProviderDebugTest.php';
+$_SERVER['argv'][4] = dirname(__FILE__) . '/../_files/DataProviderDebugTest.php';
 
 require __DIR__ . '/../bootstrap.php';
 PHPUnit_TextUI_Command::main();
 ?>
 --EXPECTF--
-PHPUnit %s by Sebastian Bergmann.
+PHPUnit %s by Sebastian Bergmann and contributors.
 
 
 Starting test 'DataProviderDebugTest::testProvider with data set #0 (null, true, 1, 1.0)'.

@@ -120,18 +120,20 @@ class Colors {
 		}
 
 		if (!self::shouldColorize($colored)) {
-			$return = preg_replace('/%((%)|.)/', '$2', $string);
+			$colors = self::getColors();
+			$search = array_keys( $colors );
+			$return = str_replace( $search, '', $string );
 			self::cacheString($passed, $return, $colored);
 			return $return;
 		}
 
-		$string = str_replace('%%', '% ', $string);
+		$string = str_replace('%%', '%¾', $string);
 
 		foreach (self::getColors() as $key => $value) {
 			$string = str_replace($key, self::color($value), $string);
 		}
 
-		$string = str_replace('% ', '%', $string);
+		$string = str_replace('%¾', '%', $string);
 		self::cacheString($passed, $string, $colored);
 
 		return $string;

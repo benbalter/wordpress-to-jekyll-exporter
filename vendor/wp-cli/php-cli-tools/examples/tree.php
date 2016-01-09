@@ -2,26 +2,26 @@
 
 require_once 'common.php';
 
-$data = [
-    'Test' => [
-        'Something Cool' => [
+$data = array(
+    'Test' => array(
+        'Something Cool' => array(
             'This is a 3rd layer',
-        ],
+        ),
         'This is a 2nd layer',
-    ],
-    'Other test' => [
-        'This is awesome' => [
+    ),
+    'Other test' => array(
+        'This is awesome' => array(
             'This is also cool',
             'This is even cooler',
-            'Wow like what is this' => [
+            'Wow like what is this' => array(
                 'Awesome eh?',
-                'Totally' => [
+                'Totally' => array(
                     'Yep!'
-                ],
-            ],
-        ],
-    ],
-];
+                ),
+            ),
+        ),
+    ),
+);
 
 printf("ASCII:\n");
 

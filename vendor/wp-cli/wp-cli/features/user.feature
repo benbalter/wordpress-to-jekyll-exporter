@@ -23,6 +23,11 @@ Feature: Manage WordPress users
       test
       """
 
+    When I run `wp user list --fields=user_login,roles`
+    Then STDOUT should be a table containing rows:
+      | user_login        | roles      |
+      | testuser2         | author     |
+
     When I run `wp user meta get {USER_ID} last_name`
     Then STDOUT should be:
       """
@@ -62,20 +67,20 @@ Feature: Manage WordPress users
   Scenario: Reassigning user posts
     Given a WP multisite install
 
-    When I run `wp user create bob bob@example.com --role=author --porcelain`
+    When I run `wp user create bobjones bob@example.com --role=author --porcelain`
     And save STDOUT as {BOB_ID}
 
     And I run `wp user create sally sally@example.com --role=editor --porcelain`
     And save STDOUT as {SALLY_ID}
 
-    When I run `wp post generate --count=3 --post_author=bob`
+    When I run `wp post generate --count=3 --post_author=bobjones`
     And I run `wp post list --author={BOB_ID} --format=count`
     Then STDOUT should be:
       """
       3
       """
 
-    When I run `wp user delete bob --reassign={SALLY_ID}`
+    When I run `wp user delete bobjones --reassign={SALLY_ID}`
     And I run `wp post list --author={SALLY_ID} --format=count`
     Then STDOUT should be:
       """
@@ -85,16 +90,16 @@ Feature: Manage WordPress users
   Scenario: Deleting user from the whole network
     Given a WP multisite install
 
-    When I run `wp user create bob bob@example.com --role=author --porcelain`
+    When I run `wp user create bobjones bob@example.com --role=author --porcelain`
     And save STDOUT as {BOB_ID}
 
-    When I run `wp user get bob`
+    When I run `wp user get bobjones`
     Then STDOUT should not be empty
 
-    When I run `wp user delete bob --network --yes`
+    When I run `wp user delete bobjones --network --yes`
     Then STDOUT should not be empty
 
-    When I try `wp user get bob`
+    When I try `wp user get bobjones`
     Then STDERR should not be empty
 
   Scenario: Generating and deleting users
@@ -120,79 +125,22 @@ Feature: Manage WordPress users
       0
       """
 
-  Scenario: Importing users from a CSV file
-    Given a WP install
-    And a users.csv file:
+  Scenario: Create new users on multisite
+    Given a WP multisite install
+
+    When I try `wp user create bob-jones bobjones@example.com`
+    Then STDERR should contain:
       """
-      user_login,user_email,display_name,role
-      bobjones,bobjones@domain.com,Bob Jones,contributor
-      newuser1,newuser1@domain.com,New User,author
-      admin,admin@domain.com,Existing User,administrator
+      lowercase letters (a-z) and numbers
       """
 
-    When I try `wp user import-csv users-incorrect.csv --skip-update`
-    Then STDERR should be:
-      """
-      Error: Missing file: users-incorrect.csv
-      """
-
-    When I try `wp user import-csv http://example.com/users.csv --skip-update`
-    Then STDERR should be:
-      """
-      Error: Couldn't access remote CSV file (HTTP 404 response).
-      """
-
-    When I run `wp user import-csv users.csv`
+    When I run `wp user create bobjones bobjones@example.com --display_name="Bob Jones"`
     Then STDOUT should not be empty
 
-    When I run `wp user list --format=count`
+    When I run `wp user get bobjones --field=display_name`
     Then STDOUT should be:
       """
-      3
-      """
-
-    When I run `wp user list --format=json`
-    Then STDOUT should be JSON containing:
-      """
-      [{
-        "user_login":"admin",
-        "display_name":"Existing User",
-        "user_email":"admin@domain.com",
-        "roles":"administrator"
-      }]
-      """
-
-  Scenario: Import new users but don't update existing
-    Given a WP install
-    And a users.csv file:
-      """
-      user_login,user_email,display_name,role
-      bobjones,bobjones@domain.com,Bob Jones,contributor
-      newuser1,newuser1@domain.com,New User,author
-      admin,admin@domain.com,Existing User,administrator
-      """
-
-    When I run `wp user create bobjones bobjones@domain.com --display_name="Robert Jones" --role=administrator`
-    Then STDOUT should not be empty
-
-    When I run `wp user import-csv users.csv --skip-update`
-    Then STDOUT should not be empty
-
-    When I run `wp user list --format=count`
-    Then STDOUT should be:
-      """
-      3
-      """
-
-    When I run `wp user get bobjones --fields=user_login,display_name,user_email,roles --format=json`
-    Then STDOUT should be JSON containing:
-      """
-      {
-        "user_login":"bobjones",
-        "display_name":"Robert Jones",
-        "user_email":"bobjones@domain.com",
-        "roles":"administrator"
-      }
+      Bob Jones
       """
 
   Scenario: Managing user roles
@@ -280,3 +228,36 @@ Feature: Manage WordPress users
        """
        Password:
        """
+
+  Scenario: List network users
+    Given a WP multisite install
+
+    When I run `wp user create testsubscriber testsubscriber@example.com`
+    Then STDOUT should contain:
+      """
+      Success: Created user
+      """
+
+    When I run `wp user list --field=user_login`
+    Then STDOUT should contain:
+      """
+      testsubscriber
+      """
+
+    When I run `wp user delete testsubscriber --yes`
+    Then STDOUT should contain:
+      """
+      Success: Removed user
+      """
+
+    When I run `wp user list --field=user_login`
+    Then STDOUT should not contain:
+      """
+      testsubscriber
+      """
+
+    When I run `wp user list --field=user_login --network`
+    Then STDOUT should contain:
+      """
+      testsubscriber
+      """

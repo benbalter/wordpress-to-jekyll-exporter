@@ -65,12 +65,12 @@ Argument parsing uses a simple framework for taking a list of command line argum
 usually straight from `$_SERVER['argv']`, and parses the input against a set of
 defined rules.
 
-Check `example_args.php` for an example.
+Check `examples/arguments.php` for an example.
 
 Usage
 -----
 
-See `example.php` for examples.
+See `examples/` directory for examples.
 
 
 Todo

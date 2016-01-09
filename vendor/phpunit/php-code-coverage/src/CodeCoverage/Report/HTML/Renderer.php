@@ -1,46 +1,11 @@
 <?php
-/**
- * PHP_CodeCoverage
+/*
+ * This file is part of the PHP_CodeCoverage package.
  *
- * Copyright (c) 2009-2014, Sebastian Bergmann <sebastian@phpunit.de>.
- * All rights reserved.
+ * (c) Sebastian Bergmann <sebastian@phpunit.de>
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *
- *   * Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in
- *     the documentation and/or other materials provided with the
- *     distribution.
- *
- *   * Neither the name of Sebastian Bergmann nor the names of his
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- * @category   PHP
- * @package    CodeCoverage
- * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @copyright  2009-2014 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
- * @link       http://github.com/sebastianbergmann/php-code-coverage
- * @since      File available since Release 1.1.0
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 use SebastianBergmann\Environment\Runtime;
@@ -48,13 +13,7 @@ use SebastianBergmann\Environment\Runtime;
 /**
  * Base class for PHP_CodeCoverage_Report_Node renderers.
  *
- * @category   PHP
- * @package    CodeCoverage
- * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @copyright  2009-2014 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
- * @link       http://github.com/sebastianbergmann/php-code-coverage
- * @since      Class available since Release 1.1.0
+ * @since Class available since Release 1.1.0
  */
 abstract class PHP_CodeCoverage_Report_HTML_Renderer
 {
@@ -74,12 +33,12 @@ abstract class PHP_CodeCoverage_Report_HTML_Renderer
     protected $date;
 
     /**
-     * @var integer
+     * @var int
      */
     protected $lowUpperBound;
 
     /**
-     * @var integer
+     * @var int
      */
     protected $highLowerBound;
 
@@ -91,15 +50,15 @@ abstract class PHP_CodeCoverage_Report_HTML_Renderer
     /**
      * Constructor.
      *
-     * @param string  $templatePath
-     * @param string  $generator
-     * @param string  $date
-     * @param integer $lowUpperBound
-     * @param integer $highLowerBound
+     * @param string $templatePath
+     * @param string $generator
+     * @param string $date
+     * @param int    $lowUpperBound
+     * @param int    $highLowerBound
      */
     public function __construct($templatePath, $generator, $date, $lowUpperBound, $highLowerBound)
     {
-        $version = new SebastianBergmann\Version('2.0.14', dirname(dirname(dirname(dirname(__DIR__)))));
+        $version = new SebastianBergmann\Version('2.2.4', dirname(dirname(dirname(dirname(__DIR__)))));
 
         $this->templatePath   = $templatePath;
         $this->generator      = $generator;
@@ -116,69 +75,72 @@ abstract class PHP_CodeCoverage_Report_HTML_Renderer
      */
     protected function renderItemTemplate(Text_Template $template, array $data)
     {
-        $numSeperator = '&nbsp;/&nbsp;';
-        $classesBar    = '&nbsp;';
-        $classesLevel  = 'None';
-        $classesNumber = '&nbsp;';
+        $numSeparator  = '&nbsp;/&nbsp;';
 
         if (isset($data['numClasses']) && $data['numClasses'] > 0) {
             $classesLevel = $this->getColorLevel($data['testedClassesPercent']);
 
-            $classesNumber = $data['numTestedClasses'] . $numSeperator .
+            $classesNumber = $data['numTestedClasses'] . $numSeparator .
                 $data['numClasses'];
 
             $classesBar = $this->getCoverageBar(
                 $data['testedClassesPercent']
             );
+        } else {
+            $classesLevel  = 'success';
+            $classesNumber = '0' . $numSeparator . '0';
+            $classesBar    = $this->getCoverageBar(100);
         }
-
-        $methodsBar    = '&nbsp;';
-        $methodsLevel  = 'None';
-        $methodsNumber = '&nbsp;';
 
         if ($data['numMethods'] > 0) {
             $methodsLevel = $this->getColorLevel($data['testedMethodsPercent']);
 
-            $methodsNumber = $data['numTestedMethods'] . $numSeperator .
+            $methodsNumber = $data['numTestedMethods'] . $numSeparator .
                 $data['numMethods'];
 
             $methodsBar = $this->getCoverageBar(
                 $data['testedMethodsPercent']
             );
+        } else {
+            $methodsLevel                         = 'success';
+            $methodsNumber                        = '0' . $numSeparator . '0';
+            $methodsBar                           = $this->getCoverageBar(100);
+            $data['testedMethodsPercentAsString'] = '100.00%';
         }
-
-        $linesBar    = '&nbsp;';
-        $linesLevel  = 'None';
-        $linesNumber = '&nbsp;';
 
         if ($data['numExecutableLines'] > 0) {
             $linesLevel = $this->getColorLevel($data['linesExecutedPercent']);
 
-            $linesNumber = $data['numExecutedLines'] . $numSeperator .
+            $linesNumber = $data['numExecutedLines'] . $numSeparator .
                 $data['numExecutableLines'];
 
             $linesBar = $this->getCoverageBar(
                 $data['linesExecutedPercent']
             );
+        } else {
+            $linesLevel                           = 'success';
+            $linesNumber                          = '0' . $numSeparator . '0';
+            $linesBar                             = $this->getCoverageBar(100);
+            $data['linesExecutedPercentAsString'] = '100.00%';
         }
 
         $template->setVar(
             array(
-                'icon' => isset($data['icon']) ? $data['icon'] : '',
-                'crap' => isset($data['crap']) ? $data['crap'] : '',
-                'name' => $data['name'],
-                'lines_bar' => $linesBar,
+                'icon'                   => isset($data['icon']) ? $data['icon'] : '',
+                'crap'                   => isset($data['crap']) ? $data['crap'] : '',
+                'name'                   => $data['name'],
+                'lines_bar'              => $linesBar,
                 'lines_executed_percent' => $data['linesExecutedPercentAsString'],
-                'lines_level' => $linesLevel,
-                'lines_number' => $linesNumber,
-                'methods_bar' => $methodsBar,
+                'lines_level'            => $linesLevel,
+                'lines_number'           => $linesNumber,
+                'methods_bar'            => $methodsBar,
                 'methods_tested_percent' => $data['testedMethodsPercentAsString'],
-                'methods_level' => $methodsLevel,
-                'methods_number' => $methodsNumber,
-                'classes_bar' => $classesBar,
+                'methods_level'          => $methodsLevel,
+                'methods_number'         => $methodsNumber,
+                'classes_bar'            => $classesBar,
                 'classes_tested_percent' => isset($data['testedClassesPercentAsString']) ? $data['testedClassesPercentAsString'] : '',
-                'classes_level' => $classesLevel,
-                'classes_number' => $classesNumber
+                'classes_level'          => $classesLevel,
+                'classes_number'         => $classesNumber
             )
         );
 
@@ -229,7 +191,8 @@ abstract class PHP_CodeCoverage_Report_HTML_Renderer
         foreach ($path as $step) {
             if ($step !== $node) {
                 $breadcrumbs .= $this->getInactiveBreadcrumb(
-                    $step, array_pop($pathToRoot)
+                    $step,
+                    array_pop($pathToRoot)
                 );
             } else {
                 $breadcrumbs .= $this->getActiveBreadcrumb($step);
@@ -280,23 +243,25 @@ abstract class PHP_CodeCoverage_Report_HTML_Renderer
         $level = $this->getColorLevel($percent);
 
         $template = new Text_Template(
-            $this->templatePath . 'coverage_bar.html', '{{', '}}'
+            $this->templatePath . 'coverage_bar.html',
+            '{{',
+            '}}'
         );
 
-        $template->setVar(array('level' => $level, 'percent' => sprintf("%.2F", $percent)));
+        $template->setVar(array('level' => $level, 'percent' => sprintf('%.2F', $percent)));
 
         return $template->render();
     }
 
     /**
-     * @param  integer $percent
+     * @param  int    $percent
      * @return string
      */
     protected function getColorLevel($percent)
     {
-        if ($percent < $this->lowUpperBound) {
+        if ($percent <= $this->lowUpperBound) {
             return 'danger';
-        } elseif ($percent >= $this->lowUpperBound &&
+        } elseif ($percent > $this->lowUpperBound &&
             $percent <  $this->highLowerBound) {
             return 'warning';
         } else {

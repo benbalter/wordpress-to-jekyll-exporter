@@ -18,8 +18,8 @@ Feature: Manage WordPress terms
         "name": "Test term",
         "slug":"test",
         "description":"This is a test term",
-        "parent":"0",
-        "count":"0"
+        "parent":0,
+        "count":0
       }]
       """
 
@@ -43,13 +43,19 @@ Feature: Manage WordPress terms
       | term_id   | {TERM_ID}  |
       | name      | Test term  |
 
+    When I run `wp term get post_tag {TERM_ID} --format=csv --fields=name,taxonomy`
+    Then STDOUT should be CSV containing:
+      | Field     | Value      |
+      | name      | Test term  |
+      | taxonomy  | post_tag   |
+
   Scenario: Creating/deleting a term
     When I run `wp term create post_tag 'Test delete term' --slug=test-delete --description='This is a test term to be deleted' --porcelain`
     Then STDOUT should be a number
     And save STDOUT as {TERM_ID}
 
     When I run `wp term get post_tag {TERM_ID} --field=slug --format=json`
-    Then STDOUT should contain:
+    Then STDOUT should be:
       """
       "test-delete"
       """
@@ -71,9 +77,29 @@ Feature: Manage WordPress terms
       11
       """
 
+  Scenario: Generating terms when terms already exist
+    When I run `wp term generate category --count=10`
+    And I run `wp term generate category --count=10`
+    And I run `wp term list category --format=count`
+    Then STDOUT should be:
+      """
+      21
+      """
+
   Scenario: Term with a non-existent parent
     When I try `wp term create category Apple --parent=99 --porcelain`
     Then STDERR should be:
       """
       Error: Parent term does not exist.
+      """
+
+  Scenario: Filter terms by term_id
+    When I run `wp term generate category --count=10`
+    And I run `wp term create category "My Test Category" --porcelain`
+    And save STDOUT as {TERM_ID}
+
+    When I run `wp term list category --term_id={TERM_ID} --field=name`
+    Then STDOUT should be:
+      """
+      My Test Category
       """

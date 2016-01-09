@@ -436,10 +436,17 @@ class Arguments implements \ArrayAccess {
 		}
 
 		// Peak ahead to make sure we get a value.
-		if (!$this->_lexer->end() && !$this->_lexer->peek->isValue) {
-			// Oops! Got no value, throw a warning and continue.
-			$this->_warn('no value given for ' . $option->raw);
-			$this[$option->key] = null;
+		if ($this->_lexer->end() || !$this->_lexer->peek->isValue) {
+			$optionSettings = $this->getOption($option->key);
+
+			if (empty($optionSettings['default'])) {
+				// Oops! Got no value and no default , throw a warning and continue.
+				$this->_warn('no value given for ' . $option->raw);
+				$this[$option->key] = null;
+			} else {
+				// No value and we have a default, so we set to the default
+				$this[$option->key] = $optionSettings['default'];
+			}
 			return true;
 		}
 

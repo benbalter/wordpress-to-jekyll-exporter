@@ -1,55 +1,14 @@
 <?php
-/**
- * PHPUnit
+/*
+ * This file is part of PHPUnit.
  *
- * Copyright (c) 2001-2014, Sebastian Bergmann <sebastian@phpunit.de>.
- * All rights reserved.
+ * (c) Sebastian Bergmann <sebastian@phpunit.de>
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *
- *   * Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in
- *     the documentation and/or other materials provided with the
- *     distribution.
- *
- *   * Neither the name of Sebastian Bergmann nor the names of his
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- * @package    PHPUnit
- * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @copyright  2001-2014 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
- * @link       http://www.phpunit.de/
- * @since      File available since Release 3.3.0
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 /**
- *
- *
- * @package    PHPUnit
- * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @copyright  2001-2014 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
- * @link       http://www.phpunit.de/
  * @since      Class available since Release 3.3.0
  */
 class Util_ConfigurationTest extends PHPUnit_Framework_TestCase
@@ -73,6 +32,54 @@ class Util_ConfigurationTest extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * @covers PHPUnit_Util_Configuration::getPHPUnitConfiguration
+     */
+    public function testShouldReadColorsWhenTrueInConfigurationfile()
+    {
+        $configurationFilename =  dirname(__DIR__) . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'configuration.colors.true.xml';
+        $configurationInstance = PHPUnit_Util_Configuration::getInstance($configurationFilename);
+        $configurationValues   = $configurationInstance->getPHPUnitConfiguration();
+
+        $this->assertEquals(PHPUnit_TextUI_ResultPrinter::COLOR_AUTO, $configurationValues['colors']);
+    }
+
+    /**
+     * @covers PHPUnit_Util_Configuration::getPHPUnitConfiguration
+     */
+    public function testShouldReadColorsWhenFalseInConfigurationfile()
+    {
+        $configurationFilename =  dirname(__DIR__) . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'configuration.colors.false.xml';
+        $configurationInstance = PHPUnit_Util_Configuration::getInstance($configurationFilename);
+        $configurationValues   = $configurationInstance->getPHPUnitConfiguration();
+
+        $this->assertEquals(PHPUnit_TextUI_ResultPrinter::COLOR_NEVER, $configurationValues['colors']);
+    }
+
+    /**
+     * @covers PHPUnit_Util_Configuration::getPHPUnitConfiguration
+     */
+    public function testShouldReadColorsWhenEmptyInConfigurationfile()
+    {
+        $configurationFilename =  dirname(__DIR__) . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'configuration.colors.empty.xml';
+        $configurationInstance = PHPUnit_Util_Configuration::getInstance($configurationFilename);
+        $configurationValues   = $configurationInstance->getPHPUnitConfiguration();
+
+        $this->assertEquals(PHPUnit_TextUI_ResultPrinter::COLOR_NEVER, $configurationValues['colors']);
+    }
+
+    /**
+     * @covers PHPUnit_Util_Configuration::getPHPUnitConfiguration
+     */
+    public function testShouldReadColorsWhenInvalidInConfigurationfile()
+    {
+        $configurationFilename =  dirname(__DIR__) . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'configuration.colors.invalid.xml';
+        $configurationInstance = PHPUnit_Util_Configuration::getInstance($configurationFilename);
+        $configurationValues   = $configurationInstance->getPHPUnitConfiguration();
+
+        $this->assertEquals(PHPUnit_TextUI_ResultPrinter::COLOR_NEVER, $configurationValues['colors']);
+    }
+
+    /**
      * @covers PHPUnit_Util_Configuration::getFilterConfiguration
      */
     public function testFilterConfigurationIsReadCorrectly()
@@ -87,10 +94,10 @@ class Util_ConfigurationTest extends PHPUnit_Framework_TestCase
                 array(
                   0 =>
                   array(
-                    'path' => '/path/to/files',
+                    'path'   => '/path/to/files',
                     'prefix' => '',
                     'suffix' => '.php',
-                    'group' => 'DEFAULT'
+                    'group'  => 'DEFAULT'
                   ),
                 ),
                 'file' =>
@@ -104,10 +111,10 @@ class Util_ConfigurationTest extends PHPUnit_Framework_TestCase
                 array(
                   0 =>
                   array(
-                    'path' => '/path/to/files',
+                    'path'   => '/path/to/files',
                     'prefix' => '',
                     'suffix' => '.php',
-                    'group' => 'DEFAULT'
+                    'group'  => 'DEFAULT'
                   ),
                 ),
                 'file' =>
@@ -118,18 +125,18 @@ class Util_ConfigurationTest extends PHPUnit_Framework_TestCase
             ),
             'whitelist' =>
             array(
-              'addUncoveredFilesFromWhitelist' => true,
+              'addUncoveredFilesFromWhitelist'     => true,
               'processUncoveredFilesFromWhitelist' => false,
-              'include' =>
+              'include'                            =>
               array(
                 'directory' =>
                 array(
                   0 =>
                   array(
-                    'path' => '/path/to/files',
+                    'path'   => '/path/to/files',
                     'prefix' => '',
                     'suffix' => '.php',
-                    'group' => 'DEFAULT'
+                    'group'  => 'DEFAULT'
                   ),
                 ),
                 'file' =>
@@ -143,10 +150,10 @@ class Util_ConfigurationTest extends PHPUnit_Framework_TestCase
                 array(
                   0 =>
                   array(
-                    'path' => '/path/to/files',
+                    'path'   => '/path/to/files',
                     'prefix' => '',
                     'suffix' => '.php',
-                    'group' => 'DEFAULT'
+                    'group'  => 'DEFAULT'
                   ),
                 ),
                 'file' =>
@@ -185,7 +192,7 @@ class Util_ConfigurationTest extends PHPUnit_Framework_TestCase
      */
     public function testListenerConfigurationIsReadCorrectly()
     {
-        $dir = __DIR__;
+        $dir         = __DIR__;
         $includePath = ini_get('include_path');
 
         ini_set('include_path', $dir . PATH_SEPARATOR . $includePath);
@@ -194,8 +201,8 @@ class Util_ConfigurationTest extends PHPUnit_Framework_TestCase
             array(
             0 =>
             array(
-              'class' => 'MyListener',
-              'file' => '/optional/path/to/MyListener.php',
+              'class'     => 'MyListener',
+              'file'      => '/optional/path/to/MyListener.php',
               'arguments' =>
               array(
                 0 =>
@@ -212,13 +219,13 @@ class Util_ConfigurationTest extends PHPUnit_Framework_TestCase
               ),
             ),
             array(
-              'class' => 'IncludePathListener',
-              'file' => __FILE__,
+              'class'     => 'IncludePathListener',
+              'file'      => __FILE__,
               'arguments' => array()
             ),
             array(
-              'class' => 'CompactArgumentsListener',
-              'file' => '/CompactArgumentsListener.php',
+              'class'     => 'CompactArgumentsListener',
+              'file'      => '/CompactArgumentsListener.php',
               'arguments' =>
               array(
                 0 => 42
@@ -238,17 +245,17 @@ class Util_ConfigurationTest extends PHPUnit_Framework_TestCase
     {
         $this->assertEquals(
             array(
-            'lowUpperBound' => '50',
-            'highLowerBound' => '90',
-            'coverage-html' => '/tmp/report',
-            'coverage-clover' => '/tmp/clover.xml',
-            'json' => '/tmp/logfile.json',
-            'plain' => '/tmp/logfile.txt',
-            'tap' => '/tmp/logfile.tap',
+            'lowUpperBound'        => '50',
+            'highLowerBound'       => '90',
+            'coverage-html'        => '/tmp/report',
+            'coverage-clover'      => '/tmp/clover.xml',
+            'json'                 => '/tmp/logfile.json',
+            'plain'                => '/tmp/logfile.txt',
+            'tap'                  => '/tmp/logfile.tap',
             'logIncompleteSkipped' => false,
-            'junit' => '/tmp/logfile.xml',
-            'testdox-html' => '/tmp/testdox.html',
-            'testdox-text' => '/tmp/testdox.txt',
+            'junit'                => '/tmp/logfile.xml',
+            'testdox-html'         => '/tmp/testdox.html',
+            'testdox-text'         => '/tmp/testdox.txt',
             ),
             $this->configuration->getLoggingConfiguration()
         );
@@ -266,15 +273,15 @@ class Util_ConfigurationTest extends PHPUnit_Framework_TestCase
               dirname(__DIR__) . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . '.',
               '/path/to/lib'
             ),
-            'ini'=> array('foo' => 'bar'),
-            'const'=> array('FOO' => false, 'BAR' => true),
-            'var'=> array('foo' => false),
-            'env'=> array('foo' => true),
-            'post'=> array('foo' => 'bar'),
-            'get'=> array('foo' => 'bar'),
-            'cookie'=> array('foo' => 'bar'),
-            'server'=> array('foo' => 'bar'),
-            'files'=> array('foo' => 'bar'),
+            'ini'    => array('foo' => 'bar'),
+            'const'  => array('FOO' => false, 'BAR' => true),
+            'var'    => array('foo' => false),
+            'env'    => array('foo' => true),
+            'post'   => array('foo' => 'bar'),
+            'get'    => array('foo' => 'bar'),
+            'cookie' => array('foo' => 'bar'),
+            'server' => array('foo' => 'bar'),
+            'files'  => array('foo' => 'bar'),
             'request'=> array('foo' => 'bar'),
             ),
             $this->configuration->getPHPConfiguration()
@@ -306,6 +313,7 @@ class Util_ConfigurationTest extends PHPUnit_Framework_TestCase
 
     /**
      * @backupGlobals enabled
+     *
      * @see https://github.com/sebastianbergmann/phpunit/issues/1181
      */
     public function testHandlePHPConfigurationDoesNotOverwrittenExistingEnvArrayVariables()
@@ -319,6 +327,7 @@ class Util_ConfigurationTest extends PHPUnit_Framework_TestCase
 
     /**
      * @backupGlobals enabled
+     *
      * @see https://github.com/sebastianbergmann/phpunit/issues/1181
      */
     public function testHandlePHPConfigurationDoesNotOverriteVariablesFromPutEnv()
@@ -337,29 +346,31 @@ class Util_ConfigurationTest extends PHPUnit_Framework_TestCase
     {
         $this->assertEquals(
             array(
-            'backupGlobals' => true,
-            'backupStaticAttributes' => false,
-            'bootstrap' => '/path/to/bootstrap.php',
-            'cacheTokens' => false,
-            'colors' => false,
-            'stderr' => false,
-            'convertErrorsToExceptions' => true,
-            'convertNoticesToExceptions' => true,
-            'convertWarningsToExceptions' => true,
-            'forceCoversAnnotation' => false,
+            'backupGlobals'                      => true,
+            'backupStaticAttributes'             => false,
+            'disallowChangesToGlobalState'       => false,
+            'bootstrap'                          => '/path/to/bootstrap.php',
+            'cacheTokens'                        => false,
+            'columns'                            => 80,
+            'colors'                             => 'never',
+            'stderr'                             => false,
+            'convertErrorsToExceptions'          => true,
+            'convertNoticesToExceptions'         => true,
+            'convertWarningsToExceptions'        => true,
+            'forceCoversAnnotation'              => false,
             'mapTestClassNameToCoveredClassName' => false,
-            'printerClass' => 'PHPUnit_TextUI_ResultPrinter',
-            'stopOnFailure' => false,
-            'reportUselessTests' => false,
-            'strictCoverage' => false,
-            'disallowTestOutput' => false,
-            'enforceTimeLimit' => false,
-            'disallowTodoAnnotatedTests' => false,
-            'testSuiteLoaderClass' => 'PHPUnit_Runner_StandardTestSuiteLoader',
-            'verbose' => false,
-            'timeoutForSmallTests' => 1,
-            'timeoutForMediumTests' => 10,
-            'timeoutForLargeTests' => 60
+            'printerClass'                       => 'PHPUnit_TextUI_ResultPrinter',
+            'stopOnFailure'                      => false,
+            'reportUselessTests'                 => false,
+            'strictCoverage'                     => false,
+            'disallowTestOutput'                 => false,
+            'enforceTimeLimit'                   => false,
+            'disallowTodoAnnotatedTests'         => false,
+            'testSuiteLoaderClass'               => 'PHPUnit_Runner_StandardTestSuiteLoader',
+            'verbose'                            => false,
+            'timeoutForSmallTests'               => 1,
+            'timeoutForMediumTests'              => 10,
+            'timeoutForLargeTests'               => 60
             ),
             $this->configuration->getPHPUnitConfiguration()
         );
@@ -374,10 +385,10 @@ class Util_ConfigurationTest extends PHPUnit_Framework_TestCase
             array(
             0 =>
             array(
-              'name' => 'Firefox on Linux',
+              'name'    => 'Firefox on Linux',
               'browser' => '*firefox /usr/lib/firefox/firefox-bin',
-              'host' => 'my.linux.box',
-              'port' => 4444,
+              'host'    => 'my.linux.box',
+              'port'    => 4444,
               'timeout' => 30000,
             ),
             ),
@@ -407,6 +418,7 @@ class Util_ConfigurationTest extends PHPUnit_Framework_TestCase
      * @covers PHPUnit_Util_Configuration::getPHPUnitConfiguration
      * @covers PHPUnit_Util_Configuration::getTestSuiteConfiguration
      * @covers PHPUnit_Util_Configuration::getFilterConfiguration
+     *
      * @uses   PHPUnit_Util_Configuration::getInstance
      */
     public function testWithEmptyConfigurations()
@@ -445,7 +457,6 @@ class Util_ConfigurationTest extends PHPUnit_Framework_TestCase
      *
      * @param PHPUnit_Util_Configuration $expectedConfiguration
      * @param PHPUnit_Util_Configuration $actualConfiguration
-     * @return void
      */
     protected function assertConfigurationEquals(PHPUnit_Util_Configuration $expectedConfiguration, PHPUnit_Util_Configuration $actualConfiguration)
     {

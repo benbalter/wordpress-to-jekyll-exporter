@@ -12,12 +12,20 @@ class Transient_Command extends WP_CLI_Command {
 	/**
 	 * Get a transient value.
 	 *
-	 * @synopsis <key> [--json]
+	 * <key>
+	 * : Key for the transient.
+	 *
+	 * [--json]
+	 * : Format output as JSON.
+	 *
+	 * [--network]
+	 * : Get the value of the network transient, instead of the single site.
 	 */
 	public function get( $args, $assoc_args ) {
 		list( $key ) = $args;
 
-		$value = get_transient( $key );
+		$func = \WP_CLI\Utils\get_flag_value( $assoc_args, 'network' ) ? 'get_site_transient' : 'get_transient';
+		$value = $func( $key );
 
 		if ( false === $value ) {
 			WP_CLI::warning( 'Transient with key "' . $key . '" is not set.' );
@@ -30,31 +38,49 @@ class Transient_Command extends WP_CLI_Command {
 	/**
 	 * Set a transient value. <expiration> is the time until expiration, in seconds.
 	 *
-	 * @synopsis <key> <value> [<expiration>]
+	 * <key>
+	 * : Key for the transient.
+	 *
+	 * <value>
+	 * : Value to be set for the transient.
+	 *
+	 * [<expiration>]
+	 * : Time until expiration, in seconds.
+	 *
+	 * [--network]
+	 * : Set the transient value on the network, instead of single site.
 	 */
-	public function set( $args ) {
+	public function set( $args, $assoc_args ) {
 		list( $key, $value ) = $args;
 
-		$expiration = isset( $args[2] ) ? $args[2] : 0;
+		$expiration = \WP_CLI\Utils\get_flag_value( $args, 2, 0 );
 
-		if ( set_transient( $key, $value, $expiration ) )
+		$func = \WP_CLI\Utils\get_flag_value( $assoc_args, 'network' ) ? 'set_site_transient' : 'set_transient';
+		if ( $func( $key, $value, $expiration ) ) {
 			WP_CLI::success( 'Transient added.' );
-		else
+		} else {
 			WP_CLI::error( 'Transient could not be set.' );
+		}
 	}
 
 	/**
 	 * Delete a transient value.
 	 *
-	 * @synopsis <key>
+	 * <key>
+	 * : Key for the transient.
+	 *
+	 * [--network]
+	 * : Delete the value of a network transient, instead of that on a single site.
 	 */
-	public function delete( $args ) {
+	public function delete( $args, $assoc_args ) {
 		list( $key ) = $args;
 
-		if ( delete_transient( $key ) ) {
+		$func = \WP_CLI\Utils\get_flag_value( $assoc_args, 'network' ) ? 'delete_site_transient' : 'delete_transient';
+		if ( $func( $key ) ) {
 			WP_CLI::success( 'Transient deleted.' );
 		} else {
-			if ( get_transient( $key ) )
+			$func = \WP_CLI\Utils\get_flag_value( $assoc_args, 'network' ) ? 'get_site_transient' : 'get_transient';
+			if ( $func( $key ) )
 				WP_CLI::error( 'Transient was not deleted even though the transient appears to exist.' );
 			else
 				WP_CLI::warning( 'Transient was not deleted; however, the transient does not appear to exist.' );

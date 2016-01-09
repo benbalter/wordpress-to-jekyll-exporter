@@ -93,16 +93,21 @@ class WP_CLI {
 	 * Set the context in which WP-CLI should be run
 	 */
 	public static function set_url( $url ) {
+		WP_CLI::debug( 'Set URL: ' . $url );
 		$url_parts = Utils\parse_url( $url );
 		self::set_url_params( $url_parts );
 	}
 
 	private static function set_url_params( $url_parts ) {
 		$f = function( $key ) use ( $url_parts ) {
-			return isset( $url_parts[ $key ] ) ? $url_parts[ $key ] : '';
+			return \WP_CLI\Utils\get_flag_value( $url_parts, $key, '' );
 		};
 
 		if ( isset( $url_parts['host'] ) ) {
+			if ( isset( $url_parts['scheme'] ) && 'https' === strtolower( $url_parts['scheme'] ) ) {
+				$_SERVER['HTTPS'] = 'on';
+			}
+
 			$_SERVER['HTTP_HOST'] = $url_parts['host'];
 			if ( isset( $url_parts['port'] ) ) {
 				$_SERVER['HTTP_HOST'] .= ':' . $url_parts['port'];
@@ -112,7 +117,7 @@ class WP_CLI {
 		}
 
 		$_SERVER['REQUEST_URI'] = $f('path') . ( isset( $url_parts['query'] ) ? '?' . $url_parts['query'] : '' );
-		$_SERVER['SERVER_PORT'] = isset( $url_parts['port'] ) ? $url_parts['port'] : '80';
+		$_SERVER['SERVER_PORT'] = \WP_CLI\Utils\get_flag_value( $url_parts, 'port', '80' );
 		$_SERVER['QUERY_STRING'] = $f('query');
 	}
 
@@ -166,6 +171,10 @@ class WP_CLI {
 	 *   'before_invoke' => callback to execute before invoking the command
 	 */
 	public static function add_command( $name, $class, $args = array() ) {
+		if ( is_string( $class ) && ! class_exists( (string) $class ) ) {
+			WP_CLI::error( sprintf( "Class '%s' does not exist.", $class ) );
+		}
+
 		if ( isset( $args['before_invoke'] ) ) {
 			self::add_hook( "before_invoke:$name", $args['before_invoke'] );
 		}
@@ -229,6 +238,15 @@ class WP_CLI {
 	}
 
 	/**
+	 * Log debug information
+	 *
+	 * @param string $message
+	 */
+	public static function debug( $message ) {
+		self::$logger->debug( self::error_to_string( $message ) );
+	}
+
+	/**
 	 * Display a warning in the CLI and end with a newline
 	 *
 	 * @param string $message
@@ -240,21 +258,35 @@ class WP_CLI {
 	/**
 	 * Display an error in the CLI and end with a newline
 	 *
-	 * @param string $message
+	 * @param string|WP_Error $message
+	 * @param bool            $exit    if true, the script will exit()
 	 */
-	public static function error( $message ) {
+	public static function error( $message, $exit = true ) {
 		if ( ! isset( self::get_runner()->assoc_args[ 'completions' ] ) ) {
 			self::$logger->error( self::error_to_string( $message ) );
 		}
 
-		exit(1);
+		if ( $exit ) {
+			exit(1);
+		}
+	}
+
+	/**
+	 * Display an error in the CLI and end with a newline
+	 *
+	 * @param array $message  each element from the array will be printed on its own line
+	 */
+	public static function error_multi_line( $message_lines ) {
+		if ( ! isset( self::get_runner()->assoc_args[ 'completions' ] ) && is_array( $message_lines ) ) {
+			self::$logger->error_multi_line( array_map( array( __CLASS__, 'error_to_string' ), $message_lines ) );
+		}
 	}
 
 	/**
 	 * Ask for confirmation before running a destructive operation.
 	 */
 	public static function confirm( $question, $assoc_args = array() ) {
-		if ( !isset( $assoc_args['yes'] ) ) {
+		if ( ! \WP_CLI\Utils\get_flag_value( $assoc_args, 'yes' ) ) {
 			fwrite( STDOUT, $question . " [y/n] " );
 
 			$answer = trim( fgets( STDIN ) );
@@ -294,7 +326,7 @@ class WP_CLI {
 	 * @param array $assoc_args
 	 */
 	public static function read_value( $raw_value, $assoc_args = array() ) {
-		if ( isset( $assoc_args['format'] ) && 'json' == $assoc_args['format'] ) {
+		if ( \WP_CLI\Utils\get_flag_value( $assoc_args, 'format' ) === 'json' ) {
 			$value = json_decode( $raw_value, true );
 			if ( null === $value ) {
 				WP_CLI::error( sprintf( 'Invalid JSON: %s', $raw_value ) );
@@ -313,7 +345,7 @@ class WP_CLI {
 	 * @param array $assoc_args
 	 */
 	public static function print_value( $value, $assoc_args = array() ) {
-		if ( isset( $assoc_args['format'] ) && 'json' == $assoc_args['format'] ) {
+		if ( \WP_CLI\Utils\get_flag_value( $assoc_args, 'format' ) === 'json' ) {
 			$value = json_encode( $value );
 		} elseif ( is_array( $value ) || is_object( $value ) ) {
 			$value = var_export( $value );
@@ -375,10 +407,11 @@ class WP_CLI {
 	 * @param array $assoc_args Associative arguments to use
 	 * @param bool Whether to exit if the command returns an error status
 	 * @param bool Whether to return an exit status (default) or detailed execution results
+	 * @param array $runtime_args Override one or more global args (path,url,user,allow-root)
 	 *
 	 * @return int|ProcessRun The command exit status, or a ProcessRun instance
 	 */
-	public static function launch_self( $command, $args = array(), $assoc_args = array(), $exit_on_error = true, $return_detailed = false ) {
+	public static function launch_self( $command, $args = array(), $assoc_args = array(), $exit_on_error = true, $return_detailed = false, $runtime_args = array() ) {
 		$reused_runtime_args = array(
 			'path',
 			'url',
@@ -387,7 +420,9 @@ class WP_CLI {
 		);
 
 		foreach ( $reused_runtime_args as $key ) {
-			if ( $value = self::get_runner()->config[ $key ] )
+			if ( isset( $runtime_args[ $key ] ) ) {
+				$assoc_args[ $key ] = $runtime_args[ $key ];
+			} else if ( $value = self::get_runner()->config[ $key ] )
 				$assoc_args[ $key ] = $value;
 		}
 
@@ -409,7 +444,7 @@ class WP_CLI {
 	 *
 	 * @return string
 	 */
-	private static function get_php_binary() {
+	public static function get_php_binary() {
 		if ( defined( 'PHP_BINARY' ) )
 			return PHP_BINARY;
 
@@ -436,7 +471,10 @@ class WP_CLI {
 	}
 
 	/**
-	 * Run a given command.
+	 * Run a given command within the current process using the same global parameters.
+	 *
+	 * To run a command using a new process with the same global parameters, use WP_CLI::launch_self()
+	 * To run a command using a new process with different global parameters, use WP_CLI::launch()
 	 *
 	 * @param array
 	 * @param array

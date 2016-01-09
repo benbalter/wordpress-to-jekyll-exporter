@@ -1,59 +1,14 @@
 <?php
-/**
- * PHPUnit
+/*
+ * This file is part of PHPUnit.
  *
- * Copyright (c) 2001-2014, Sebastian Bergmann <sebastian@phpunit.de>.
- * All rights reserved.
+ * (c) Sebastian Bergmann <sebastian@phpunit.de>
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *
- *   * Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in
- *     the documentation and/or other materials provided with the
- *     distribution.
- *
- *   * Neither the name of Sebastian Bergmann nor the names of his
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- * @package    PHPUnit
- * @author     Mike Naberezny <mike@maintainable.com>
- * @author     Derek DeVries <derek@maintainable.com>
- * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @copyright  2001-2014 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
- * @link       http://www.phpunit.de/
- * @since      File available since Release 3.3.0
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 /**
- *
- *
- * @package    PHPUnit
- * @author     Mike Naberezny <mike@maintainable.com>
- * @author     Derek DeVries <derek@maintainable.com>
- * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @copyright  2001-2014 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
- * @link       http://www.phpunit.de/
  * @since      Class available since Release 3.3.0
  * @covers     PHPUnit_Util_XML
  */
@@ -129,16 +84,16 @@ class Util_XMLTest extends PHPUnit_Framework_TestCase
     {
         $selector  = 'div#folder.open a[href="http://www.xerox.com"][title="xerox"].selected.big > span + h1';
         $converted = PHPUnit_Util_XML::convertSelectToTag($selector);
-        $tag       = array('tag'   => 'div',
-                           'id'    => 'folder',
-                           'class' => 'open',
+        $tag       = array('tag'        => 'div',
+                           'id'         => 'folder',
+                           'class'      => 'open',
                            'descendant' => array('tag'        => 'a',
                                                  'class'      => 'selected big',
-                                                 'attributes' => array('href'  => 'http://www.xerox.com',
-                                                                       'title' => 'xerox'),
-                                                 'child'      => array('tag' => 'span',
+                                                 'attributes' => array('href'             => 'http://www.xerox.com',
+                                                                       'title'            => 'xerox'),
+                                                 'child'      => array('tag'              => 'span',
                                                                        'adjacent-sibling' => array('tag' => 'h1'))));
-         $this->assertEquals($tag, $converted);
+        $this->assertEquals($tag, $converted);
     }
 
     public function testConvertAssertSelectElt()
@@ -181,7 +136,7 @@ class Util_XMLTest extends PHPUnit_Framework_TestCase
     {
         $selector  = '[foo="bar baz"] div[value="foo bar"]';
         $converted = PHPUnit_Util_XML::convertSelectToTag($selector);
-        $tag       = array('attributes' => array('foo' => 'bar baz'),
+        $tag       = array('attributes' => array('foo'        => 'bar baz'),
                            'descendant' => array('tag'        => 'div',
                                                  'attributes' => array('value' => 'foo bar')));
         $this->assertEquals($tag, $converted);
@@ -189,11 +144,11 @@ class Util_XMLTest extends PHPUnit_Framework_TestCase
 
     public function testConvertAssertAttributeMultipleSpaces()
     {
-        $selector = '[foo="bar baz"] div[value="foo bar baz"]';
+        $selector  = '[foo="bar baz"] div[value="foo bar baz"]';
         $converted = PHPUnit_Util_XML::convertSelectToTag($selector);
-        $tag      = array('attributes' => array('foo' => 'bar baz'),
-                          'descendant' => array('tag' => 'div',
-                                                'attributes' => array('value' => 'foo bar baz')));
+        $tag       = array('attributes' => array('foo'        => 'bar baz'),
+                          'descendant'  => array('tag'        => 'div',
+                                                'attributes'  => array('value' => 'foo bar baz')));
         $this->assertEquals($tag, $converted);
     }
 
@@ -336,8 +291,8 @@ class Util_XMLTest extends PHPUnit_Framework_TestCase
         $e = null;
 
         $escapedString = PHPUnit_Util_XML::prepareString($char);
-        $xml = "<?xml version='1.0' encoding='UTF-8' ?><tag>$escapedString</tag>";
-        $dom = new DomDocument('1.0', 'UTF-8');
+        $xml           = "<?xml version='1.0' encoding='UTF-8' ?><tag>$escapedString</tag>";
+        $dom           = new DomDocument('1.0', 'UTF-8');
 
         try {
             $dom->loadXML($xml);

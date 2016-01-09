@@ -13,6 +13,26 @@ Feature: Global flags
       }
       """
 
+  Scenario: Setting the URL on multisite
+    Given a WP multisite install
+    And I run `wp site create --slug=foo`
+
+    When I run `wp --url=example.com/foo option get home`
+    Then STDOUT should be:
+      """
+      http://example.com/foo
+      """
+
+  @require-wp-3.9
+  Scenario: Invalid URL
+    Given a WP multisite install
+
+    When I try `wp post list --url=invalid.example.com`
+    Then STDERR should be:
+      """
+      Error: Site invalid.example.com not found.
+      """
+
   Scenario: Quiet run
     Given a WP install
 
@@ -87,7 +107,7 @@ Feature: Global flags
       """
 
     When I try `wp --require=custom-logger.php is-installed`
-    Then STDOUT should be:
+    Then STDOUT should contain:
       """
       log: called 'error' method
       """

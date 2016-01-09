@@ -3,7 +3,7 @@
 /*
  * This file is part of Mustache.php.
  *
- * (c) 2010-2014 Justin Hileman
+ * (c) 2010-2015 Justin Hileman
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -46,15 +46,15 @@ class Mustache_Test_FiveThree_Functional_FiltersTest extends PHPUnit_Framework_T
             array(
                 '{{% FILTERS }}{{ date | longdate }}',
                 $helpers,
-                (object) array('date' => new DateTime('1/1/2000', new DateTimeZone("UTC"))),
-                '2000-01-01 12:01:00'
+                (object) array('date' => new DateTime('1/1/2000', new DateTimeZone('UTC'))),
+                '2000-01-01 12:01:00',
             ),
 
             array(
                 '{{% FILTERS }}{{# word | echo }}{{ . }}!{{/ word | echo }}',
                 $helpers,
                 array('word' => 'bacon'),
-                'bacon!bacon!bacon!'
+                'bacon!bacon!bacon!',
             ),
         );
     }
@@ -72,7 +72,7 @@ class Mustache_Test_FiveThree_Functional_FiltersTest extends PHPUnit_Framework_T
         });
 
         $foo = new \StdClass();
-        $foo->date = new DateTime('1/1/2000', new DateTimeZone("UTC"));
+        $foo->date = new DateTime('1/1/2000', new DateTimeZone('UTC'));
 
         $this->assertEquals('[[2000-01-01 12:01:00]]', $tpl->render($foo));
     }

@@ -52,7 +52,7 @@ class Widget_Command extends WP_CLI_Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp sidebar widget list <sidebar-id> --fields=name --format=csv
+	 *     wp widget list sidebar-1 --fields=name --format=csv
 	 *
 	 * @subcommand list
 	 */
@@ -63,12 +63,6 @@ class Widget_Command extends WP_CLI_Command {
 		$this->validate_sidebar( $sidebar_id );
 
 		$output_widgets = $this->get_sidebar_widgets( $sidebar_id );
-
-		if ( empty( $assoc_args['format'] ) || in_array( $assoc_args['format'], array( 'table', 'csv') ) ) {
-			foreach( $output_widgets as &$output_widget ) {
-				$output_widget->options = json_encode( $output_widget->options );
-			}
-		}
 
 		if ( ! empty( $assoc_args['format'] ) && 'ids' === $assoc_args['format'] ) {
 			$output_widgets = wp_list_pluck( $output_widgets, 'id' );
@@ -103,7 +97,7 @@ class Widget_Command extends WP_CLI_Command {
 	public function add( $args, $assoc_args ) {
 
 		list( $name, $sidebar_id ) = $args;
-		$position = ( isset( $args[2] ) ) ? (int) $args[2] - 1 : 0;
+		$position = \WP_CLI\Utils\get_flag_value( $args, 2, 1 ) - 1;
 		$this->validate_sidebar( $sidebar_id );
 
 		if ( false == ( $widget = $this->get_widget_obj( $name ) ) ) {

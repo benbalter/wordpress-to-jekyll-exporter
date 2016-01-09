@@ -52,21 +52,11 @@ class Post_Command extends \WP_CLI\CommandWithDBObject {
 	 */
 	public function create( $args, $assoc_args ) {
 		if ( ! empty( $args[0] ) ) {
-			if ( $args[0] !== '-' ) {
-				$readfile = $args[0];
-				if ( ! file_exists( $readfile ) || ! is_file( $readfile ) ) {
-					\WP_CLI::error( "Unable to read content from $readfile." );
-				}
-			} else {
-				$readfile = 'php://stdin';
-			}
-
-			$assoc_args['post_content'] = file_get_contents( $readfile );
+			$assoc_args['post_content'] = $this->read_from_file_or_stdin( $args[0] );
 		}
 
-		if ( isset( $assoc_args['edit'] ) ) {
-			$input = isset( $assoc_args['post_content'] ) ?
-				$assoc_args['post_content'] : '';
+		if ( \WP_CLI\Utils\get_flag_value( $assoc_args, 'edit' ) ) {
+			$input = \WP_CLI\Utils\get_flag_value( $assoc_args, 'post_content', '' );
 
 			if ( $output = $this->_edit( $input, 'WP-CLI: New Post' ) )
 				$assoc_args['post_content'] = $output;
@@ -91,14 +81,39 @@ class Post_Command extends \WP_CLI\CommandWithDBObject {
 	 * <id>...
 	 * : One or more IDs of posts to update.
 	 *
+	 * [<file>]
+	 * : Read post content from <file>. If this value is present, the
+	 *     `--post_content` argument will be ignored.
+	 *
+	 *   Passing `-` as the filename will cause post content to
+	 *   be read from STDIN.
+	 *
 	 * --<field>=<value>
 	 * : One or more fields to update. See wp_update_post().
+	 *
+	 * [--defer-term-counting]
+	 * : Recalculate term count in batch, for a performance boost.
 	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp post update 123 --post_name=something --post_status=draft
 	 */
 	public function update( $args, $assoc_args ) {
+
+		foreach( $args as $key => $arg ) {
+			if ( is_numeric( $arg ) ) {
+				continue;
+			}
+
+			$assoc_args['post_content'] = $this->read_from_file_or_stdin( $arg );
+			unset( $args[ $key ] );
+			break;
+		}
+
+		if ( isset( $assoc_args['post_category'] ) ) {
+			$assoc_args['post_category'] = explode( ',', $assoc_args['post_category'] );
+		}
+
 		parent::_update( $args, $assoc_args, function ( $params ) {
 			return wp_update_post( $params, true );
 		} );
@@ -145,8 +160,11 @@ class Post_Command extends \WP_CLI\CommandWithDBObject {
 	 * [--field=<field>]
 	 * : Instead of returning the whole post, returns the value of a single field.
 	 *
+	 * [--fields=<fields>]
+	 * : Limit the output to specific fields. Defaults to all fields.
+	 *
 	 * [--format=<format>]
-	 * : Accepted values: table, json. Default: table
+	 * : Accepted values: table, json, csv. Default: table
 	 *
 	 * ## EXAMPLES
 	 *
@@ -158,6 +176,10 @@ class Post_Command extends \WP_CLI\CommandWithDBObject {
 
 		$post_arr = get_object_vars( $post );
 		unset( $post_arr['filter'] );
+
+		if ( empty( $assoc_args['fields'] ) ) {
+			$assoc_args['fields'] = array_keys( $post_arr );
+		}
 
 		$formatter = $this->get_formatter( $assoc_args );
 		$formatter->display_item( $post_arr );
@@ -174,11 +196,17 @@ class Post_Command extends \WP_CLI\CommandWithDBObject {
 	 * [--force]
 	 * : Skip the trash bin.
 	 *
+	 * [--defer-term-counting]
+	 * : Recalculate term count in batch, for a performance boost.
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp post delete 123 --force
 	 *
 	 *     wp post delete $(wp post list --post_type='page' --format=ids)
+	 *
+	 *     # delete all posts in the trash
+	 *     wp post delete $(wp post list --post_status=trash --format=ids)
 	 */
 	public function delete( $args, $assoc_args ) {
 		$defaults = array(
@@ -187,10 +215,11 @@ class Post_Command extends \WP_CLI\CommandWithDBObject {
 		$assoc_args = array_merge( $defaults, $assoc_args );
 
 		parent::_delete( $args, $assoc_args, function ( $post_id, $assoc_args ) {
+			$status = get_post_status( $post_id );
 			$r = wp_delete_post( $post_id, $assoc_args['force'] );
 
 			if ( $r ) {
-				$action = $assoc_args['force'] ? 'Deleted' : 'Trashed';
+				$action = $assoc_args['force'] || 'trash' === $status ? 'Deleted' : 'Trashed';
 
 				return array( 'success', "$action post $post_id." );
 			} else {
@@ -247,6 +276,7 @@ class Post_Command extends \WP_CLI\CommandWithDBObject {
 	 * * post_mime_type
 	 * * comment_count
 	 * * filter
+	 * * url
 	 *
 	 * ## EXAMPLES
 	 *
@@ -257,6 +287,8 @@ class Post_Command extends \WP_CLI\CommandWithDBObject {
 	 *     wp post list --post_type=page --fields=post_title,post_status
 	 *
 	 *     wp post list --post_type=page,post --format=ids
+	 *
+	 *     wp post list --post__in=1,3
 	 *
 	 * @subcommand list
 	 */
@@ -282,7 +314,11 @@ class Post_Command extends \WP_CLI\CommandWithDBObject {
 			echo implode( ' ', $query->posts );
 		} else {
 			$query = new WP_Query( $query_args );
-			$formatter->display_items( $query->posts );
+			$posts = array_map( function( $post ) {
+				$post->url = get_permalink( $post->ID );
+				return $post;
+			}, $query->posts );
+			$formatter->display_items( $posts );
 		}
 	}
 
@@ -341,7 +377,7 @@ class Post_Command extends \WP_CLI\CommandWithDBObject {
 			$post_author = $user_fetcher->get_check( $post_author )->ID;
 		}
 
-		if ( isset( $assoc_args['post_content'] ) ) {
+		if ( \WP_CLI\Utils\get_flag_value( $assoc_args, 'post_content' ) ) {
 			$post_content = file_get_contents( 'php://stdin' );
 		}
 
@@ -401,24 +437,6 @@ class Post_Command extends \WP_CLI\CommandWithDBObject {
 		// @codingStandardsIgnoreEnd
 	}
 
-	/**
-	 * Get post url
-	 *
-	 * ## OPTIONS
-	 *
-	 * <id>...
-	 * : One or more IDs of posts get the URL.
-	 *
-	 * ## EXAMPLES
-	 *
-	 *     wp post url 123
-	 *
-	 *     wp post url 123 324
-	 */
-	public function url( $args ) {
-		parent::_url( $args, 'get_permalink' );
-	}
-
 	private function maybe_make_child() {
 		// 50% chance of making child post
 		return ( mt_rand(1, 2) == 1 );
@@ -427,6 +445,24 @@ class Post_Command extends \WP_CLI\CommandWithDBObject {
 	private function maybe_reset_depth() {
 		// 10% chance of reseting to root depth
 		return ( mt_rand(1, 10) == 7 );
+	}
+
+	/**
+	 * Read post content from file or STDIN
+	 *
+	 * @param string $arg Supplied argument
+	 * @return string
+	 */
+	private function read_from_file_or_stdin( $arg ) {
+		if ( $arg !== '-' ) {
+			$readfile = $arg;
+			if ( ! file_exists( $readfile ) || ! is_file( $readfile ) ) {
+				\WP_CLI::error( "Unable to read content from $readfile." );
+			}
+		} else {
+			$readfile = 'php://stdin';
+		}
+		return file_get_contents( $readfile );
 	}
 }
 
@@ -444,8 +480,42 @@ class Post_Command extends \WP_CLI\CommandWithDBObject {
  */
 class Post_Meta_Command extends \WP_CLI\CommandWithMeta {
 	protected $meta_type = 'post';
+
+	/**
+	 * Check that the post ID exists
+	 *
+	 * @param int
+	 */
+	protected function check_object_id( $object_id ) {
+		$fetcher = new \WP_CLI\Fetchers\Post;
+		$post = $fetcher->get_check( $object_id );
+		return $post->ID;
+	}
+}
+
+/**
+ * Manage post terms.
+ *
+ *
+ * ## EXAMPLES
+ *
+ *     wp post term set 123 test category
+ */
+class Post_Term_Command extends \WP_CLI\CommandWithTerms {
+	protected $obj_type = 'post';
+
+	public function __construct() {
+		$this->fetcher = new \WP_CLI\Fetchers\Post;
+	}
+
+	protected function get_object_type() {
+		$post = $this->fetcher->get_check( $this->get_obj_id() );
+
+		return $post->post_type;
+	}
 }
 
 WP_CLI::add_command( 'post', 'Post_Command' );
 WP_CLI::add_command( 'post meta', 'Post_Meta_Command' );
+WP_CLI::add_command( 'post term', 'Post_Term_Command' );
 

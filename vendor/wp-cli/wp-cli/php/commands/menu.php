@@ -51,7 +51,7 @@ class Menu_Command extends WP_CLI_Command {
 
 		} else {
 
-			if ( isset( $assoc_args['porcelain'] ) ) {
+			if ( \WP_CLI\Utils\get_flag_value( $assoc_args, 'porcelain' ) ) {
 				WP_CLI::line( $menu_id );
 			} else {
 				WP_CLI::success( "Created menu $menu_id." );
@@ -236,11 +236,14 @@ class Menu_Item_Command extends WP_CLI_Command {
 		$items = array_map( function( $item ) use ( $assoc_args ) {
 			$item->position = $item->menu_order;
 			$item->link = $item->url;
-			if ( empty( $assoc_args['format'] ) || in_array( $assoc_args['format'], array( 'csv', 'json' ) ) ) {
-				$item->classes = json_encode( $item->classes );
-			}
 			return $item;
 		}, $items );
+
+		if ( ! empty( $assoc_args['format'] ) && 'ids' == $assoc_args['format'] ) {
+			$items = array_map( function( $item ) {
+				return $item->db_id;
+			}, $items );
+		}
 
 		$formatter = $this->get_formatter( $assoc_args );
 		$formatter->display_items( $items );
@@ -468,17 +471,28 @@ class Menu_Item_Command extends WP_CLI_Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp menu item remove 45
+	 *     wp menu item delete 45
 	 *
 	 * @subcommand delete
 	 */
 	public function delete( $args, $_ ) {
+		global $wpdb;
 
 		foreach( $args as $arg ) {
 
+			$parent_menu_id = (int) get_post_meta( $arg, '_menu_item_menu_item_parent', true );
 			$ret = wp_delete_post( $arg, true );
 			if ( ! $ret ) {
 				WP_CLI::warning( "Couldn't delete menu item." );
+			} else if ( $parent_menu_id ) {
+				$children = $wpdb->get_results( $wpdb->prepare( "SELECT post_id FROM $wpdb->postmeta WHERE meta_key='_menu_item_menu_item_parent' AND meta_value=%s", (int) $arg ) );
+				if ( $children ) {
+					$children_query = $wpdb->prepare( "UPDATE $wpdb->postmeta SET meta_value = %d WHERE meta_key = '_menu_item_menu_item_parent' AND meta_value=%s", $parent_menu_id, (int) $arg );
+					$wpdb->query( $children_query );
+					foreach( $children as $child ) {
+						clean_post_cache( $child );
+					}
+				}
 			}
 
 		}
@@ -492,7 +506,7 @@ class Menu_Item_Command extends WP_CLI_Command {
 	private function add_or_update_item( $method, $type, $args, $assoc_args ) {
 
 		$menu = $args[0];
-		$menu_item_db_id = ( isset( $args[1] ) ) ? $args[1] : 0;
+		$menu_item_db_id = \WP_CLI\Utils\get_flag_value( $args, 1, 0 );
 
 		$menu = wp_get_nav_menu_object( $menu );
 		if ( ! $menu || is_wp_error( $menu ) ) {
@@ -500,9 +514,7 @@ class Menu_Item_Command extends WP_CLI_Command {
 		}
 
 		// `url` is protected in WP-CLI, so we use `link` instead
-		if ( isset( $assoc_args['link'] ) ) {
-			$assoc_args['url'] = $assoc_args['link'];
-		}
+		$assoc_args['url'] = \WP_CLI\Utils\get_flag_value( $assoc_args, 'link' );
 
 		// Need to persist the menu item data. See https://core.trac.wordpress.org/ticket/28138
 		if ( 'update' == $method ) {
@@ -554,7 +566,7 @@ class Menu_Item_Command extends WP_CLI_Command {
 		foreach( $default_args as $key => $default_value ) {
 			// wp_update_nav_menu_item() has a weird argument prefix
 			$new_key = 'menu-item-' . $key;
-			$menu_item_args[ $new_key ] = isset( $assoc_args[ $key ] ) ? $assoc_args[ $key ] : $default_value;
+			$menu_item_args[ $new_key ] = \WP_CLI\Utils\get_flag_value( $assoc_args, $key, $default_value );
 		}
 
 		$menu_item_args['menu-item-type'] = $type;
@@ -714,7 +726,7 @@ class Menu_Location_Command extends WP_CLI_Command {
 		}
 
 		$locations = get_nav_menu_locations();
-		if ( ! isset( $locations[ $location ] ) || $locations[ $location ] != $menu->term_id ) {
+		if ( \WP_CLI\Utils\get_flag_value( $locations, $location ) != $menu->term_id ) {
 			WP_CLI::error( "Menu isn't assigned to location." );
 		}
 

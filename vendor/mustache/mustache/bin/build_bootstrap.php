@@ -4,7 +4,7 @@
 /*
  * This file is part of Mustache.php.
  *
- * (c) 2010-2014 Justin Hileman
+ * (c) 2010-2015 Justin Hileman
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -12,7 +12,7 @@
 
 /**
  * A shell script to create a single-file class cache of the entire Mustache
- * library:
+ * library.
  *
  *     $ bin/build_bootstrap.php
  *
@@ -72,7 +72,6 @@ SymfonyClassCollectionLoader::load(array(
  * the unnecessary bits removed.
  *
  * @license http://www.opensource.org/licenses/MIT
- *
  * @author Fabien Potencier <fabien@symfony.com>
  */
 class SymfonyClassCollectionLoader

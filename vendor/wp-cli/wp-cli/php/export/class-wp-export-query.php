@@ -14,6 +14,7 @@ class WP_Export_Query {
 		'author' => null,
 		'start_date' => null,
 		'end_date' => null,
+		'start_id' => null,
 		'category' => null,
 	);
 
@@ -72,7 +73,7 @@ class WP_Export_Query {
 
 	public function categories() {
 		if ( $this->category ) {
-			return $this->category;
+			return array( $this->category );
 		}
 		if ( $this->filters['post_type'] ) {
 			return array();
@@ -118,7 +119,7 @@ class WP_Export_Query {
 
 	public function exportify_post( $post ) {
 		$GLOBALS['wp_query']->in_the_loop = true;
-		$previous_global_post = isset( $GLOBALS['post'] )? $GLOBALS['post'] : null;
+		$previous_global_post = \WP_CLI\Utils\get_flag_value( $GLOBALS, 'post' );
 		$GLOBALS['post'] = $post;
 		setup_postdata( $post );
 		$post->post_content = apply_filters( 'the_content_export', $post->post_content );
@@ -146,6 +147,7 @@ class WP_Export_Query {
 		$this->author_where();
 		$this->start_date_where();
 		$this->end_date_where();
+		$this->start_id_where();
 		$this->category_where();
 
 		$where = implode( ' AND ', array_filter( $this->wheres ) );
@@ -161,10 +163,28 @@ class WP_Export_Query {
 		global $wpdb;
 		$post_types_filters = array( 'can_export' => true );
 		if ( $this->filters['post_type'] ) {
-			$post_types_filters = array_merge( $post_types_filters, array( 'name' => $this->filters['post_type'] ) );
+			$post_types = $this->filters['post_type'];
+
+			// Flatten single post types
+			if ( is_array( $post_types ) && 1 === count( $post_types ) ) {
+				$post_types = array_shift( $post_types );
+			}
+			$post_types_filters = array_merge( $post_types_filters, array( 'name' => $post_types ) );
 		}
-		$post_types = get_post_types( $post_types_filters );
-		if ( !$post_types ) {
+
+		// Multiple post types
+		if ( is_array( $post_types_filters['name'] ) ) {
+			$post_types = array();
+			foreach ( $post_types_filters['name'] as $post_type ) {
+				if ( post_type_exists( $post_type ) ) {
+					$post_types[] = $post_type;
+				}
+			}
+		} else {
+			$post_types = get_post_types( $post_types_filters );
+		}
+
+		if ( ! $post_types ) {
 			$this->wheres[] = 'p.post_type IS NULL';
 			return;
 		}
@@ -212,13 +232,23 @@ class WP_Export_Query {
 		$this->wheres[] = $wpdb->prepare( 'p.post_date <= %s', date( 'Y-m-d 23:59:59', $timestamp ) );
 	}
 
+	private function start_id_where() {
+		global $wpdb;
+
+		$start_id = absint( $this->filters['start_id'] );
+		if ( 0 === $start_id ) {
+			return;
+		}
+		$this->wheres[] = $wpdb->prepare( 'p.ID >= %d', $start_id );
+	}
+
 	private function get_timestamp_for_the_last_day_of_a_month( $yyyy_mm ) {
 		return strtotime( "$yyyy_mm +1month -1day" );
 	}
 
 	private function category_where() {
 		global $wpdb;
-		if ( 'post' != $this->filters['post_type'] ) {
+		if ( 'post' != $this->filters['post_type'] && ! in_array( 'post', (array) $this->filters['post_type'] ) ) {
 			return;
 		}
 		$category = $this->find_category_from_any_object( $this->filters['category'] );
@@ -294,7 +324,7 @@ class WP_Export_Query {
 		foreach ( $have_parent as $has_parent ) {
 			if ( ! isset( $term_ids[ $has_parent->parent ] ) ) {
 				$this->missing_parents = $has_parent;
-				throw new WP_Export_Term_Exception( __( 'Term is missing a parent.' ) );
+				throw new WP_Export_Term_Exception( sprintf( __( 'Term is missing a parent: %s (%d)' ), $has_parent->slug, $has_parent->term_taxonomy_id ) );
 			}
 		}
 	}

@@ -3,7 +3,7 @@
 /*
  * This file is part of Mustache.php.
  *
- * (c) 2010-2014 Justin Hileman
+ * (c) 2010-2015 Justin Hileman
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -33,7 +33,7 @@ class Mustache_Test_FiveThree_Functional_EngineTest extends PHPUnit_Framework_Te
         $helpers = array(
             'longdate' => function (\DateTime $value) {
                 return $value->format('Y-m-d h:m:s');
-            }
+            },
         );
 
         $data = array(
@@ -44,7 +44,7 @@ class Mustache_Test_FiveThree_Functional_EngineTest extends PHPUnit_Framework_Te
 
         return array(
             array(array(Mustache_Engine::PRAGMA_FILTERS), $helpers, $data, $tpl, '2000-01-01 12:01:00'),
-            array(array(),                                $helpers, $data, $tpl, ''                   ),
+            array(array(),                                $helpers, $data, $tpl, ''),
         );
     }
 }

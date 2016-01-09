@@ -1,65 +1,25 @@
 <?php
-/**
- * PHPUnit
+/*
+ * This file is part of PHPUnit.
  *
- * Copyright (c) 2001-2014, Sebastian Bergmann <sebastian@phpunit.de>.
- * All rights reserved.
+ * (c) Sebastian Bergmann <sebastian@phpunit.de>
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *
- *   * Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in
- *     the documentation and/or other materials provided with the
- *     distribution.
- *
- *   * Neither the name of Sebastian Bergmann nor the names of his
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- * @package    PHPUnit
- * @subpackage Util
- * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @copyright  2001-2014 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
- * @link       http://www.phpunit.de/
- * @since      File available since Release 2.3.0
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 // Workaround for http://bugs.php.net/bug.php?id=47987,
 // see https://github.com/sebastianbergmann/phpunit/issues#issue/125 for details
-require_once __DIR__ . '/../Framework/Error.php';
-require_once __DIR__ . '/../Framework/Error/Notice.php';
-require_once __DIR__ . '/../Framework/Error/Warning.php';
-require_once __DIR__ . '/../Framework/Error/Deprecated.php';
+// Use dirname(__DIR__) instead of using /../ because of https://github.com/facebook/hhvm/issues/5215
+require_once dirname(__DIR__) . '/Framework/Error.php';
+require_once dirname(__DIR__) . '/Framework/Error/Notice.php';
+require_once dirname(__DIR__) . '/Framework/Error/Warning.php';
+require_once dirname(__DIR__) . '/Framework/Error/Deprecated.php';
 
 /**
  * Error handler that converts PHP errors and warnings to exceptions.
  *
- * @package    PHPUnit
- * @subpackage Util
- * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @copyright  2001-2014 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
- * @link       http://www.phpunit.de/
- * @since      Class available since Release 3.3.0
+ * @since Class available since Release 3.3.0
  */
 class PHPUnit_Util_ErrorHandler
 {
@@ -76,10 +36,11 @@ class PHPUnit_Util_ErrorHandler
     }
 
     /**
-     * @param  integer                 $errno
-     * @param  string                  $errstr
-     * @param  string                  $errfile
-     * @param  integer                 $errline
+     * @param int    $errno
+     * @param string $errstr
+     * @param string $errfile
+     * @param int    $errline
+     *
      * @throws PHPUnit_Framework_Error
      */
     public static function handleError($errno, $errstr, $errfile, $errline)
@@ -127,8 +88,9 @@ class PHPUnit_Util_ErrorHandler
     /**
      * Registers an error handler and returns a function that will restore
      * the previous handler when invoked
-     * @param  integer   $severity PHP predefined error constant
-     * @link   http://www.php.net/manual/en/errorfunc.constants.php
+     *
+     * @param int $severity PHP predefined error constant
+     *
      * @throws Exception if event of specified severity is emitted
      */
     public static function handleErrorOnce($severity = E_WARNING)

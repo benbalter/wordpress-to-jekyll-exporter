@@ -44,6 +44,12 @@ Feature: Manage WordPress comments
       | Field           | Value          |
       | comment_author  | Mr WordPress   |
 
+    When I run `wp comment get 1 --fields=comment_author,comment_author_email --format=json`
+    Then STDOUT should be:
+      """
+      {"comment_author":"Mr WordPress","comment_author_email":""}
+      """
+
     When I run `wp comment list --fields=comment_approved,comment_author`
     Then STDOUT should be a table containing rows:
       | comment_approved | comment_author |
@@ -62,30 +68,64 @@ Feature: Manage WordPress comments
       """
 
     When I run `wp comment url 1`
-    Then STDOUT should be:
+    Then STDOUT should contain:
       """
-      http://example.com/?p=1#comment-1
+      #comment-1
       """
 
   Scenario: Count  comments
     When I run `wp comment count 1`
-    Then STDOUT should be:
+    Then STDOUT should contain:
       """
       approved:        1
+      """
+    And STDOUT should contain:
+      """
       moderated:       0
-      spam:            0
-      trash:           0
-      post-trashed:    0
+      """
+    And STDOUT should contain:
+      """
       total_comments:  1
       """
 
     When I run `wp comment count`
-    Then STDOUT should be:
+    Then STDOUT should contain:
       """
       approved:        1
+      """
+    And STDOUT should contain:
+      """
       moderated:       0
-      spam:            0
-      trash:           0
-      post-trashed:    0
+      """
+    And STDOUT should contain:
+      """
       total_comments:  1
+      """
+
+  Scenario: Approving/unapproving comments
+    Given I run `wp comment create --comment_post_ID=1 --comment_approved=0 --porcelain`
+    And save STDOUT as {COMMENT_ID}
+
+    When I run `wp comment approve {COMMENT_ID}`
+    Then STDOUT should contain:
+      """
+      Approved comment {COMMENT_ID}
+      """
+
+    When I run `wp comment get --field=comment_approved {COMMENT_ID}`
+    Then STDOUT should be:
+      """
+      1
+      """
+
+    When I run `wp comment unapprove {COMMENT_ID}`
+    Then STDOUT should contain:
+      """
+      Unapproved comment {COMMENT_ID}
+      """
+
+    When I run `wp comment get --field=comment_approved {COMMENT_ID}`
+    Then STDOUT should be:
+      """
+      0
       """

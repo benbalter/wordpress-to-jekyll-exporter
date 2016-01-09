@@ -1,58 +1,17 @@
 <?php
-/**
- * PHP_CodeCoverage
+/*
+ * This file is part of the PHP_CodeCoverage package.
  *
- * Copyright (c) 2009-2014, Sebastian Bergmann <sebastian@phpunit.de>.
- * All rights reserved.
+ * (c) Sebastian Bergmann <sebastian@phpunit.de>
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *
- *   * Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in
- *     the documentation and/or other materials provided with the
- *     distribution.
- *
- *   * Neither the name of Sebastian Bergmann nor the names of his
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- * @category   PHP
- * @package    CodeCoverage
- * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @copyright  2009-2014 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
- * @link       http://github.com/sebastianbergmann/php-code-coverage
- * @since      File available since Release 1.1.0
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 /**
  * Represents a directory in the code coverage information tree.
  *
- * @category   PHP
- * @package    CodeCoverage
- * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @copyright  2009-2014 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
- * @link       http://github.com/sebastianbergmann/php-code-coverage
- * @since      Class available since Release 1.1.0
+ * @since Class available since Release 1.1.0
  */
 class PHP_CodeCoverage_Report_Node_Directory extends PHP_CodeCoverage_Report_Node implements IteratorAggregate
 {
@@ -92,64 +51,64 @@ class PHP_CodeCoverage_Report_Node_Directory extends PHP_CodeCoverage_Report_Nod
     protected $linesOfCode = null;
 
     /**
-     * @var integer
+     * @var int
      */
     protected $numFiles = -1;
 
     /**
-     * @var integer
+     * @var int
      */
     protected $numExecutableLines = -1;
 
     /**
-     * @var integer
+     * @var int
      */
     protected $numExecutedLines = -1;
 
     /**
-     * @var integer
+     * @var int
      */
     protected $numClasses = -1;
 
     /**
-     * @var integer
+     * @var int
      */
     protected $numTestedClasses = -1;
 
     /**
-     * @var integer
+     * @var int
      */
     protected $numTraits = -1;
 
     /**
-     * @var integer
+     * @var int
      */
     protected $numTestedTraits = -1;
 
     /**
-     * @var integer
+     * @var int
      */
     protected $numMethods = -1;
 
     /**
-     * @var integer
+     * @var int
      */
     protected $numTestedMethods = -1;
 
     /**
-     * @var integer
+     * @var int
      */
     protected $numFunctions = -1;
 
     /**
-     * @var integer
+     * @var int
      */
     protected $numTestedFunctions = -1;
 
     /**
      * Returns the number of files in/under this node.
      *
-     * @return integer
+     * @return int
      */
     public function count()
     {
@@ -185,7 +144,7 @@ class PHP_CodeCoverage_Report_Node_Directory extends PHP_CodeCoverage_Report_Nod
      */
     public function addDirectory($name)
     {
-        $directory = new PHP_CodeCoverage_Report_Node_Directory($name, $this);
+        $directory = new self($name, $this);
 
         $this->children[]    = $directory;
         $this->directories[] = &$this->children[count($this->children) - 1];
@@ -199,14 +158,18 @@ class PHP_CodeCoverage_Report_Node_Directory extends PHP_CodeCoverage_Report_Nod
      * @param  string                            $name
      * @param  array                             $coverageData
      * @param  array                             $testData
-     * @param  boolean                           $cacheTokens
+     * @param  bool                              $cacheTokens
      * @return PHP_CodeCoverage_Report_Node_File
      * @throws PHP_CodeCoverage_Exception
      */
     public function addFile($name, array $coverageData, array $testData, $cacheTokens)
     {
         $file = new PHP_CodeCoverage_Report_Node_File(
-            $name, $this, $coverageData, $testData, $cacheTokens
+            $name,
+            $this,
+            $coverageData,
+            $testData,
+            $cacheTokens
         );
 
         $this->children[] = $file;
@@ -260,7 +223,8 @@ class PHP_CodeCoverage_Report_Node_Directory extends PHP_CodeCoverage_Report_Nod
 
             foreach ($this->children as $child) {
                 $this->classes = array_merge(
-                    $this->classes, $child->getClasses()
+                    $this->classes,
+                    $child->getClasses()
                 );
             }
         }
@@ -280,7 +244,8 @@ class PHP_CodeCoverage_Report_Node_Directory extends PHP_CodeCoverage_Report_Nod
 
             foreach ($this->children as $child) {
                 $this->traits = array_merge(
-                    $this->traits, $child->getTraits()
+                    $this->traits,
+                    $child->getTraits()
                 );
             }
         }
@@ -300,7 +265,8 @@ class PHP_CodeCoverage_Report_Node_Directory extends PHP_CodeCoverage_Report_Nod
 
             foreach ($this->children as $child) {
                 $this->functions = array_merge(
-                    $this->functions, $child->getFunctions()
+                    $this->functions,
+                    $child->getFunctions()
                 );
             }
         }
@@ -333,7 +299,7 @@ class PHP_CodeCoverage_Report_Node_Directory extends PHP_CodeCoverage_Report_Nod
     /**
      * Returns the number of executable lines.
      *
-     * @return integer
+     * @return int
      */
     public function getNumExecutableLines()
     {
@@ -351,7 +317,7 @@ class PHP_CodeCoverage_Report_Node_Directory extends PHP_CodeCoverage_Report_Nod
     /**
      * Returns the number of executed lines.
      *
-     * @return integer
+     * @return int
      */
     public function getNumExecutedLines()
     {
@@ -369,7 +335,7 @@ class PHP_CodeCoverage_Report_Node_Directory extends PHP_CodeCoverage_Report_Nod
     /**
      * Returns the number of classes.
      *
-     * @return integer
+     * @return int
      */
     public function getNumClasses()
     {
@@ -387,7 +353,7 @@ class PHP_CodeCoverage_Report_Node_Directory extends PHP_CodeCoverage_Report_Nod
     /**
      * Returns the number of tested classes.
      *
-     * @return integer
+     * @return int
      */
     public function getNumTestedClasses()
     {
@@ -405,7 +371,7 @@ class PHP_CodeCoverage_Report_Node_Directory extends PHP_CodeCoverage_Report_Nod
     /**
      * Returns the number of traits.
      *
-     * @return integer
+     * @return int
      */
     public function getNumTraits()
     {
@@ -423,7 +389,7 @@ class PHP_CodeCoverage_Report_Node_Directory extends PHP_CodeCoverage_Report_Nod
     /**
      * Returns the number of tested traits.
      *
-     * @return integer
+     * @return int
      */
     public function getNumTestedTraits()
     {
@@ -441,7 +407,7 @@ class PHP_CodeCoverage_Report_Node_Directory extends PHP_CodeCoverage_Report_Nod
     /**
      * Returns the number of methods.
      *
-     * @return integer
+     * @return int
      */
     public function getNumMethods()
     {
@@ -459,7 +425,7 @@ class PHP_CodeCoverage_Report_Node_Directory extends PHP_CodeCoverage_Report_Nod
     /**
      * Returns the number of tested methods.
      *
-     * @return integer
+     * @return int
      */
     public function getNumTestedMethods()
     {
@@ -477,7 +443,7 @@ class PHP_CodeCoverage_Report_Node_Directory extends PHP_CodeCoverage_Report_Nod
     /**
      * Returns the number of functions.
      *
-     * @return integer
+     * @return int
      */
     public function getNumFunctions()
     {
@@ -495,7 +461,7 @@ class PHP_CodeCoverage_Report_Node_Directory extends PHP_CodeCoverage_Report_Nod
     /**
      * Returns the number of tested functions.
      *
-     * @return integer
+     * @return int
      */
     public function getNumTestedFunctions()
     {

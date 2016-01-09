@@ -1,58 +1,16 @@
 <?php
-/**
- * PHPUnit
+/*
+ * This file is part of the PHPUnit_MockObject package.
  *
- * Copyright (c) 2010-2014, Sebastian Bergmann <sebastian@phpunit.de>.
- * All rights reserved.
+ * (c) Sebastian Bergmann <sebastian@phpunit.de>
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *
- *   * Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in
- *     the documentation and/or other materials provided with the
- *     distribution.
- *
- *   * Neither the name of Sebastian Bergmann nor the names of his
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- * @package    PHPUnit_MockObject
- * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @copyright  2010-2014 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
- * @link       http://www.phpunit.de/
- * @since      File available since Release 3.0.0
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 /**
  *
  *
- * @package    PHPUnit_MockObject
- * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @author     Patrick Mueller <elias0@gmx.net>
- * @author     Frank Kleine <mikey@stubbles.net>
- * @copyright  2010-2014 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
- * @version    Release: @package_version@
- * @link       http://www.phpunit.de/
  * @since      Class available since Release 3.0.0
  */
 class Framework_MockObjectTest extends PHPUnit_Framework_TestCase
@@ -238,7 +196,7 @@ class Framework_MockObjectTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals('d', $mock->doSomething('a', 'b', 'c'));
         $this->assertEquals('h', $mock->doSomething('e', 'f', 'g'));
-        $this->assertEquals(NULL, $mock->doSomething('foo', 'bar'));
+        $this->assertEquals(null, $mock->doSomething('foo', 'bar'));
 
         $mock = $this->getMock('AnInterface');
         $mock->expects($this->any())
@@ -247,7 +205,7 @@ class Framework_MockObjectTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals('d', $mock->doSomething('a', 'b', 'c'));
         $this->assertEquals('h', $mock->doSomething('e', 'f', 'g'));
-        $this->assertEquals(NULL, $mock->doSomething('foo', 'bar'));
+        $this->assertEquals(null, $mock->doSomething('foo', 'bar'));
     }
 
     public function testStubbedReturnArgument()
@@ -269,14 +227,14 @@ class Framework_MockObjectTest extends PHPUnit_Framework_TestCase
 
     public function testFunctionCallback()
     {
-        $mock = $this->getMock('SomeClass', array('doSomething'), array(), '', FALSE);
+        $mock = $this->getMock('SomeClass', array('doSomething'), array(), '', false);
         $mock->expects($this->once())
              ->method('doSomething')
              ->will($this->returnCallback('functionCallback'));
 
         $this->assertEquals('pass', $mock->doSomething('foo', 'bar'));
 
-        $mock = $this->getMock('SomeClass', array('doSomething'), array(), '', FALSE);
+        $mock = $this->getMock('SomeClass', array('doSomething'), array(), '', false);
         $mock->expects($this->once())
              ->method('doSomething')
              ->willReturnCallback('functionCallback');
@@ -324,7 +282,7 @@ class Framework_MockObjectTest extends PHPUnit_Framework_TestCase
 
     public function testStaticMethodCallback()
     {
-        $mock = $this->getMock('SomeClass', array('doSomething'), array(), '', FALSE);
+        $mock = $this->getMock('SomeClass', array('doSomething'), array(), '', false);
         $mock->expects($this->once())
              ->method('doSomething')
              ->will($this->returnCallback(array('MethodCallback', 'staticCallback')));
@@ -334,7 +292,7 @@ class Framework_MockObjectTest extends PHPUnit_Framework_TestCase
 
     public function testPublicMethodCallback()
     {
-        $mock = $this->getMock('SomeClass', array('doSomething'), array(), '', FALSE);
+        $mock = $this->getMock('SomeClass', array('doSomething'), array(), '', false);
         $mock->expects($this->once())
              ->method('doSomething')
              ->will($this->returnCallback(array(new MethodCallback, 'nonStaticCallback')));
@@ -400,7 +358,7 @@ class Framework_MockObjectTest extends PHPUnit_Framework_TestCase
     public function testOriginalConstructorSettingConsidered()
     {
         $mock1 = $this->getMock('PartialMockTestClass');
-        $mock2 = $this->getMock('PartialMockTestClass', array(), array(), '', FALSE);
+        $mock2 = $this->getMock('PartialMockTestClass', array(), array(), '', false);
 
         $this->assertTrue($mock1->constructorCalled);
         $this->assertFalse($mock2->constructorCalled);
@@ -409,7 +367,7 @@ class Framework_MockObjectTest extends PHPUnit_Framework_TestCase
     public function testOriginalCloneSettingConsidered()
     {
         $mock1 = $this->getMock('PartialMockTestClass');
-        $mock2 = $this->getMock('PartialMockTestClass', array(), array(), '', TRUE, FALSE);
+        $mock2 = $this->getMock('PartialMockTestClass', array(), array(), '', true, false);
 
         $this->assertNotEquals(get_class($mock1), get_class($mock2));
     }
@@ -458,7 +416,7 @@ class Framework_MockObjectTest extends PHPUnit_Framework_TestCase
         $mock->expects($this->never())->method('doSomething');
 
         $parent = get_parent_class($mock);
-        $traits = class_uses($parent, FALSE);
+        $traits = class_uses($parent, false);
 
         $this->assertContains('AbstractTrait', $traits);
     }
@@ -568,7 +526,7 @@ class Framework_MockObjectTest extends PHPUnit_Framework_TestCase
 
     public function testVerificationOfMethodNameFailsWithoutParameters()
     {
-        $mock = $this->getMock('SomeClass', array('right', 'wrong'), array(), '', TRUE, TRUE, TRUE);
+        $mock = $this->getMock('SomeClass', array('right', 'wrong'), array(), '', true, true, true);
         $mock->expects($this->once())
              ->method('right');
 
@@ -589,7 +547,7 @@ class Framework_MockObjectTest extends PHPUnit_Framework_TestCase
 
     public function testVerificationOfMethodNameFailsWithParameters()
     {
-        $mock = $this->getMock('SomeClass', array('right', 'wrong'), array(), '', TRUE, TRUE, TRUE);
+        $mock = $this->getMock('SomeClass', array('right', 'wrong'), array(), '', true, true, true);
         $mock->expects($this->once())
              ->method('right');
 
@@ -610,7 +568,7 @@ class Framework_MockObjectTest extends PHPUnit_Framework_TestCase
 
     public function testVerificationOfMethodNameFailsWithWrongParameters()
     {
-        $mock = $this->getMock('SomeClass', array('right', 'wrong'), array(), '', TRUE, TRUE, TRUE);
+        $mock = $this->getMock('SomeClass', array('right', 'wrong'), array(), '', true, true, true);
         $mock->expects($this->once())
              ->method('right')
              ->with(array('first', 'second'));
@@ -651,7 +609,7 @@ class Framework_MockObjectTest extends PHPUnit_Framework_TestCase
 
     public function testVerificationOfNeverFailsWithEmptyParameters()
     {
-        $mock = $this->getMock('SomeClass', array('right', 'wrong'), array(), '', TRUE, TRUE, TRUE);
+        $mock = $this->getMock('SomeClass', array('right', 'wrong'), array(), '', true, true, true);
         $mock->expects($this->never())
              ->method('right')
              ->with();
@@ -671,7 +629,7 @@ class Framework_MockObjectTest extends PHPUnit_Framework_TestCase
 
     public function testVerificationOfNeverFailsWithAnyParameters()
     {
-        $mock = $this->getMock('SomeClass', array('right', 'wrong'), array(), '', TRUE, TRUE, TRUE);
+        $mock = $this->getMock('SomeClass', array('right', 'wrong'), array(), '', true, true, true);
         $mock->expects($this->never())
              ->method('right')
              ->withAnyParameters();
@@ -694,7 +652,7 @@ class Framework_MockObjectTest extends PHPUnit_Framework_TestCase
      */
     public function testWithAnythingInsteadOfWithAnyParameters()
     {
-        $mock = $this->getMock('SomeClass', array('right'), array(), '', TRUE, TRUE, TRUE);
+        $mock = $this->getMock('SomeClass', array('right'), array(), '', true, true, true);
         $mock->expects($this->once())
              ->method('right')
              ->with($this->anything());
@@ -749,9 +707,9 @@ class Framework_MockObjectTest extends PHPUnit_Framework_TestCase
         $foo->expects($this->any())
             ->method('bar')
             ->will($this->returnCallback(
-            function (&$a, &$b, $c) {
-                $b = 1;
-            }
+                function (&$a, &$b, $c) {
+                    $b = 1;
+                }
             ));
 
         $a = $b = $c = 0;

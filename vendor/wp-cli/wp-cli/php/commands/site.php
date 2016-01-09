@@ -121,6 +121,9 @@ class Site_Command extends \WP_CLI\CommandWithDBObject {
 	 *
 	 * ## OPTIONS
 	 *
+	 * [--uploads]
+	 * : Also delete *all* files in the site's in the uploads directory.
+	 *
 	 * [--yes]
 	 * : Proceed to empty the site without a confirmation prompt.
 	 *
@@ -128,12 +131,36 @@ class Site_Command extends \WP_CLI\CommandWithDBObject {
 	 */
 	public function _empty( $args, $assoc_args ) {
 
-		WP_CLI::confirm( 'Are you sure you want to empty the site at ' . site_url() . ' of all posts, comments, and terms?', $assoc_args );
+		$upload_message = '';
+		if ( \WP_CLI\Utils\get_flag_value( $assoc_args, 'uploads' ) ) {
+			$upload_message = ', and delete its uploads directory';
+		}
+
+		WP_CLI::confirm( 'Are you sure you want to empty the site at ' . site_url() . ' of all posts, comments, and terms' . $upload_message . '?', $assoc_args );
 
 		$this->_empty_posts();
 		$this->_empty_comments();
 		$this->_empty_taxonomies();
 		$this->_insert_default_terms();
+
+		if ( ! empty( $upload_message ) ) {
+			$upload_dir = wp_upload_dir();
+			$files = new RecursiveIteratorIterator(
+				new RecursiveDirectoryIterator( $upload_dir['basedir'], RecursiveDirectoryIterator::SKIP_DOTS ),
+				RecursiveIteratorIterator::CHILD_FIRST
+			);
+
+			foreach ( $files as $fileinfo ) {
+				$realpath = $fileinfo->getRealPath();
+				// Don't clobber subsites when operating on the main site
+				if ( is_main_site() && false !== stripos( $realpath, '/sites/' ) ) {
+					continue;
+				}
+				$todo = $fileinfo->isDir() ? 'rmdir' : 'unlink';
+				$todo( $realpath );
+			}
+			rmdir( $upload_dir['basedir'] );
+		}
 
 		WP_CLI::success( 'The site at ' . site_url() . ' was emptied.' );
 	}
@@ -178,7 +205,7 @@ class Site_Command extends \WP_CLI\CommandWithDBObject {
 
 		WP_CLI::confirm( "Are you sure you want to delete the $blog->siteurl site?", $assoc_args );
 
-		wpmu_delete_blog( $blog->blog_id, !isset( $assoc_args['keep-tables'] ) );
+		wpmu_delete_blog( $blog->blog_id, ! \WP_CLI\Utils\get_flag_value( $assoc_args, 'keep-tables' ) );
 
 		WP_CLI::success( "The site at $blog->siteurl was deleted." );
 	}
@@ -191,22 +218,20 @@ class Site_Command extends \WP_CLI\CommandWithDBObject {
 	 * --slug=<slug>
 	 * : Path for the new site. Subdomain on subdomain installs, directory on subdirectory installs.
 	 *
-	 * --title=<title>
+	 * [--title=<title>]
 	 * : Title of the new site. Default: prettified slug.
 	 *
-	 * --email=<email>
+	 * [--email=<email>]
 	 * : Email for Admin user. User will be created if none exists. Assignement to Super Admin if not included.
 	 *
-	 * --network_id=<network-id>
+	 * [--network_id=<network-id>]
 	 * : Network to associate new site with. Defaults to current network (typically 1).
 	 *
-	 * --private
+	 * [--private]
 	 * : If set, the new site will be non-public (not indexed)
 	 *
-	 * --porcelain
+	 * [--porcelain]
 	 * : If set, only the site id will be output on success.
-	 *
-	 * @synopsis --slug=<slug> [--title=<title>] [--email=<email>] [--network_id=<network-id>] [--private] [--porcelain]
 	 */
 	public function create( $_, $assoc_args ) {
 		if ( !is_multisite() ) {
@@ -216,7 +241,7 @@ class Site_Command extends \WP_CLI\CommandWithDBObject {
 		global $wpdb, $current_site;
 
 		$base = $assoc_args['slug'];
-		$title = isset( $assoc_args['title'] ) ? $assoc_args['title'] : ucfirst( $base );
+		$title = \WP_CLI\Utils\get_flag_value( $assoc_args, 'title', ucfirst( $base ) );
 
 		$email = empty( $assoc_args['email'] ) ? '' : $assoc_args['email'];
 
@@ -231,7 +256,7 @@ class Site_Command extends \WP_CLI\CommandWithDBObject {
 			$network = $current_site;
 		}
 
-		$public = !isset( $assoc_args['private'] );
+		$public = ! \WP_CLI\Utils\get_flag_value( $assoc_args, 'private' );
 
 		// Sanitize
 		if ( preg_match( '|^([a-zA-Z0-9-])+$|', $base ) ) {
@@ -301,7 +326,7 @@ class Site_Command extends \WP_CLI\CommandWithDBObject {
 			WP_CLI::error( $id->get_error_message() );
 		}
 
-		if ( isset( $assoc_args['porcelain'] ) )
+		if ( \WP_CLI\Utils\get_flag_value( $assoc_args, 'porcelain' ) )
 			WP_CLI::line( $id );
 		else
 			WP_CLI::success( "Site $id created: $url" );
@@ -335,6 +360,9 @@ class Site_Command extends \WP_CLI\CommandWithDBObject {
 	 *
 	 * [--network=<id>]
 	 * : The network to which the sites belong.
+	 *
+	 * [--<field>=<value>]
+	 * : Filter by one or more fields.
 	 *
 	 * [--field=<field>]
 	 * : Prints the value of a single field for each site.
@@ -391,6 +419,20 @@ class Site_Command extends \WP_CLI\CommandWithDBObject {
 		$assoc_args = array_merge( $defaults, $assoc_args );
 
 		$where = array();
+		$append = '';
+
+		$site_cols = array( 'blog_id', 'url', 'last_updated', 'registered', 'site_id', 'domain', 'path', 'public', 'archived', 'mature', 'spam', 'deleted', 'lang_id' );
+		foreach( $site_cols as $col ) {
+			if ( isset( $assoc_args[ $col ] ) ) {
+				$where[ $col ] = $assoc_args[ $col ];
+			}
+		}
+
+		if ( isset( $assoc_args['site__in'] ) ) {
+			$where['blog_id'] = explode( ',', $assoc_args['site__in'] );
+			$append = "ORDER BY FIELD( blog_id, " . implode( ',', array_map( 'intval', $where['blog_id'] ) ) . " )";
+		}
+
 		if ( isset( $assoc_args['network'] ) ) {
 			$where['site_id'] = $assoc_args['network'];
 		}
@@ -398,11 +440,12 @@ class Site_Command extends \WP_CLI\CommandWithDBObject {
 		$iterator_args = array(
 			'table' => $wpdb->blogs,
 			'where' => $where,
+			'append' => $append,
 		);
 		$it = new \WP_CLI\Iterators\Table( $iterator_args );
 
 		$it = \WP_CLI\Utils\iterator_map( $it, function( $blog ) {
-			$blog->url = $blog->domain . $blog->path;
+			$blog->url = trailingslashit( get_site_url( $blog->blog_id ) );
 			return $blog;
 		} );
 
@@ -411,23 +454,136 @@ class Site_Command extends \WP_CLI\CommandWithDBObject {
 	}
 
 	/**
-	 * Get site url
+	 * Archive one or more sites
 	 *
 	 * ## OPTIONS
 	 *
 	 * <id>...
-	 * : One or more IDs of sites to get the URL.
+	 * : One or more IDs of sites to archive.
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp site url 123
+	 *     wp site archive 123
 	 */
-	public function url( $args ) {
-		if ( !is_multisite() ) {
-			WP_CLI::error( 'This is not a multisite install.' );
+	public function archive( $args ) {
+		$this->update_site_status( $args, 'archived', 1 );
+	}
+
+	/**
+	 * Unarchive one or more sites
+	 *
+	 * ## OPTIONS
+	 *
+	 * <id>...
+	 * : One or more IDs of sites to unarchive.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp site unarchive 123
+	 */
+	public function unarchive( $args ) {
+		$this->update_site_status( $args, 'archived', 0 );
+	}
+
+	/**
+	 * Activate one or more sites
+	 *
+	 * ## OPTIONS
+	 *
+	 * <id>...
+	 * : One or more IDs of sites to activate.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp site activate 123
+	 */
+	public function activate( $args ) {
+		$this->update_site_status( $args, 'deleted', 0 );
+	}
+
+	/**
+	 * Deactivate one or more sites
+	 *
+	 * ## OPTIONS
+	 *
+	 * <id>...
+	 * : One or more IDs of sites to deactivate.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp site deactivate 123
+	 */
+	public function deactivate( $args ) {
+		$this->update_site_status( $args, 'deleted', 1 );
+	}
+
+	/**
+	 * Mark one or more sites as spam
+	 *
+	 * ## OPTIONS
+	 *
+	 * <id>...
+	 * : One or more IDs of sites to be marked as spam.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp site spam 123
+	 */
+	public function spam( $args ) {
+		$this->update_site_status( $args, 'spam', 1 );
+	}
+
+	/**
+	 * Remove one or more sites from spam
+	 *
+	 * ## OPTIONS
+	 *
+	 * <id>...
+	 * : One or more IDs of sites to remove from spam.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp site unspam 123
+	 *
+	 * @subcommand unspam
+	 */
+	public function unspam( $args ) {
+		$this->update_site_status( $args, 'spam', 0 );
+	}
+
+	private function update_site_status( $ids, $pref, $value ) {
+		if ( $pref == 'archived' && $value == 1 ) {
+			$action = 'archived';
+		} else if ( $pref == 'archived' && $value == 0) {
+			$action = 'unarchived';
+		} else if ( $pref == 'deleted' && $value == 1 ) {
+			$action = 'deactivated';
+		} else if ( $pref == 'deleted' && $value == 0 ) {
+			$action = 'activated';
+		} else if ( $pref == 'spam' && $value == 1 ) {
+			$action = 'marked as spam';
+		} else if ( $pref == 'spam' && $value == 0 ) {
+			$action = 'removed from spam';
 		}
 
-		parent::_url( $args, 'get_site_url' );
+		foreach ( $ids as $site_id ) {
+			$site = $this->fetcher->get_check( $site_id );
+
+			if ( is_main_site( $site->blog_id ) ) {
+				WP_CLI::warning( "You are not allowed to change the main site." );
+				continue;
+			}
+
+			$old_value = get_blog_status( $site->blog_id, $pref );
+
+			if ( $value == $old_value ) {
+				WP_CLI::warning( "Site {$site->blog_id} already {$action}." );
+				continue;
+			}
+
+			update_blog_status( $site->blog_id, $pref, $value );
+			WP_CLI::success( "Site {$site->blog_id} {$action}." );
+		}
 	}
 }
 

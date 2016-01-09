@@ -1,45 +1,11 @@
 <?php
-/**
- * PHPUnit
+/*
+ * This file is part of PHPUnit.
  *
- * Copyright (c) 2001-2014, Sebastian Bergmann <sebastian@phpunit.de>.
- * All rights reserved.
+ * (c) Sebastian Bergmann <sebastian@phpunit.de>
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *
- *   * Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in
- *     the documentation and/or other materials provided with the
- *     distribution.
- *
- *   * Neither the name of Sebastian Bergmann nor the names of his
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- * @package    PHPUnit
- * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @copyright  2001-2014 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
- * @link       http://www.phpunit.de/
- * @since      File available since Release 3.3.6
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 if (!defined('TEST_FILES_PATH')) {
@@ -50,20 +16,17 @@ if (!defined('TEST_FILES_PATH')) {
     );
 }
 
+require TEST_FILES_PATH . 'CoverageNamespacedFunctionTest.php';
+require TEST_FILES_PATH . 'NamespaceCoveredFunction.php';
+
 /**
- *
- *
- * @package    PHPUnit
- * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @copyright  2001-2014 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
- * @link       http://www.phpunit.de/
  * @since      Class available since Release 3.3.6
  */
 class Util_TestTest extends PHPUnit_Framework_TestCase
 {
     /**
      * @covers PHPUnit_Util_Test::getExpectedException
+     *
      * @todo   Split up in separate tests
      */
     public function testGetExpectedException()
@@ -172,29 +135,29 @@ class Util_TestTest extends PHPUnit_Framework_TestCase
     {
         return array(
             array('testOne',    array()),
-            array('testTwo',    array('PHPUnit' => '1.0')),
-            array('testThree',  array('PHP' => '2.0')),
-            array('testFour',   array('PHPUnit'=>'2.0', 'PHP' => '1.0')),
-            array('testFive',   array('PHP' => '5.4.0RC6')),
-            array('testSix',    array('PHP' => '5.4.0-alpha1')),
-            array('testSeven',  array('PHP' => '5.4.0beta2')),
-            array('testEight',  array('PHP' => '5.4-dev')),
-            array('testNine',   array('functions' => array('testFunc'))),
+            array('testTwo',    array('PHPUnit'    => '1.0')),
+            array('testThree',  array('PHP'        => '2.0')),
+            array('testFour',   array('PHPUnit'    => '2.0', 'PHP' => '1.0')),
+            array('testFive',   array('PHP'        => '5.4.0RC6')),
+            array('testSix',    array('PHP'        => '5.4.0-alpha1')),
+            array('testSeven',  array('PHP'        => '5.4.0beta2')),
+            array('testEight',  array('PHP'        => '5.4-dev')),
+            array('testNine',   array('functions'  => array('testFunc'))),
             array('testTen',    array('extensions' => array('testExt'))),
-            array('testEleven', array('OS' => '/Linux/i')),
+            array('testEleven', array('OS'         => '/Linux/i')),
             array(
               'testSpace',
               array(
                 'extensions' => array('spl'),
-                'OS' => '/.*/i'
+                'OS'         => '/.*/i'
               )
             ),
             array(
               'testAllPossibleRequirements',
               array(
-                'PHP' => '99-dev',
-                'PHPUnit' => '9-dev',
-                'OS' => '/DOESNOTEXIST/i',
+                'PHP'       => '99-dev',
+                'PHPUnit'   => '9-dev',
+                'OS'        => '/DOESNOTEXIST/i',
                 'functions' => array(
                   'testFuncOne',
                   'testFuncTwo',
@@ -214,9 +177,9 @@ class Util_TestTest extends PHPUnit_Framework_TestCase
     public function testGetRequirementsMergesClassAndMethodDocBlocks()
     {
         $expectedAnnotations = array(
-            'PHP' => '5.4',
-            'PHPUnit' => '3.7',
-            'OS' => '/WINNT/i',
+            'PHP'       => '5.4',
+            'PHPUnit'   => '3.7',
+            'OS'        => '/WINNT/i',
             'functions' => array(
               'testFuncClass',
               'testFuncMethod',
@@ -268,6 +231,7 @@ class Util_TestTest extends PHPUnit_Framework_TestCase
 
     /**
      * @coversNothing
+     *
      * @todo   This test does not really test functionality of PHPUnit_Util_Test
      */
     public function testGetProvidedDataRegEx()
@@ -294,7 +258,104 @@ class Util_TestTest extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * @covers PHPUnit_Util_Test::getDataFromTestWithAnnotation
+     */
+    public function testTestWithEmptyAnnotation()
+    {
+        $result = PHPUnit_Util_Test::getDataFromTestWithAnnotation("/**\n * @anotherAnnotation\n */");
+        $this->assertNull($result);
+    }
+
+    /**
+     * @covers PHPUnit_Util_Test::getDataFromTestWithAnnotation
+     */
+    public function testTestWithSimpleCase()
+    {
+        $result = PHPUnit_Util_Test::getDataFromTestWithAnnotation('/**
+                                                                     * @testWith [1]
+                                                                     */');
+        $this->assertEquals(array(array(1)), $result);
+    }
+
+    /**
+     * @covers PHPUnit_Util_Test::getDataFromTestWithAnnotation
+     */
+    public function testTestWithMultiLineMultiParameterCase()
+    {
+        $result = PHPUnit_Util_Test::getDataFromTestWithAnnotation('/**
+                                                                     * @testWith [1, 2]
+                                                                     * [3, 4]
+                                                                     */');
+        $this->assertEquals(array(array(1, 2), array(3, 4)), $result);
+    }
+
+    /**
+     * @covers PHPUnit_Util_Test::getDataFromTestWithAnnotation
+     */
+    public function testTestWithVariousTypes()
+    {
+        $result = PHPUnit_Util_Test::getDataFromTestWithAnnotation('/**
+            * @testWith ["ab"]
+            *           [true]
+            *           [null]
+         */');
+        $this->assertEquals(array(array('ab'), array(true), array(null)), $result);
+    }
+
+    /**
+     * @covers PHPUnit_Util_Test::getDataFromTestWithAnnotation
+     */
+    public function testTestWithAnnotationAfter()
+    {
+        $result = PHPUnit_Util_Test::getDataFromTestWithAnnotation('/**
+                                                                     * @testWith [1]
+                                                                     *           [2]
+                                                                     * @annotation
+                                                                     */');
+        $this->assertEquals(array(array(1), array(2)), $result);
+    }
+
+    /**
+     * @covers PHPUnit_Util_Test::getDataFromTestWithAnnotation
+     */
+    public function testTestWithSimpleTextAfter()
+    {
+        $result = PHPUnit_Util_Test::getDataFromTestWithAnnotation('/**
+                                                                     * @testWith [1]
+                                                                     *           [2]
+                                                                     * blah blah
+                                                                     */');
+        $this->assertEquals(array(array(1), array(2)), $result);
+    }
+
+    /**
+     * @covers PHPUnit_Util_Test::getDataFromTestWithAnnotation
+     */
+    public function testTestWithCharacterEscape()
+    {
+        $result = PHPUnit_Util_Test::getDataFromTestWithAnnotation('/**
+                                                                     * @testWith ["\"", "\""]
+                                                                     */');
+        $this->assertEquals(array(array('"', '"')), $result);
+    }
+
+    /**
+     * @covers PHPUnit_Util_Test::getDataFromTestWithAnnotation
+     */
+    public function testTestWithThrowsProperExceptionIfDatasetCannotBeParsed()
+    {
+        $this->setExpectedExceptionRegExp(
+            'PHPUnit_Framework_Exception',
+            '/^The dataset for the @testWith annotation cannot be parsed.$/'
+        );
+        PHPUnit_Util_Test::getDataFromTestWithAnnotation('/**
+                                                           * @testWith [s]
+                                                           */');
+    }
+
+    /**
      * @covers PHPUnit_Util_Test::getDependencies
+     *
      * @todo   Not sure what this test tests (name is misleading at least)
      */
     public function testParseAnnotation()
@@ -308,6 +369,7 @@ class Util_TestTest extends PHPUnit_Framework_TestCase
     /**
      * @depends Foo
      * @depends ほげ
+     *
      * @todo    Remove fixture from test class
      */
     public function methodForTestParseAnnotation()
@@ -406,7 +468,7 @@ class Util_TestTest extends PHPUnit_Framework_TestCase
      * @covers PHPUnit_Util_Test::getLinesToBeCovered
      * @covers PHPUnit_Util_Test::getLinesToBeCoveredOrUsed
      */
-    public function testGetLinesToBeCoveredSkipsNonExistantMethods()
+    public function testGetLinesToBeCoveredSkipsNonExistentMethods()
     {
         $this->assertSame(
             array(),
@@ -486,6 +548,23 @@ class Util_TestTest extends PHPUnit_Framework_TestCase
             PHPUnit_Util_Test::getLinesToBeCovered(
                 'CoverageMethodParenthesesWhitespaceTest',
                 'testSomething'
+            )
+        );
+    }
+
+    /**
+     * @covers PHPUnit_Util_Test::getLinesToBeCovered
+     * @covers PHPUnit_Util_Test::getLinesToBeCoveredOrUsed
+     */
+    public function testNamespacedFunctionCanBeCoveredOrUsed()
+    {
+        $this->assertEquals(
+            array(
+                TEST_FILES_PATH . 'NamespaceCoveredFunction.php' => range(4, 7)
+            ),
+            PHPUnit_Util_Test::getLinesToBeCovered(
+                'CoverageNamespacedFunctionTest',
+                'testFunc'
             )
         );
     }

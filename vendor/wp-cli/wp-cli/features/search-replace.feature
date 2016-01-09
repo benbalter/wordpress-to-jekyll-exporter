@@ -24,9 +24,9 @@ Feature: Do global search/replace
       | wp_2_posts | guid   | 2            | SQL  |
       | wp_blogs   | path   | 1            | SQL  |
 
-  Scenario: Don't run on unregistered tables
+  Scenario: Don't run on unregistered tables by default
     Given a WP install
-    And I run `wp db query "CREATE TABLE wp_awesome ( id int(11) unsigned NOT NULL AUTO_INCREMENT, PRIMARY KEY (id) ) ENGINE=InnoDB DEFAULT CHARSET=latin1;"`
+    And I run `wp db query "CREATE TABLE wp_awesome ( id int(11) unsigned NOT NULL AUTO_INCREMENT, awesome_stuff TEXT, PRIMARY KEY (id) ) ENGINE=InnoDB DEFAULT CHARSET=latin1;"`
 
     When I run `wp search-replace foo bar`
     Then STDOUT should not contain:
@@ -34,11 +34,203 @@ Feature: Do global search/replace
       wp_awesome
       """
 
+    When I run `wp search-replace foo bar --all-tables-with-prefix`
+    Then STDOUT should contain:
+      """
+      wp_awesome
+      """
+
+  Scenario: Run on unregistered, unprefixed tables with --all-tables flag
+    Given a WP install
+    And I run `wp db query "CREATE TABLE awesome_table ( id int(11) unsigned NOT NULL AUTO_INCREMENT, awesome_stuff TEXT, PRIMARY KEY (id) ) ENGINE=InnoDB DEFAULT CHARSET=latin1;"`
+
+    When I run `wp search-replace foo bar`
+    Then STDOUT should not contain:
+      """
+      awesome_table
+      """
+
+    When I run `wp search-replace foo bar --all-tables`
+    Then STDOUT should contain:
+      """
+      awesome_table
+      """
+
+  Scenario: Run on all tables matching string with wildcard
+    Given a WP install
+
+    When I run `wp option set bar foo`
+    And I run `wp option get bar`
+    Then STDOUT should be:
+      """
+      foo
+      """
+
+    When I run `wp post create --post_title=bar --porcelain`
+    Then save STDOUT as {POST_ID}
+
+    When I run `wp post meta add {POST_ID} foo bar`
+    Then STDOUT should not be empty
+
+    When I run `wp search-replace bar burrito wp_post\?`
+    And STDOUT should be a table containing rows:
+      | Table         | Column      | Replacements | Type |
+      | wp_posts      | post_title  | 1            | SQL  |
+    And STDOUT should not contain:
+      """
+      wp_options
+      """
+
+    When I run `wp post get {POST_ID} --field=title`
+    Then STDOUT should be:
+      """
+      burrito
+      """
+
+    When I run `wp post meta get {POST_ID} foo`
+    Then STDOUT should be:
+      """
+      bar
+      """
+
+    When I run `wp option get bar`
+    Then STDOUT should be:
+      """
+      foo
+      """
+
+    When I try `wp search-replace foo burrito wp_opt\*on`
+    Then STDERR should be:
+      """
+      Error: Couldn't find any tables matching: wp_opt*on
+      """
+
+    When I run `wp search-replace foo burrito wp_opt\* wp_postme\*`
+    Then STDOUT should be a table containing rows:
+      | Table         | Column       | Replacements | Type |
+      | wp_options    | option_value | 1            | PHP  |
+      | wp_postmeta   | meta_key     | 1            | SQL  |
+    And STDOUT should not contain:
+      """
+      wp_posts
+      """
+
+    When I run `wp option get bar`
+    Then STDOUT should be:
+      """
+      burrito
+      """
+
+    When I run `wp post meta get {POST_ID} burrito`
+    Then STDOUT should be:
+      """
+      bar
+      """
+
   Scenario: Quiet search/replace
     Given a WP install
 
     When I run `wp search-replace foo bar --quiet`
     Then STDOUT should be empty
+
+  Scenario: Verbose search/replace
+    Given a WP install
+    And I run `wp post create --post_title='Replace this text' --porcelain`
+    And save STDOUT as {POSTID}
+
+    When I run `wp search-replace 'Replace' 'Replaced' --verbose`
+    Then STDOUT should contain:
+      """
+      Checking: wp_posts.post_title
+      1 rows affected
+      """
+
+    When I run `wp search-replace 'Replace' 'Replaced' --verbose --precise`
+    Then STDOUT should contain:
+      """
+      Checking: wp_posts.post_title
+      1 rows affected
+      """
+
+  Scenario: Regex search/replace
+    Given a WP install
+    When I run `wp search-replace '(Hello)\s(world)' '$2, $1' --regex`
+    Then STDOUT should contain:
+      """
+      wp_posts
+      """
+    When I run `wp post list --fields=post_title`
+    Then STDOUT should contain:
+      """
+      world, Hello
+      """
+
+  Scenario: Search and replace within theme mods
+    Given a WP install
+    And a setup-theme-mod.php file:
+      """
+      <?php
+      set_theme_mod( 'header_image_data', (object) array( 'url' => 'http://subdomain.example.com/foo.jpg' ) );
+      """
+    And I run `wp eval-file setup-theme-mod.php`
+
+    When I run `wp theme mod get header_image_data`
+    Then STDOUT should be a table containing rows:
+      | key               | value                                              |
+      | header_image_data | {"url":"http:\/\/subdomain.example.com\/foo.jpg"}  |
+
+    When I run `wp search-replace subdomain.example.com example.com --no-recurse-objects`
+    Then STDOUT should be a table containing rows:
+      | Table      | Column       | Replacements | Type       |
+      | wp_options | option_value | 0            | PHP        |
+
+    When I run `wp search-replace subdomain.example.com example.com`
+    Then STDOUT should be a table containing rows:
+      | Table      | Column       | Replacements | Type       |
+      | wp_options | option_value | 1            | PHP        |
+
+    When I run `wp theme mod get header_image_data`
+    Then STDOUT should be a table containing rows:
+      | key               | value                                           |
+      | header_image_data | {"url":"http:\/\/example.com\/foo.jpg"}  |
+
+  Scenario: Search and replace with quoted strings
+    Given a WP install
+
+    When I run `wp post create --post_content='<a href="http://apple.com">Apple</a>' --porcelain`
+    Then save STDOUT as {POST_ID}
+
+    When I run `wp post get {POST_ID} --field=content`
+    Then STDOUT should be:
+      """
+      <a href="http://apple.com">Apple</a>
+      """
+
+    When I run `wp search-replace '<a href="http://apple.com">Apple</a>' '<a href="http://google.com">Google</a>' --dry-run`
+    Then STDOUT should be a table containing rows:
+      | Table      | Column       | Replacements | Type       |
+      | wp_posts   | post_content | 1            | SQL        |
+
+    When I run `wp search-replace '<a href="http://apple.com">Apple</a>' '<a href="http://google.com">Google</a>'`
+    Then STDOUT should be a table containing rows:
+      | Table      | Column       | Replacements | Type       |
+      | wp_posts   | post_content | 1            | SQL        |
+
+    When I run `wp post get {POST_ID} --field=content`
+    Then STDOUT should be:
+      """
+      <a href="http://google.com">Google</a>
+      """
+
+  Scenario: Search and replace with the same terms
+    Given a WP install
+
+    When I run `wp search-replace foo foo`
+    Then STDERR should be:
+      """
+      Warning: Replacement value 'foo' is identical to search value 'foo'. Skipping operation.
+      """
+    And STDOUT should be empty
 
   Scenario Outline: Large guid search/replace where replacement contains search (or not)
     Given a WP install

@@ -76,7 +76,11 @@ Feature: Manage WordPress themes and plugins
 
     When I run `wp <type> update <item>`
     And save STDOUT 'Downloading update from .*\/<item>\.%s\.zip' as {NEW_VERSION}
-    Then STDOUT should not be empty
+    And STDOUT should not be empty
+    Then STDOUT should not contain:
+      """
+      Error
+      """
     And the {SUITE_CACHE_DIR}/<type>/<item>-{NEW_VERSION}.zip file should exist
 
     When I run `wp <type> update --all`
@@ -165,16 +169,19 @@ Feature: Manage WordPress themes and plugins
       """
     And the <file_to_check> file should not exist
 
-    When I run `wp <type> search <item> --per-page=1 --fields=name,slug`
+    When I run `wp <type> search <item> --per-page=2 --fields=name,slug`
     Then STDOUT should contain:
       """
-      Showing 1 of
+      Showing 2 of
       """
-    And STDOUT should end with a table containing rows:
-      | name         | slug   |
-      | <item_title> | <item> |
+
+    When I try `wp <type> install an-impossible-slug-because-abc3fr`
+    Then STDERR should contain:
+      """
+      Warning: Couldn't find 'an-impossible-slug-because-abc3fr' in the WordPress.org <type> directory.
+      """
 
     Examples:
       | type   | type_name | item                    | item_title              | version | zip_file                                                              | file_to_check                                                    |
-      | theme  | Theme     | p2                      | P2                      | 1.0.1   | http://wordpress.org/themes/download/p2.1.0.1.zip                     | {CONTENT_DIR}/p2/style.css                                        |
-      | plugin | Plugin    | category-checklist-tree | Category Checklist Tree | 1.2     | http://downloads.wordpress.org/plugin/category-checklist-tree.1.2.zip | {CONTENT_DIR}/category-checklist-tree/category-checklist-tree.php |
+      | theme  | Theme     | p2                      | P2                      | 1.0.1   | https://wordpress.org/themes/download/p2.1.0.1.zip                     | {CONTENT_DIR}/p2/style.css                                        |
+      | plugin | Plugin    | category-checklist-tree | Category Checklist Tree | 1.2     | https://downloads.wordpress.org/plugin/category-checklist-tree.1.2.zip | {CONTENT_DIR}/category-checklist-tree/category-checklist-tree.php |

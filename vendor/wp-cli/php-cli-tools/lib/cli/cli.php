@@ -160,7 +160,7 @@ function menu( $items, $default = null, $title = 'Choose an item' ) {
  * @return int Numeric value that represents the string's length
  */
 function safe_strlen( $str ) {
-	if ( function_exists( 'mb_strlen' ) ) {
+	if ( function_exists( 'mb_strlen' ) && function_exists( 'mb_detect_encoding' ) ) {
 		$length =  mb_strlen( $str, mb_detect_encoding( $str ) );
 	} else {
 		// iconv will return PHP notice if non-ascii characters are present in input string
@@ -182,7 +182,7 @@ function safe_strlen( $str ) {
  * @return string           Substring of string specified by start and length parameters
  */
 function safe_substr( $str, $start, $length = false ) {
-	if ( function_exists( 'mb_substr' ) ) {
+	if ( function_exists( 'mb_substr' ) && function_exists( 'mb_detect_encoding' ) ) {
 		$substr = mb_substr( $str, $start, $length, mb_detect_encoding( $str ) );
 	} else {
 		// iconv will return PHP notice if non-ascii characters are present in input string
@@ -204,7 +204,7 @@ function safe_substr( $str, $start, $length = false ) {
 function safe_str_pad( $string, $length ) {
 	// Hebrew vowel characters
 	$cleaned_string = preg_replace( '#[\x{591}-\x{5C7}]+#u', '', Colors::decolorize( $string ) );
-	if ( function_exists( 'mb_strwidth' ) ) {
+	if ( function_exists( 'mb_strwidth' ) && function_exists( 'mb_detect_encoding' ) ) {
 		$real_length = mb_strwidth( $cleaned_string, mb_detect_encoding( $string ) );
 	} else {
 		$real_length = safe_strlen( $cleaned_string );

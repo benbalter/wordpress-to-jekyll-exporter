@@ -15,6 +15,28 @@ Feature: Get help about WP-CLI commands
     When I run `wp help help`
     Then STDOUT should not be empty
 
+    When I run `wp help help`
+    Then STDOUT should contain:
+      """
+      GLOBAL PARAMETERS
+      """
+
+    When I run `wp post list --post_type=post --posts_per_page=5 --help`
+    Then STDOUT should contain:
+      """
+      wp post list
+      """
+
+  Scenario: Help when WordPress is downloaded but not installed
+    Given an empty directory
+
+    When I run `wp core download`
+    And I run `wp help core config`
+    Then STDOUT should contain:
+      """
+      wp core config
+      """
+
   Scenario: Help for nonexistent commands
     Given a WP install
     
@@ -116,4 +138,32 @@ Feature: Get help about WP-CLI commands
     And STDOUT should not contain:
       """
       __destruct
+      """
+
+  Scenario: Help for commands loaded into existing namespaces
+    Given a WP install
+    And a wp-content/plugins/test-cli/command.php file:
+      """
+      <?php
+      // Plugin Name: Test CLI Extra Site Command
+
+      class Test_CLI_Extra_Site_Command extends WP_CLI_Command {
+
+        /**
+         * A dummy command.
+         *
+         * @subcommand my-command
+         */
+        function my_command() {}
+
+      }
+
+      WP_CLI::add_command( 'site test-extra', 'Test_CLI_Extra_Site_Command' );
+      """
+    And I run `wp plugin activate test-cli`
+
+    When I run `wp help site`
+    Then STDOUT should contain:
+      """
+      test-extra
       """

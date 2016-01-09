@@ -32,10 +32,18 @@ class Export_Command extends WP_CLI_Command {
 	 * : Export only posts published before this date, in format YYYY-MM-DD.
 	 *
 	 * [--post_type=<post-type>]
-	 * : Export only posts with this post_type. Defaults to all.
+	 * : Export only posts with this post_type. Separate multiple post types with a
+	 * comma. Defaults to all.
+	 *
+	 * [--post_type__not_in=<post-type>]
+	 * : Export all post types except those identified. Seperate multiple post types
+	 * with a comma. Defaults to none.
 	 *
 	 * [--post__in=<pid>]
-	 * : Export all posts specified as a comma-separated list of IDs.
+	 * : Export all posts specified as a comma- or space-separated list of IDs.
+	 *
+	 * [--start_id=<pid>]
+	 * : Export only posts with IDs greater than or equal to this post ID.
 	 *
 	 * [--author=<author>]
 	 * : Export only posts by this author. Can be either user login or user ID.
@@ -46,27 +54,37 @@ class Export_Command extends WP_CLI_Command {
 	 * [--post_status=<status>]
 	 * : Export only posts with this status.
 	 *
+	 * [--filename_format=<format>]
+	 * : Use a custom format for export filenames. Defaults to '{site}.wordpress.{date}.{n}.xml'.
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp export --dir=/tmp/ --user=admin --post_type=post --start_date=2011-01-01 --end_date=2011-12-31
 	 *
 	 *     wp export --dir=/tmp/ --post__in=123,124,125
+	 *
+	 *     # Export a random subset of content
+	 *     wp export --post__in=$(wp post list --post_type=post --orderby=rand --posts_per_page=8 --format=ids)
 	 */
 	public function __invoke( $_, $assoc_args ) {
 		$defaults = array(
-			'dir'             => NULL,
-			'start_date'      => NULL,
-			'end_date'        => NULL,
-			'post_type'       => NULL,
-			'author'          => NULL,
-			'category'        => NULL,
-			'post_status'     => NULL,
-			'post__in'        => NULL,
-			'skip_comments'   => NULL,
-			'max_file_size'   => 15,
+			'dir'               => NULL,
+			'start_date'        => NULL,
+			'end_date'          => NULL,
+			'post_type'         => NULL,
+			'post_type__not_in' => NULL,
+			'author'            => NULL,
+			'category'          => NULL,
+			'post_status'       => NULL,
+			'post__in'          => NULL,
+			'start_id'          => NULL,
+			'skip_comments'     => NULL,
+			'max_file_size'     => 15,
+			'filename_format'   => '{site}.wordpress.{date}.{n}.xml',
 		);
 
-		$this->validate_args( wp_parse_args( $assoc_args, $defaults ) );
+		$assoc_args = wp_parse_args( $assoc_args, $defaults );
+		$this->validate_args( $assoc_args );
 
 		if ( !function_exists( 'wp_export' ) ) {
 			self::load_export_api();
@@ -85,7 +103,7 @@ class Export_Command extends WP_CLI_Command {
 				'writer_args' => array(
 					'max_file_size' => $this->max_file_size * MB_IN_BYTES,
 					'destination_directory' => $this->wxr_path,
-					'filename_template' => self::get_filename_template()
+					'filename_template' => self::get_filename_template( $assoc_args['filename_format'] ),
 				)
 			) );
 		} catch ( Exception $e ) {
@@ -95,12 +113,12 @@ class Export_Command extends WP_CLI_Command {
 		WP_CLI::success( 'All done with export.' );
 	}
 
-	private static function get_filename_template() {
+	private static function get_filename_template( $filename_format ) {
 		$sitename = sanitize_key( get_bloginfo( 'name' ) );
-		if ( ! empty( $sitename ) ) {
-			$sitename .= '.';
+		if ( empty( $sitename ) ) {
+			$sitename = 'site';
 		}
-		return $sitename . 'wordpress.' . date( 'Y-m-d' ) . '.%d.xml';
+		return str_replace( array( '{site}', '{date}', '{n}' ), array( $sitename, date( 'Y-m-d' ), '%03d' ), $filename_format );
 	}
 
 	private static function load_export_api() {
@@ -176,15 +194,46 @@ class Export_Command extends WP_CLI_Command {
 	}
 
 	private function check_post_type( $post_type ) {
-		if ( is_null( $post_type ) )
+		if ( is_null( $post_type ) || 'any' === $post_type )
 			return true;
 
+		$post_type = array_unique( array_filter( explode( ',', $post_type ) ) );
 		$post_types = get_post_types();
-		if ( !in_array( $post_type, $post_types ) ) {
-			WP_CLI::warning( sprintf( 'The post type %s does not exist. Choose "all" or any of these existing post types instead: %s', $post_type, implode( ", ", $post_types ) ) );
-			return false;
+
+		foreach ( $post_type as $type ) {
+			if ( ! in_array( $type, $post_types ) ) {
+				WP_CLI::warning( sprintf(
+					'The post type %s does not exist. Choose "any" or any of these existing post types instead: %s',
+					$type,
+					implode( ", ", $post_types )
+				) );
+				return false;
+			}
 		}
 		$this->export_args['post_type'] = $post_type;
+		return true;
+	}
+
+	private function check_post_type__not_in( $post_type ) {
+		if ( is_null( $post_type ) ) {
+			return true;
+		}
+
+		$post_type = array_unique( array_filter( explode( ',', $post_type ) ) );
+		$post_types = get_post_types();
+
+		$keep_post_types = array();
+		foreach ( $post_type as $type ) {
+			if ( ! in_array( $type, $post_types ) ) {
+				WP_CLI::warning( sprintf(
+					'The post type %s does not exist. Use any of these existing post types instead: %s',
+					$type,
+					implode( ", ", $post_types )
+				) );
+				return false;
+			}
+		}
+		$this->export_args['post_type'] = array_diff( $post_types, $post_type );
 		return true;
 	}
 
@@ -192,13 +241,31 @@ class Export_Command extends WP_CLI_Command {
 		if ( is_null( $post__in ) )
 			return true;
 
-		$post__in = array_unique( array_map( 'intval', explode( ',', $post__in ) ) );
+		$separator = false !== stripos( $post__in, ' ' ) ? ' ' : ',';
+		$post__in = array_unique( array_map( 'intval', explode( $separator, $post__in ) ) );
 		if ( empty( $post__in ) ) {
 			WP_CLI::warning( "post__in should be comma-separated post IDs" );
 			return false;
 		}
 		// New exporter uses a different argument
 		$this->export_args['post_ids'] = $post__in;
+		return true;
+	}
+
+	private function check_start_id( $start_id ) {
+		if ( is_null( $start_id ) ) {
+			return true;
+		}
+
+		$start_id = intval( $start_id );
+
+		// Post IDs must be greater than 0
+		if ( 0 >= $start_id ) {
+			WP_CLI::warning( sprintf( __( 'Invalid start ID: %d' ), $start_id ) );
+			return false;
+		}
+
+		$this->export_args['start_id'] = $start_id;
 		return true;
 	}
 

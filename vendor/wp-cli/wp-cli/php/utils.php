@@ -4,11 +4,36 @@
 
 namespace WP_CLI\Utils;
 
+use \Composer\Semver\Comparator;
+use \Composer\Semver\Semver;
 use \WP_CLI\Dispatcher;
 use \WP_CLI\Iterators\Transform;
 
+function inside_phar() {
+	return 0 === strpos( WP_CLI_ROOT, 'phar://' );
+}
+
+// Files that need to be read by external programs have to be extracted from the Phar archive.
+function extract_from_phar( $path ) {
+	if ( ! inside_phar() ) {
+		return $path;
+	}
+
+	$fname = basename( $path );
+
+	$tmp_path = get_temp_dir() . "wp-cli-$fname";
+
+	copy( $path, $tmp_path );
+
+	register_shutdown_function( function() use ( $tmp_path ) {
+		@unlink( $tmp_path );
+	} );
+
+	return $tmp_path;
+}
+
 function load_dependencies() {
-	if ( 0 === strpos( WP_CLI_ROOT, 'phar:' ) ) {
+	if ( inside_phar() ) {
 		require WP_CLI_ROOT . '/vendor/autoload.php';
 		return;
 	}
@@ -24,16 +49,24 @@ function load_dependencies() {
 	}
 
 	if ( !$has_autoload ) {
-		fputs( STDERR, "Internal error: Can't find Composer autoloader.\n" );
+		fputs( STDERR, "Internal error: Can't find Composer autoloader.\nTry running: composer install\n" );
 		exit(3);
 	}
 }
 
 function get_vendor_paths() {
-	return array(
+	$vendor_paths = array(
 		WP_CLI_ROOT . '/../../../vendor',  // part of a larger project / installed via Composer (preferred)
 		WP_CLI_ROOT . '/vendor',           // top-level project / installed as Git clone
 	);
+	$maybe_composer_json = WP_CLI_ROOT . '/../../../composer.json';
+	if ( file_exists( $maybe_composer_json ) && is_readable( $maybe_composer_json ) ) {
+		$composer = json_decode( file_get_contents( $maybe_composer_json ) );
+		if ( ! empty( $composer->{'vendor-dir'} ) ) {
+			array_unshift( $vendor_paths, WP_CLI_ROOT . '/../../../' . $composer->{'vendor-dir'} );
+		}
+	}
+	return $vendor_paths;
 }
 
 // Using require() directly inside a class grants access to private methods to the loaded code
@@ -109,7 +142,7 @@ function find_file_upward( $files, $dir = null, $stop_check = null ) {
 	if ( is_null( $dir ) ) {
 		$dir = getcwd();
 	}
-	while ( is_readable( $dir ) ) {
+	while ( @is_readable( $dir ) ) {
 		// Stop walking up when the supplied callable returns true being passed the $dir
 		if ( is_callable( $stop_check ) && call_user_func( $stop_check, $dir ) ) {
 			return null;
@@ -199,6 +232,10 @@ function locate_wp_config() {
 	}
 
 	return $path;
+}
+
+function wp_version_compare( $since, $operator ) {
+	return version_compare( str_replace( array( '-src' ), '', $GLOBALS['wp_version'] ), $since, $operator );
 }
 
 /**
@@ -417,31 +454,30 @@ function replace_path_consts( $source, $path ) {
  * @return object
  */
 function http_request( $method, $url, $data = null, $headers = array(), $options = array() ) {
-	$pem_copied = false;
 
-	// cURL can't read Phar archives
-	if ( 0 === strpos( WP_CLI_ROOT, 'phar://' ) ) {
-		$options['verify'] = sys_get_temp_dir() . '/wp-cli-cacert.pem';
-
-		copy(
-			WP_CLI_ROOT . '/vendor/rmccue/requests/library/Requests/Transport/cacert.pem',
-			$options['verify']
-		);
-		$pem_copied = true;
+	$cert_path = '/rmccue/requests/library/Requests/Transport/cacert.pem';
+	if ( inside_phar() ) {
+		// cURL can't read Phar archives
+		$options['verify'] = extract_from_phar(
+		WP_CLI_ROOT . '/vendor' . $cert_path );
+	} else {
+		foreach( get_vendor_paths() as $vendor_path ) {
+			if ( file_exists( $vendor_path . $cert_path ) ) {
+				$options['verify'] = $vendor_path . $cert_path;
+				break;
+			}
+		}
+		if ( empty( $options['verify'] ) ){
+			WP_CLI::error_log( "Cannot find SSL certificate." );
+		}
 	}
 
 	try {
 		$request = \Requests::request( $url, $headers, $data, $method, $options );
-		if ( $pem_copied ) {
-			unlink( $options['verify'] );
-		}
 		return $request;
 	} catch( \Requests_Exception $ex ) {
 		// Handle SSL certificate issues gracefully
 		\WP_CLI::warning( $ex->getMessage() );
-		if ( $pem_copied ) {
-			unlink( $options['verify'] );
-		}
 		$options['verify'] = false;
 		try {
 			return \Requests::request( $url, $headers, $data, $method, $options );
@@ -449,4 +485,125 @@ function http_request( $method, $url, $data = null, $headers = array(), $options
 			\WP_CLI::error( $ex->getMessage() );
 		}
 	}
+}
+
+/**
+ * Increments a version string using the "x.y.z-pre" format
+ *
+ * Can increment the major, minor or patch number by one
+ * If $new_version == "same" the version string is not changed
+ * If $new_version is not a known keyword, it will be used as the new version string directly
+ *
+ * @param  string $current_version
+ * @param  string $new_version
+ * @return string
+ */
+function increment_version( $current_version, $new_version ) {
+	// split version assuming the format is x.y.z-pre
+	$current_version    = explode( '-', $current_version, 2 );
+	$current_version[0] = explode( '.', $current_version[0] );
+
+	switch ( $new_version ) {
+		case 'same':
+			// do nothing
+		break;
+
+		case 'patch':
+			$current_version[0][2]++;
+
+			$current_version = array( $current_version[0] ); // drop possible pre-release info
+		break;
+
+		case 'minor':
+			$current_version[0][1]++;
+			$current_version[0][2] = 0;
+
+			$current_version = array( $current_version[0] ); // drop possible pre-release info
+		break;
+
+		case 'major':
+			$current_version[0][0]++;
+			$current_version[0][1] = 0;
+			$current_version[0][2] = 0;
+
+			$current_version = array( $current_version[0] ); // drop possible pre-release info
+		break;
+
+		default: // not a keyword
+			$current_version = array( array( $new_version ) );
+		break;
+	}
+
+	// reconstruct version string
+	$current_version[0] = implode( '.', $current_version[0] );
+	$current_version    = implode( '-', $current_version );
+
+	return $current_version;
+}
+
+/**
+ * Compare two version strings to get the named semantic version
+ *
+ * @param string $new_version
+ * @param string $original_version
+ * @return string $name 'major', 'minor', 'patch'
+ */
+function get_named_sem_ver( $new_version, $original_version ) {
+
+	if ( ! Comparator::greaterThan( $new_version, $original_version ) ) {
+		return '';
+	}
+
+	$parts = explode( '-', $original_version );
+	list( $major, $minor, $patch ) = explode( '.', $parts[0] );
+
+	if ( Semver::satisfies( $new_version, "{$major}.{$minor}.x" ) ) {
+		return 'patch';
+	} else if ( Semver::satisfies( $new_version, "{$major}.x.x" ) ) {
+		return 'minor';
+	} else {
+		return 'major';
+	}
+}
+
+/**
+ * Return the flag value or, if it's not set, the $default value.
+ *
+ * @param array  $args    Arguments array.
+ * @param string $flag    Flag to get the value.
+ * @param mixed  $default Default value for the flag. Default: NULL
+ * @return mixed
+ */
+function get_flag_value( $args, $flag, $default = null ) {
+	return isset( $args[ $flag ] ) ? $args[ $flag ] : $default;
+}
+
+/**
+ * Get the temp directory, and let the user know if it isn't writable.
+ *
+ * @return string
+ */
+function get_temp_dir() {
+	static $temp = '';
+
+	$trailingslashit = function( $path ) {
+		return rtrim( $path ) . '/';
+	};
+
+	if ( $temp )
+		return $trailingslashit( $temp );
+
+	if ( function_exists( 'sys_get_temp_dir' ) ) {
+		$temp = sys_get_temp_dir();
+	} else if ( ini_get( 'upload_tmp_dir' ) ) {
+		$temp = ini_get( 'upload_tmp_dir' );
+	} else {
+		$temp = '/tmp/';
+	}
+
+	if ( ! @is_writable( $temp ) ) {
+		WP_CLI::warning( "Temp directory isn't writable: {$temp}" );
+	}
+
+	return $trailingslashit( $temp );
 }

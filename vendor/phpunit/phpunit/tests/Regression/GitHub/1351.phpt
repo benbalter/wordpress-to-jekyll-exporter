@@ -18,7 +18,7 @@ require __DIR__ . '/../../bootstrap.php';
 PHPUnit_TextUI_Command::main();
 ?>
 --EXPECTF--
-PHPUnit %s by Sebastian Bergmann.
+PHPUnit %s by Sebastian Bergmann and contributors.
 
 F.E.E
 
@@ -45,4 +45,4 @@ There was 1 failure:
 Expected failure.
 %A
 FAILURES!
-Tests: 5, Assertions: 5, Failures: 1, Errors: 2.
+Tests: 5, Assertions: 5, Errors: 2, Failures: 1.

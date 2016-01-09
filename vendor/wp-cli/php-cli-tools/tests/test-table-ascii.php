@@ -132,6 +132,54 @@ OUT;
 	}
 
 	/**
+	 * Test that % gets escaped correctly.
+	 */
+	public function testTableWithPercentCharacters() {
+		$headers = array( 'Heading', 'Heading2', 'Heading3' );
+		$rows = array(
+			array( '% at start', 'at end %', 'in % middle' )
+		);
+		$output = <<<'OUT'
++------------+----------+-------------+
+| Heading    | Heading2 | Heading3    |
++------------+----------+-------------+
+| % at start | at end % | in % middle |
++------------+----------+-------------+
+
+OUT;
+		$this->assertInOutEquals(array($headers, $rows), $output);
+	}
+
+	/**
+	 * Test that a % is appropriately padded in the table
+	 */
+	public function testTablePaddingWithPercentCharacters() {
+		$headers = array( 'ID', 'post_title', 'post_name' );
+		$rows = array(
+			array(
+				3,
+				'10%',
+				''
+			),
+			array(
+				1,
+				'Hello world!',
+				'hello-world'
+			),
+		);
+		$output = <<<'OUT'
++----+--------------+-------------+
+| ID | post_title   | post_name   |
++----+--------------+-------------+
+| 3  | 10%          |             |
+| 1  | Hello world! | hello-world |
++----+--------------+-------------+
+
+OUT;
+		$this->assertInOutEquals(array($headers, $rows), $output);
+	}
+
+	/**
 	 * Draw wide multiplication Table.
 	 * Example with many columns, many rows
 	 */
@@ -204,6 +252,6 @@ OUT;
 	 * @param mixed $expected Expected output
 	 */
 	private function assertOutFileEqualsWith($expected) {
-		$this->assertStringEqualsFile($this->_mockFile, $expected);
+		$this->assertEquals($expected, file_get_contents($this->_mockFile));
 	}
 }

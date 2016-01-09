@@ -6,8 +6,7 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
-    $vendorDir . '/wp-cli/php-cli-tools/lib/cli/cli.php',
-    $vendorDir . '/rhumsaa/array_column/src/array_column.php',
     $vendorDir . '/mustangostang/spyc/Spyc.php',
-    $vendorDir . '/wp-cli/wp-cli/php/Spyc.php',
+    $vendorDir . '/ramsey/array_column/src/array_column.php',
+    $vendorDir . '/wp-cli/php-cli-tools/lib/cli/cli.php',
 );

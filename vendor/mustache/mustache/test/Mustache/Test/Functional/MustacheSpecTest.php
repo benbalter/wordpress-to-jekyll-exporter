@@ -3,14 +3,14 @@
 /*
  * This file is part of Mustache.php.
  *
- * (c) 2010-2014 Justin Hileman
+ * (c) 2010-2015 Justin Hileman
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
 
 /**
- * A PHPUnit test case wrapping the Mustache Spec
+ * A PHPUnit test case wrapping the Mustache Spec.
  *
  * @group mustache-spec
  * @group functional
@@ -23,7 +23,7 @@ class Mustache_Test_Functional_MustacheSpecTest extends Mustache_Test_SpecTestCa
      */
     public function testSpecInitialized()
     {
-        if (!file_exists(dirname(__FILE__).'/../../../../vendor/spec/specs/')) {
+        if (!file_exists(dirname(__FILE__) . '/../../../../vendor/spec/specs/')) {
             $this->markTestSkipped('Mustache spec submodule not initialized: run "git submodule update --init"');
         }
     }

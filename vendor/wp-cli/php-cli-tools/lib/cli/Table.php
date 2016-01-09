@@ -224,4 +224,8 @@ class Table {
 			$this->addRow($row);
 		}
 	}
+
+	public function countRows() {
+		return count($this->_rows);
+	}
 }

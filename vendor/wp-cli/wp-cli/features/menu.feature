@@ -77,7 +77,10 @@ Feature: Manage WordPress menus
     Then save STDOUT as {POST_ITEM_ID}
 
     When I run `wp menu item update {POST_ITEM_ID} --description="Washington Apples"`
-    Then STDERR should be empty
+    Then STDOUT should be:
+      """
+      Success: Menu item updated.
+      """
 
     When I run `wp menu item add-term sidebar-menu post_tag {TERM_ID} --porcelain`
     Then save STDOUT as {TERM_ITEM_ID}
@@ -86,7 +89,16 @@ Feature: Manage WordPress menus
     Then save STDOUT as {CUSTOM_ITEM_ID}
 
     When I run `wp menu item update {CUSTOM_ITEM_ID} --title=WordPress --link='http://wordpress.org' --target=_blank --position=2`
-    Then STDERR should be empty
+    Then STDOUT should be:
+      """
+      Success: Menu item updated.
+      """
+
+    When I run `wp menu item update {TERM_ITEM_ID} --position=3`
+    Then STDOUT should be:
+      """
+      Success: Menu item updated.
+      """
 
     When I run `wp menu item list sidebar-menu --fields=type,title,description,position,link,menu_item_parent`
     Then STDOUT should be a table containing rows:
@@ -94,6 +106,9 @@ Feature: Manage WordPress menus
       | post_type | Custom Test Post | Washington Apples | 1        | {POST_LINK}          | 0                |
       | custom    | WordPress        |                   | 2        | http://wordpress.org | {POST_ITEM_ID}   |
       | taxonomy  | Test term        |                   | 3        | {TERM_LINK}          | 0                |
+
+    When I run `wp menu item list sidebar-menu --format=ids`
+    Then STDOUT should not be empty
 
     When I run `wp menu item delete {CUSTOM_ITEM_ID}`
     And I run `wp menu item list sidebar-menu --format=count`
@@ -108,3 +123,32 @@ Feature: Manage WordPress menus
     """
     0
     """
+
+  Scenario: Preserve grandparent item as ancestor of child item when parent item is removed.
+
+    When I run `wp menu create "Grandparent Test"`
+    Then STDOUT should not be empty
+
+    When I run `wp menu item add-custom grandparent-test Grandparent http://example.com/grandparent --porcelain`
+    Then save STDOUT as {GRANDPARENT_ID}
+
+    When I run `wp menu item add-custom grandparent-test  Parent   http://example.com/parent   --porcelain  --parent-id={GRANDPARENT_ID}`
+    Then save STDOUT as {PARENT_ID}
+
+    When I run `wp menu item add-custom grandparent-test  Child http://example.com/child   --porcelain  --parent-id={PARENT_ID}`
+    Then save STDOUT as {CHILD_ID}
+
+    When I run `wp menu item list grandparent-test --fields=title,db_id,menu_item_parent`
+    Then STDOUT should be a table containing rows:
+      | title       | db_id            | menu_item_parent |
+      | Grandparent | {GRANDPARENT_ID} | 0                |
+      | Parent      | {PARENT_ID}      | {GRANDPARENT_ID} |
+      | Child       | {CHILD_ID}       | {PARENT_ID}      |
+
+    When I run `wp menu item delete {PARENT_ID}`
+
+    When I run `wp menu item list grandparent-test --fields=title,db_id,menu_item_parent`
+    Then STDOUT should be a table containing rows:
+      | title       | db_id            | menu_item_parent |
+      | Grandparent | {GRANDPARENT_ID} | 0                |
+      | Child       | {CHILD_ID}       | {GRANDPARENT_ID} |
