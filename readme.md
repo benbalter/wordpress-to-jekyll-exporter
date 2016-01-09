@@ -5,7 +5,7 @@ One-click WordPress plugin that converts all posts, pages, taxonomies, metadata,
 
 [![Build Status](https://travis-ci.org/benbalter/wordpress-to-jekyll-exporter.svg?branch=master)](https://travis-ci.org/benbalter/wordpress-to-jekyll-exporter)
 
-A Note 
+A Note
 ------
 
 Many shared hosts may use PHP 5.2 by default. WordPress to Jekyll Export requires PHP 5.3 or greater.
@@ -48,6 +48,17 @@ wp jekyll-export > export.zip
 ```
 
 The WP-CLI version will provide greater compatibility for alternate WordPress environments, such as when `wp-content` isn't in the usual location.
+
+Custom post types
+-----------------
+
+To export custom post types, you'll need to add a filter to do the following:
+
+```php
+add_filter( 'jekyll_export_post_types', array('posts', 'pages', 'you-custom-post-type') );
+```
+
+The custom post type will be exported as a Jekyll collection. You'll need to initialize it in the resulting Jekyll site's `_config.yml`.
 
 Changelog
 ---------

@@ -90,10 +90,11 @@ class Jekyll_Export {
   function get_posts() {
 
     global $wpdb;
-    return $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE post_status = 'publish' AND post_type IN ('post', 'page' )" );
+    $post_types = apply_filters( 'jekyll_export_post_types', array( 'post', 'page' ) );
+    $sql = "SELECT ID FROM $wpdb->posts WHERE post_status = 'publish' AND post_type IN ('" . implode("', '", $post_types) . "')";
+    return $wpdb->get_col( $sql );
 
   }
-
 
   /**
    * Convert a posts meta data (both post_meta and the fields in wp_posts) to key value pairs for export
@@ -292,7 +293,7 @@ class Jekyll_Export {
       $wp_filesystem->mkdir( $this->dir . $post->post_name );
       $filename = $post->post_name . '/index.md';
     } else {
-      $filename = '_posts/' . date( 'Y-m-d', strtotime( $post->post_date ) ) . '-' . $post->post_name . '.md';
+      $filename = '_' . get_post_type( $post ) . 's/' . date( 'Y-m-d', strtotime( $post->post_date ) ) . '-' . $post->post_name . '.md';
     }
 
     $wp_filesystem->put_contents( $this->dir . $filename, $output );
