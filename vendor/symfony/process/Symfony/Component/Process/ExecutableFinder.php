@@ -56,8 +56,7 @@ class ExecutableFinder
             $searchPath = explode(PATH_SEPARATOR, ini_get('open_basedir'));
             $dirs = array();
             foreach ($searchPath as $path) {
-                // Silencing against https://bugs.php.net/69240
-                if (@is_dir($path)) {
+                if (is_dir($path)) {
                     $dirs[] = $path;
                 } else {
                     if (basename($path) == $name && is_executable($path)) {
@@ -73,13 +72,13 @@ class ExecutableFinder
         }
 
         $suffixes = array('');
-        if ('\\' === DIRECTORY_SEPARATOR) {
+        if (defined('PHP_WINDOWS_VERSION_BUILD')) {
             $pathExt = getenv('PATHEXT');
             $suffixes = $pathExt ? explode(PATH_SEPARATOR, $pathExt) : $this->suffixes;
         }
         foreach ($suffixes as $suffix) {
             foreach ($dirs as $dir) {
-                if (is_file($file = $dir.DIRECTORY_SEPARATOR.$name.$suffix) && ('\\' === DIRECTORY_SEPARATOR || is_executable($file))) {
+                if (is_file($file = $dir.DIRECTORY_SEPARATOR.$name.$suffix) && (defined('PHP_WINDOWS_VERSION_BUILD') || is_executable($file))) {
                     return $file;
                 }
             }

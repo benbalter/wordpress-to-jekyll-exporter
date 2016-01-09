@@ -3,7 +3,7 @@
     "type": "library",
     "description": "Symfony Process Component",
     "keywords": [],
-    "homepage": "https://symfony.com",
+    "homepage": "http://symfony.com",
     "license": "MIT",
     "authors": [
         {
@@ -12,22 +12,20 @@
         },
         {
             "name": "Symfony Community",
-            "homepage": "https://symfony.com/contributors"
+            "homepage": "http://symfony.com/contributors"
         }
     ],
     "require": {
-        "php": ">=5.5.9"
+        "php": ">=5.3.3"
     },
     "autoload": {
-        "psr-4": { "Symfony\\Component\\Process\\": "" },
-        "exclude-from-classmap": [
-            "/Tests/"
-        ]
+        "psr-0": { "Symfony\\Component\\Process\\": "" }
     },
+    "target-dir": "Symfony/Component/Process",
     "minimum-stability": "dev",
     "extra": {
         "branch-alias": {
-            "dev-master": "3.0-dev"
+            "dev-master": "2.6-dev"
         }
     }
 }

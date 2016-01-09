@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "829aaca5007a589bc4e393c53d17720b",
-    "content-hash": "1c5206dd243e9aa2c7ffe506e33097a2",
+    "hash": "64a2735f133a28a36f644b171190d40f",
+    "content-hash": "deab417de4d66d8cb8cb4de6f4c7c628",
     "packages": [
         {
             "name": "alchemy/zippy",
@@ -285,34 +285,32 @@
         },
         {
             "name": "symfony/process",
-            "version": "v3.0.1",
+            "version": "v2.6.0",
+            "target-dir": "Symfony/Component/Process",
             "source": {
                 "type": "git",
-                "url": "https://github.com/symfony/process.git",
-                "reference": "f4794f1d00f0746621be3020ffbd8c5e0b217ee3"
+                "url": "https://github.com/symfony/Process.git",
+                "reference": "dc88f75d1c07791e5733f90be747961dce26cf05"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/process/zipball/f4794f1d00f0746621be3020ffbd8c5e0b217ee3",
-                "reference": "f4794f1d00f0746621be3020ffbd8c5e0b217ee3",
+                "url": "https://api.github.com/repos/symfony/Process/zipball/dc88f75d1c07791e5733f90be747961dce26cf05",
+                "reference": "dc88f75d1c07791e5733f90be747961dce26cf05",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.5.9"
+                "php": ">=5.3.3"
             },
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "3.0-dev"
+                    "dev-master": "2.6-dev"
                 }
             },
             "autoload": {
-                "psr-4": {
+                "psr-0": {
                     "Symfony\\Component\\Process\\": ""
-                },
-                "exclude-from-classmap": [
-                    "/Tests/"
-                ]
+                }
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -320,17 +318,17 @@
             ],
             "authors": [
                 {
-                    "name": "Fabien Potencier",
-                    "email": "fabien@symfony.com"
+                    "name": "Symfony Community",
+                    "homepage": "http://symfony.com/contributors"
                 },
                 {
-                    "name": "Symfony Community",
-                    "homepage": "https://symfony.com/contributors"
+                    "name": "Fabien Potencier",
+                    "email": "fabien@symfony.com"
                 }
             ],
             "description": "Symfony Process Component",
-            "homepage": "https://symfony.com",
-            "time": "2015-12-23 11:04:02"
+            "homepage": "http://symfony.com",
+            "time": "2014-11-04 14:29:39"
         }
     ],
     "packages-dev": [

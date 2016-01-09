@@ -48,11 +48,12 @@ class WindowsPipes extends AbstractPipes
             //
             // @see https://bugs.php.net/bug.php?id=51800
             $this->files = array(
-                Process::STDOUT => tempnam(sys_get_temp_dir(), 'out_sf_proc'),
-                Process::STDERR => tempnam(sys_get_temp_dir(), 'err_sf_proc'),
+                Process::STDOUT => tempnam(sys_get_temp_dir(), 'sf_proc_stdout'),
+                Process::STDERR => tempnam(sys_get_temp_dir(), 'sf_proc_stderr'),
             );
             foreach ($this->files as $offset => $file) {
-                if (false === $file || false === $this->fileHandles[$offset] = fopen($file, 'rb')) {
+                $this->fileHandles[$offset] = fopen($this->files[$offset], 'rb');
+                if (false === $this->fileHandles[$offset]) {
                     throw new RuntimeException('A temporary file could not be opened to write the process output to, verify that your TEMP environment variable is writable');
                 }
             }
@@ -172,7 +173,7 @@ class WindowsPipes extends AbstractPipes
     }
 
     /**
-     * Removes temporary files.
+     * Removes temporary files
      */
     private function removeFiles()
     {
@@ -185,7 +186,7 @@ class WindowsPipes extends AbstractPipes
     }
 
     /**
-     * Writes input to stdin.
+     * Writes input to stdin
      *
      * @param bool $blocking
      * @param bool $close
@@ -229,12 +230,12 @@ class WindowsPipes extends AbstractPipes
             if (false === $data || (true === $close && feof($r['input']) && '' === $data)) {
                 // no more data to read on input resource
                 // use an empty buffer in the next reads
-                $this->input = null;
+                unset($this->input);
             }
         }
 
         if (null !== $w && 0 < count($w)) {
-            while (strlen($this->inputBuffer)) {
+            while ($len = strlen($this->inputBuffer)) {
                 $written = fwrite($w[0], $this->inputBuffer, 2 << 18);
                 if ($written > 0) {
                     $this->inputBuffer = (string) substr($this->inputBuffer, $written);
