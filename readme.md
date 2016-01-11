@@ -10,7 +10,7 @@ Many shared hosts may use PHP 5.2 by default. **WordPress to Jekyll Export requi
 
 If you get an error message that looks like `unexpected T_STRING` or `expecting T_CONSTANT_ENCAPSED_STRING`, you need to update your PHP version. In a shared hosting environment, you should be able to change the version of PHP used by simply toggling the setting in the host's control panel.
 
-PHP 5.2 lost support from the PHP project itself more than three years ago. You'll need to be running at least PHP 5.3 which adds namespace support (the reason it's breaking), but I'd recommend at least 5.4 (or the latest your host supports) as it's the oldest supported version: https://en.wikipedia.org/wiki/PHP#Release_history
+PHP 5.2 lost support from the PHP project itself more than *five* years ago. You'll need to be running at least PHP 5.3 which adds namespace support (the reason it's breaking), but I'd recommend at least 5.5 (or the latest your host supports) as it's the oldest supported version: https://en.wikipedia.org/wiki/PHP#Release_history
 
 ## Features
 
