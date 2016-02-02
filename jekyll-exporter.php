@@ -164,6 +164,20 @@ class Jekyll_Export {
    * Convert the main post content to Markdown.
    */
   function convert_content( $post ) {
+  
+     // check if jetpack markdown is available
+     if ( class_exists("WPCom_Markdown") )
+     {
+       $wpcom_markdown_instance = WPCom_Markdown::get_instance();
+ 
+       if ( $wpcom_markdown_instance && $wpcom_markdown_instance->is_posting_enabled() )
+       {
+         // jetpack markdown is available so just return it
+         $content = apply_filters( 'edit_post_content', $post->post_content, $post->ID );
+ 
+         return $content;
+       }
+     }
 
     $content = apply_filters( 'the_content', $post->post_content );
     $converter = new Markdownify\ConverterExtra(Markdownify\Converter::LINK_IN_PARAGRAPH);
