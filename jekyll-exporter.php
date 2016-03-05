@@ -125,6 +125,15 @@ class Jekyll_Export {
       $output[ $key ] = $value;
 
     }
+    
+    $post_thumbnail_id = get_post_thumbnail_id( $post );
+
+    if ( $post_thumbnail_id ) {
+      $post_thumbnail_src = wp_get_attachment_image_src( $post_thumbnail_id, 'post-thumbnail' );
+
+      if ( $post_thumbnail_src )
+        $output[ 'image' ] = str_replace( home_url(), '', $post_thumbnail_src[0] );
+    }
 
     return $output;
   }
