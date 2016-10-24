@@ -92,6 +92,7 @@ class Jekyll_Export {
     global $wpdb;
     $post_types = apply_filters( 'jekyll_export_post_types', array( 'post', 'page' ) );
     $sql = "SELECT ID FROM $wpdb->posts WHERE post_status = 'publish' AND post_type IN ('" . implode("', '", $post_types) . "')";
+    $sql = apply_filters( 'jekyll_export_sql', $sql );
     return $wpdb->get_col( $sql );
 
   }
@@ -135,6 +136,7 @@ class Jekyll_Export {
         $output[ 'image' ] = str_replace( home_url(), '', $post_thumbnail_src[0] );
     }
 
+    $output = apply_filters( 'jekyll_export_meta', $output );
     return $output;
   }
 
@@ -166,6 +168,7 @@ class Jekyll_Export {
       }
     }
 
+    $output = apply_filters( 'jekyll_export_terms', $output );
     return $output;
   }
 
@@ -194,9 +197,13 @@ class Jekyll_Export {
 
     if ( false !== strpos( $markdown, '[]: ' ) ) {
       // faulty links; return plain HTML
+      $content = apply_filters( 'jekyll_export_html', $content );
+      $content = apply_filters( 'jekyll_export_content', $content );
       return $content;
     }
 
+    $markdown = apply_filters( 'jekyll_export_markdown', $markdown );
+    $markdown = apply_filters( 'jekyll_export_content', $markdown );
     return $markdown;
   }
 
@@ -251,6 +258,7 @@ class Jekyll_Export {
    * Main function, bootstraps, converts, and cleans up
    */
   function export() {
+    do_action( 'jekyll_export' );
     $this->init_temp_dir();
     $this->convert_options();
     $this->convert_posts();
