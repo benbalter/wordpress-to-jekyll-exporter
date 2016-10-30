@@ -1,15 +1,30 @@
 <?php
+/**
+ * Run the exporter from the command line and spit the zipfile to STDOUT.
+ *
+ * @package    JekyllExporter
+ * @author     Ben Balter <ben.balter@github.com>
+ * @copyright  2013-2016 Ben Balter
+ * @license    GPLv3
+ * @link       https://github.com/benbalter/wordpress-to-jekyll-exporter/
+ */
 
-if ( defined('WP_CLI') && WP_CLI ) {
+if ( defined( 'WP_CLI' ) && WP_CLI ) {
 
-  class Jekyll_Export_Command extends WP_CLI_Command {
+	/**
+	 * Extends WP CLI to add our export command
+	 */
+	class Jekyll_Export_Command extends WP_CLI_Command {
 
-    function __invoke() {
-      global $jekyll_export;
-      $jekyll_export->export();
-    }
-  }
+		/**
+		 * Trigger an export
+		 */
+		function __invoke() {
+			global $jekyll_export;
+			$jekyll_export->export();
+		}
+	}
 
-  WP_CLI::add_command( 'jekyll-export', 'Jekyll_Export_Command' );
+	WP_CLI::add_command( 'jekyll-export', 'Jekyll_Export_Command' );
 
 }
