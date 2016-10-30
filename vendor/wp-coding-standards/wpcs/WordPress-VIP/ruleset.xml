@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<ruleset name="WordPress VIP">
+	<description>WordPress VIP Coding Standards</description>
+
+	<rule ref="WordPress-Core"/>
+
+	<rule ref="WordPress.VIP"/>
+
+	<rule ref="WordPress.XSS.EscapeOutput"/>
+	<rule ref="WordPress.CSRF.NonceVerification" />
+	<rule ref="WordPress.PHP.StrictComparisons" />
+	<rule ref="WordPress.WP.PreparedSQL" />
+
+	<!-- https://vip.wordpress.com/documentation/code-review-what-we-look-for/#commented-out-code-debug-code-or-output -->
+	<rule ref="Squiz.PHP.CommentedOutCode" />
+
+	<!-- https://vip.wordpress.com/documentation/code-review-what-we-look-for/#using-in_array-without-strict-parameter -->
+	<rule ref="WordPress.PHP.StrictInArray" />
+</ruleset>
