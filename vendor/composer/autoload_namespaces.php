@@ -8,7 +8,6 @@ $baseDir = dirname($vendorDir);
 return array(
     'cli' => array($vendorDir . '/wp-cli/php-cli-tools/lib'),
     'WP_CLI' => array($vendorDir . '/wp-cli/wp-cli/php'),
-    'Symfony\\Component\\Process\\' => array($vendorDir . '/symfony/process'),
     'Requests' => array($vendorDir . '/rmccue/requests/library'),
     'Prophecy\\' => array($vendorDir . '/phpspec/prophecy/src'),
     'Oxymel' => array($vendorDir . '/nb/oxymel'),
