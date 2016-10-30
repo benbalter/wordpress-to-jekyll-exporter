@@ -2,5 +2,5 @@
 
 set -e
 
-phpcs --standard=WordPress $(find . -name '*.php' -not -path "./vendor/*")
+phpcs --standard=phpcs.ruleset.xml $(find . -name '*.php' -not -path "./vendor/*")
 phpunit
