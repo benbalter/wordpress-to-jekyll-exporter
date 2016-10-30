@@ -4,7 +4,7 @@ set -e
 
 composer install
 
-export PATH="$HOME/.composer/vendor/bin:$PATH"
+export PATH="$HOME/.composer/vendor/bin:./bin:$PATH"
 
 if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.0" ]]; then
   composer global require "phpunit/phpunit=5.6.*"
