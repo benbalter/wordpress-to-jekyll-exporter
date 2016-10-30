@@ -238,7 +238,7 @@ class Jekyll_Export {
 		$converter = new Markdownify\ConverterExtra( Markdownify\Converter::LINK_IN_PARAGRAPH );
 		$markdown = $converter->parseString( $content );
 
-		if ( strpos( $markdown, '[]: ' ) !== $post_id ) {
+		if ( strpos( $markdown, '[]: ' ) !== false ) {
 			// faulty links; return plain HTML.
 			$content = apply_filters( 'jekyll_export_html', $content );
 			$content = apply_filters( 'jekyll_export_content', $content );
@@ -270,7 +270,7 @@ class Jekyll_Export {
 			}
 
 			// Jekyll doesn't like word-wrapped permalinks.
-			$output = Spyc::YAMLDump( $meta, $post_id, 0 );
+			$output = Spyc::YAMLDump( $meta, false, 0 );
 
 			$output .= "---\n";
 			$output .= $this->convert_content( $post );
@@ -439,7 +439,7 @@ class Jekyll_Export {
 		$keys = array_keys( $array );
 		$index = array_search( $from, $keys );
 
-		if ( $post_id === $index ) {
+		if ( false === $index ) {
 			return;
 		}
 
@@ -468,7 +468,7 @@ class Jekyll_Export {
 	 * @link        http://aidanlister.com/2004/04/recursively-copying-directories-in-php/
 	 * @param       string $source    Source path.
 	 * @param       string $dest      Destination path.
-	 * @return      bool     Returns TRUE on success, $post_id on failure
+	 * @return      bool     Returns TRUE on success, false on failure
 	 */
 	function copy_recursive( $source, $dest ) {
 
@@ -491,7 +491,7 @@ class Jekyll_Export {
 
 		// Loop through the folder.
 		$dir = dir( $source );
-		while ( $post_id !== $entry = $dir->read() ) {
+		while ( false !== $entry = $dir->read() ) {
 			// Skip pointers.
 			if ( '.' == $entry  || '..' == $entry ) {
 				continue;
