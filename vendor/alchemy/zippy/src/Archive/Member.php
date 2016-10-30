@@ -22,21 +22,21 @@ class Member implements MemberInterface
     /**
      * The location of the file
      *
-     * @var String
+     * @var string
      */
     private $location;
 
     /**
      * Tells whether the archive member is a directory or not
      *
-     * @var Boolean
+     * @var bool
      */
     private $isDir;
 
     /**
      * The uncompressed size of the file
      *
-     * @var Integer
+     * @var int
      */
     private $size;
 
@@ -50,7 +50,7 @@ class Member implements MemberInterface
     /**
      * The resource to the actual archive
      *
-     * @var String
+     * @var string
      */
     private $resource;
 
@@ -64,15 +64,21 @@ class Member implements MemberInterface
     /**
      * Constructor
      *
-     * @param ResourceInterface $resource         The path of the archive which contain the member
-     * @param AdapterInterface  $adapter          The archive adapter interface
-     * @param String            $location         The path of the archive member
-     * @param Integer           $fileSize         The uncompressed file size
-     * @param \DateTime         $lastModifiedDate The last modified date of the member
-     * @param Boolean           $isDir            Tells whether the member is a directory or not
+     * @param ResourceInterface $resource The path of the archive which contain the member
+     * @param AdapterInterface $adapter The archive adapter interface
+     * @param string $location The path of the archive member
+     * @param int $fileSize The uncompressed file size
+     * @param \DateTime $lastModifiedDate The last modified date of the member
+     * @param bool $isDir Tells whether the member is a directory or not
      */
-    public function __construct(ResourceInterface $resource, AdapterInterface $adapter, $location, $fileSize, \DateTime $lastModifiedDate, $isDir)
-    {
+    public function __construct(
+        ResourceInterface $resource,
+        AdapterInterface $adapter,
+        $location,
+        $fileSize,
+        \DateTime $lastModifiedDate,
+        $isDir
+    ) {
         $this->resource = $resource;
         $this->adapter = $adapter;
         $this->location = $location;
@@ -82,7 +88,7 @@ class Member implements MemberInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getLocation()
     {
@@ -90,7 +96,7 @@ class Member implements MemberInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isDir()
     {
@@ -98,7 +104,7 @@ class Member implements MemberInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getLastModifiedDate()
     {
@@ -106,7 +112,7 @@ class Member implements MemberInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getSize()
     {
@@ -114,7 +120,7 @@ class Member implements MemberInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function __toString()
     {
@@ -124,10 +130,18 @@ class Member implements MemberInterface
     /**
      * {@inheritdoc}
      */
-    public function extract($to = null)
+    public function extract($to = null, $overwrite = false)
     {
-        $this->adapter->extractMembers($this->resource, $this->location, $to);
+        $this->adapter->extractMembers($this->resource, $this->location, $to, (bool) $overwrite);
 
         return new \SplFileInfo(sprintf('%s%s', rtrim(null === $to ? getcwd() : $to, '/'), $this->location));
+    }
+
+    /**
+     * @inheritdoc
+     * */
+    public function getResource()
+    {
+        return $this->resource;
     }
 }

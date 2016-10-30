@@ -11,22 +11,23 @@
 
 namespace Alchemy\Zippy\Adapter;
 
-use Alchemy\Zippy\Archive\ArchiveInterface;
 use Alchemy\Zippy\Adapter\Resource\ResourceInterface;
-use Alchemy\Zippy\Exception\InvalidArgumentException;
+use Alchemy\Zippy\Archive\ArchiveInterface;
+use Alchemy\Zippy\Exception\NotSupportedException;
 use Alchemy\Zippy\Exception\RuntimeException;
+use Alchemy\Zippy\Exception\InvalidArgumentException;
 
 Interface AdapterInterface
 {
     /**
      * Opens an archive
      *
-     * @param String $path The path to the archive
+     * @param string $path The path to the archive
      *
      * @return ArchiveInterface
      *
      * @throws InvalidArgumentException In case the provided path is not valid
-     * @throws RuntimeException         In case of failure
+     * @throws RuntimeException In case of failure
      */
     public function open($path);
 
@@ -36,14 +37,14 @@ Interface AdapterInterface
      * Please note some adapters can not create empty archives.
      * They would throw a `NotSupportedException` in case you ask to create an archive without files
      *
-     * @param String                         $path      The path to the archive
-     * @param String|Array|\Traversable|null $files     A filename, an array of files, or a \Traversable instance
-     * @param Boolean                        $recursive Whether to recurse or not in the provided directories
+     * @param string                            $path      The path to the archive
+     * @param string|string[]|\Traversable|null $files     A filename, an array of files, or a \Traversable instance
+     * @param bool                              $recursive Whether to recurse or not in the provided directories
      *
      * @return ArchiveInterface
      *
-     * @throws RuntimeException         In case of failure
-     * @throws NotSupportedException    In case the operation in not supported
+     * @throws RuntimeException In case of failure
+     * @throws NotSupportedException In case the operation in not supported
      * @throws InvalidArgumentException In case no files could be added
      */
     public function create($path, $files = null, $recursive = true);
@@ -51,7 +52,7 @@ Interface AdapterInterface
     /**
      * Tests if the adapter is supported by the current environment
      *
-     * @return Boolean
+     * @return bool
      */
     public function isSupported();
 
@@ -60,7 +61,7 @@ Interface AdapterInterface
      *
      * @param ResourceInterface $resource The path to the archive
      *
-     * @return Array
+     * @return array
      *
      * @throws RuntimeException In case of failure
      */
@@ -70,12 +71,12 @@ Interface AdapterInterface
      * Adds a file to the archive
      *
      * @param ResourceInterface         $resource  The path to the archive
-     * @param String|Array|\Traversable $files     An array of paths to add, relative to cwd
-     * @param Boolean                   $recursive Whether or not to recurse in the provided directories
+     * @param string|array|\Traversable $files     An array of paths to add, relative to cwd
+     * @param bool                      $recursive Whether or not to recurse in the provided directories
      *
-     * @return Array
+     * @return array
      *
-     * @throws RuntimeException         In case of failure
+     * @throws RuntimeException In case of failure
      * @throws InvalidArgumentException In case no files could be added
      */
     public function add(ResourceInterface $resource, $files, $recursive = true);
@@ -84,11 +85,11 @@ Interface AdapterInterface
      * Removes a member of the archive
      *
      * @param ResourceInterface         $resource The path to the archive
-     * @param String|Array|\Traversable $files    A filename, an array of files, or a \Traversable instance
+     * @param string|array|\Traversable $files    A filename, an array of files, or a \Traversable instance
      *
-     * @return Array
+     * @return array
      *
-     * @throws RuntimeException         In case of failure
+     * @throws RuntimeException In case of failure
      * @throws InvalidArgumentException In case no files could be removed
      */
     public function remove(ResourceInterface $resource, $files);
@@ -99,11 +100,11 @@ Interface AdapterInterface
      * Note that any existing files will be overwritten by the adapter
      *
      * @param ResourceInterface $resource The path to the archive
-     * @param String|null       $to       The path where to extract the archive
+     * @param string|null       $to       The path where to extract the archive
      *
      * @return \SplFileInfo The extracted archive
      *
-     * @throws RuntimeException         In case of failure
+     * @throws RuntimeException In case of failure
      * @throws InvalidArgumentException In case the provided path where to extract the archive is not valid
      */
     public function extract(ResourceInterface $resource, $to = null);
@@ -111,21 +112,22 @@ Interface AdapterInterface
     /**
      * Extracts specific members of the archive
      *
-     * @param ResourceInterface $resource The path to the archive
-     * @param Array             $members  An array of members
-     * @param String|null       $to       The path where to extract the members
+     * @param ResourceInterface $resource  The path to the archive
+     * @param string|string[]   $members   A path or array of paths matching the members to extract from the resource.
+     * @param string|null       $to        The path where to extract the members
+     * @param bool              $overwrite Whether to overwrite existing files in target directory
      *
      * @return \SplFileInfo The extracted archive
      *
-     * @throws RuntimeException         In case of failure
-     * @throws InvalidArgumentException In case no members could be removed or provide extract target directory is not valid
+     * @throws RuntimeException In case of failure
+     * @throws InvalidArgumentException In case no members could be removed or providedd extract target directory is not valid
      */
-    public function extractMembers(ResourceInterface $resource, $members, $to = null);
+    public function extractMembers(ResourceInterface $resource, $members, $to = null, $overwrite = false);
 
     /**
      * Returns the adapter name
      *
-     * @return String
+     * @return string
      */
     public static function getName();
 }

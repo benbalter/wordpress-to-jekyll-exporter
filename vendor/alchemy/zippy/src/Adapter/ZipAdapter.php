@@ -11,17 +11,17 @@
 
 namespace Alchemy\Zippy\Adapter;
 
+use Alchemy\Zippy\Adapter\Resource\ResourceInterface;
+use Alchemy\Zippy\Adapter\VersionProbe\ZipVersionProbe;
 use Alchemy\Zippy\Archive\Archive;
 use Alchemy\Zippy\Archive\Member;
-use Alchemy\Zippy\Adapter\Resource\ResourceInterface;
-use Alchemy\Zippy\Exception\RuntimeException;
-use Alchemy\Zippy\Exception\NotSupportedException;
 use Alchemy\Zippy\Exception\InvalidArgumentException;
-use Alchemy\Zippy\Resource\Resource;
-use Alchemy\Zippy\Resource\ResourceManager;
-use Alchemy\Zippy\Adapter\VersionProbe\ZipVersionProbe;
+use Alchemy\Zippy\Exception\NotSupportedException;
+use Alchemy\Zippy\Exception\RuntimeException;
 use Alchemy\Zippy\Parser\ParserInterface;
 use Alchemy\Zippy\ProcessBuilder\ProcessBuilderFactoryInterface;
+use Alchemy\Zippy\Resource\Resource as ZippyResource;
+use Alchemy\Zippy\Resource\ResourceManager;
 use Symfony\Component\Process\Exception\ExceptionInterface as ProcessException;
 
 /**
@@ -31,9 +31,14 @@ use Symfony\Component\Process\Exception\ExceptionInterface as ProcessException;
  */
 class ZipAdapter extends AbstractBinaryAdapter
 {
-    public function __construct(ParserInterface $parser, ResourceManager $manager, ProcessBuilderFactoryInterface $inflator, ProcessBuilderFactoryInterface $deflator)
-    {
+    public function __construct(
+        ParserInterface $parser,
+        ResourceManager $manager,
+        ProcessBuilderFactoryInterface $inflator,
+        ProcessBuilderFactoryInterface $deflator
+    ) {
         parent::__construct($parser, $manager, $inflator, $deflator);
+
         $this->probe = new ZipVersionProbe($inflator, $deflator);
     }
 
@@ -61,7 +66,7 @@ class ZipAdapter extends AbstractBinaryAdapter
         $collection = $this->manager->handle(getcwd(), $files);
         $builder->setWorkingDirectory($collection->getContext());
 
-        $collection->forAll(function ($i, Resource $resource) use ($builder) {
+        $collection->forAll(function($i, ZippyResource $resource) use ($builder) {
             return $builder->add($resource->getTarget());
         });
 
@@ -148,7 +153,7 @@ class ZipAdapter extends AbstractBinaryAdapter
 
         $builder->setWorkingDirectory($collection->getContext());
 
-        $collection->forAll(function ($i, Resource $resource) use ($builder) {
+        $collection->forAll(function($i, ZippyResource $resource) use ($builder) {
             return $builder->add($resource->getTarget());
         });
 
@@ -319,7 +324,7 @@ class ZipAdapter extends AbstractBinaryAdapter
     /**
      * @inheritdoc
      */
-    protected function doExtractMembers(ResourceInterface $resource, $members, $to)
+    protected function doExtractMembers(ResourceInterface $resource, $members, $to, $overwrite = false)
     {
         if (null !== $to && !is_dir($to)) {
             throw new InvalidArgumentException(sprintf("%s is not a directory", $to));
@@ -330,6 +335,10 @@ class ZipAdapter extends AbstractBinaryAdapter
         $builder = $this
             ->deflator
             ->create();
+
+        if ((bool) $overwrite) {
+            $builder->add('-o');
+        }
 
         $builder
             ->add($resource->getResource());

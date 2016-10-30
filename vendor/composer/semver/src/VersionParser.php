@@ -23,13 +23,23 @@ use Composer\Semver\Constraint\Constraint;
  */
 class VersionParser
 {
-    /** @var string */
-    private static $modifierRegex = '[._-]?(?:(stable|beta|b|RC|alpha|a|patch|pl|p)(?:[.-]?(\d+))?)?([.-]?dev)?';
+    /**
+     * Regex to match pre-release data (sort of).
+     *
+     * Due to backwards compatibility:
+     *   - Instead of enforcing hyphen, an underscore, dot or nothing at all are also accepted.
+     *   - Only stabilities as recognized by Composer are allowed to precede a numerical identifier.
+     *   - Numerical-only pre-release identifiers are not supported, see tests.
+     *
+     *                        |--------------|
+     * [major].[minor].[patch] -[pre-release] +[build-metadata]
+     *
+     * @var string
+     */
+    private static $modifierRegex = '[._-]?(?:(stable|beta|b|RC|alpha|a|patch|pl|p)((?:[.-]?\d+)*+)?)?([.-]?dev)?';
 
     /** @var array */
-    private static $stabilities = array(
-        'stable', 'RC', 'beta', 'alpha', 'dev',
-    );
+    private static $stabilities = array('stable', 'RC', 'beta', 'alpha', 'dev');
 
     /**
      * Returns the stability of a version.
@@ -46,7 +56,7 @@ class VersionParser
             return 'dev';
         }
 
-        preg_match('{' . self::$modifierRegex . '$}i', strtolower($version), $match);
+        preg_match('{' . self::$modifierRegex . '(?:\+.*)?$}i', strtolower($version), $match);
         if (!empty($match[3])) {
             return 'dev';
         }
@@ -96,12 +106,7 @@ class VersionParser
         }
 
         // strip off aliasing
-        if (preg_match('{^([^,\s]+) +as +([^,\s]+)$}', $version, $match)) {
-            $version = $match[1];
-        }
-
-        // strip off build metadata
-        if (preg_match('{^([^,\s+]+)\+[^\s]+$}', $version, $match)) {
+        if (preg_match('{^([^,\s]++) ++as ++([^,\s]++)$}', $version, $match)) {
             $version = $match[1];
         }
 
@@ -110,12 +115,18 @@ class VersionParser
             return '9999999-dev';
         }
 
+        // if requirement is branch-like, use full name
         if ('dev-' === strtolower(substr($version, 0, 4))) {
             return 'dev-' . substr($version, 4);
         }
 
+        // strip off build metadata
+        if (preg_match('{^([^,\s+]++)\+[^\s]++$}', $version, $match)) {
+            $version = $match[1];
+        }
+
         // match classical versioning
-        if (preg_match('{^v?(\d{1,5})(\.\d+)?(\.\d+)?(\.\d+)?' . self::$modifierRegex . '$}i', $version, $matches)) {
+        if (preg_match('{^v?(\d{1,5})(\.\d++)?(\.\d++)?(\.\d++)?' . self::$modifierRegex . '$}i', $version, $matches)) {
             $version = $matches[1]
                 . (!empty($matches[2]) ? $matches[2] : '.0')
                 . (!empty($matches[3]) ? $matches[3] : '.0')
@@ -123,7 +134,7 @@ class VersionParser
             $index = 5;
         // match date(time) based versioning
         } elseif (preg_match('{^v?(\d{4}(?:[.:-]?\d{2}){1,6}(?:[.:-]?\d{1,3})?)' . self::$modifierRegex . '$}i', $version, $matches)) {
-            $version = preg_replace('{\D}', '-', $matches[1]);
+            $version = preg_replace('{\D}', '.', $matches[1]);
             $index = 2;
         }
 
@@ -133,7 +144,7 @@ class VersionParser
                 if ('stable' === $matches[$index]) {
                     return $version;
                 }
-                $version .= '-' . $this->expandStability($matches[$index]) . (!empty($matches[$index + 1]) ? $matches[$index + 1] : '');
+                $version .= '-' . $this->expandStability($matches[$index]) . (!empty($matches[$index + 1]) ? ltrim($matches[$index + 1], '.-') : '');
             }
 
             if (!empty($matches[$index + 2])) {
@@ -170,7 +181,7 @@ class VersionParser
      */
     public function parseNumericAliasPrefix($branch)
     {
-        if (preg_match('{^(?P<version>(\d+\\.)*\d+)(?:\.x)?-dev$}i', $branch, $matches)) {
+        if (preg_match('{^(?P<version>(\d++\\.)*\d++)(?:\.x)?-dev$}i', $branch, $matches)) {
             return $matches['version'] . '.';
         }
 
@@ -192,7 +203,7 @@ class VersionParser
             return $this->normalize($name);
         }
 
-        if (preg_match('{^v?(\d+)(\.(?:\d+|[xX*]))?(\.(?:\d+|[xX*]))?(\.(?:\d+|[xX*]))?$}i', $name, $matches)) {
+        if (preg_match('{^v?(\d++)(\.(?:\d++|[xX*]))?(\.(?:\d++|[xX*]))?(\.(?:\d++|[xX*]))?$}i', $name, $matches)) {
             $version = '';
             for ($i = 1; $i < 5; ++$i) {
                 $version .= isset($matches[$i]) ? str_replace(array('*', 'X'), 'x', $matches[$i]) : '.x';
@@ -205,7 +216,7 @@ class VersionParser
     }
 
     /**
-     * Parses as constraint string into LinkConstraint objects.
+     * Parses a constraint string into MultiConstraint and/or Constraint objects.
      *
      * @param string $constraints
      *
@@ -249,6 +260,23 @@ class VersionParser
 
         if (1 === count($orGroups)) {
             $constraint = $orGroups[0];
+        } elseif (2 === count($orGroups)
+            // parse the two OR groups and if they are contiguous we collapse
+            // them into one constraint
+            && $orGroups[0] instanceof MultiConstraint
+            && $orGroups[1] instanceof MultiConstraint
+            && 2 === count($orGroups[0]->getConstraints())
+            && 2 === count($orGroups[1]->getConstraints())
+            && ($a = (string) $orGroups[0])
+            && substr($a, 0, 3) === '[>=' && (false !== ($posA = strpos($a, '<', 4)))
+            && ($b = (string) $orGroups[1])
+            && substr($b, 0, 3) === '[>=' && (false !== ($posB = strpos($b, '<', 4)))
+            && substr($a, $posA + 2, -1) === substr($b, 4, $posB - 5)
+        ) {
+            $constraint = new MultiConstraint(array(
+                new Constraint('>=', substr($a, 4, $posA - 5)),
+                new Constraint('<', substr($b, $posB + 2, -1)),
+            ));
         } else {
             $constraint = new MultiConstraint($orGroups, false);
         }
@@ -274,11 +302,11 @@ class VersionParser
             }
         }
 
-        if (preg_match('{^[xX*](\.[xX*])*$}i', $constraint)) {
+        if (preg_match('{^v?[xX*](\.[xX*])*$}i', $constraint)) {
             return array(new EmptyConstraint());
         }
 
-        $versionRegex = 'v?(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:\.(\d+))?' . self::$modifierRegex . '(?:\+[^\s]+)?';
+        $versionRegex = 'v?(\d++)(?:\.(\d++))?(?:\.(\d++))?(?:\.(\d++))?' . self::$modifierRegex . '(?:\+[^\s]+)?';
 
         // Tilde Range
         //
@@ -372,7 +400,7 @@ class VersionParser
         //
         // Any of X, x, or * may be used to "stand in" for one of the numeric values in the [major, minor, patch] tuple.
         // A partial version range is treated as an X-Range, so the special character is in fact optional.
-        if (preg_match('{^(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:\.[xX*])+$}', $constraint, $matches)) {
+        if (preg_match('{^v?(\d++)(?:\.(\d++))?(?:\.(\d++))?(?:\.[xX*])++$}', $constraint, $matches)) {
             if (isset($matches[3]) && '' !== $matches[3]) {
                 $position = 3;
             } elseif (isset($matches[2]) && '' !== $matches[2]) {

@@ -15,9 +15,9 @@ namespace Alchemy\Zippy\Parser;
  */
 class ZipOutputParser implements ParserInterface
 {
-    const LENGTH        = "(\d*)";
-    const ISO_DATE      = "([0-9]+-[0-9]+-[0-9]+\s+[0-9]+:[0-9]+)";
-    const FILENAME      = "(.*)";
+    const LENGTH        = '(\d*)';
+    const ISO_DATE      = '([0-9]+-[0-9]+-[0-9]+\s+[0-9]+:[0-9]+)';
+    const FILENAME      = '(.*)';
 
     /**
      * @var string
@@ -44,10 +44,10 @@ class ZipOutputParser implements ParserInterface
             $matches = array();
 
             // 785  2012-10-24 10:39  file
-            if (!preg_match_all("#".
-                self::LENGTH    . "\s+" . // match (785)
-                self::ISO_DATE  . "\s+" . // match (2012-10-24 10:39)
-                self::FILENAME  .         // match (file)
+            if (!preg_match_all("#" .
+                self::LENGTH . "\s+" . // match (785)
+                self::ISO_DATE . "\s+" . // match (2012-10-24 10:39)
+                self::FILENAME . // match (file)
                 "#",
                 $line, $matches, PREG_SET_ORDER
             )) {
@@ -71,9 +71,9 @@ class ZipOutputParser implements ParserInterface
         return $members;
     }
 
-      /**
-     * @inheritdoc
-     */
+        /**
+         * @inheritdoc
+         */
     public function parseInflatorVersion($output)
     {
         $lines = array_values(array_filter(explode("\n", $output, 3)));
@@ -84,7 +84,7 @@ class ZipOutputParser implements ParserInterface
             return null;
         }
 
-        list($name, $version) = $chunks;
+        list(, $version) = $chunks;
 
         return $version;
     }
@@ -102,7 +102,7 @@ class ZipOutputParser implements ParserInterface
             return null;
         }
 
-        list($name, $version) = $chunks;
+        list(, $version) = $chunks;
 
         return $version;
     }

@@ -1,5 +1,18 @@
 <?php
-
+/**
+ * Launch PHP's built-in web server.
+ *
+ * ## EXAMPLES
+ *
+ *     # Make the instance available on any address (with port 8080)
+ *     $ wp server --host=0.0.0.0
+ *     PHP 5.6.9 Development Server started at Tue May 24 01:27:11 2016
+ *     Listening on http://0.0.0.0:8080
+ *     Document root is /
+ *     Press Ctrl-C to quit.
+ *
+ * @package wp-cli
+ */
 class Server_Command extends WP_CLI_Command {
 
 	/**
@@ -10,21 +23,45 @@ class Server_Command extends WP_CLI_Command {
 	 * ## OPTIONS
 	 *
 	 * [--host=<host>]
-	 * : The hostname to bind the server to. Default: localhost
+	 * : The hostname to bind the server to.
+	 * ---
+	 * default: localhost
+	 * ---
 	 *
 	 * [--port=<port>]
-	 * : The port number to bind the server to. Default: 8080
+	 * : The port number to bind the server to.
+	 * ---
+	 * default: 8080
+	 * ---
 	 *
 	 * [--docroot=<path>]
 	 * : The path to use as the document root.
 	 *
+	 * [--config=<file>]
+	 * : Configure the server with a specific .ini file.
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     # Make the instance available on any address (with port 8080)
-	 *     wp server --host=0.0.0.0
+	 *     $ wp server --host=0.0.0.0
+	 *     PHP 5.6.9 Development Server started at Tue May 24 01:27:11 2016
+	 *     Listening on http://0.0.0.0:8080
+	 *     Document root is /
+	 *     Press Ctrl-C to quit.
 	 *
 	 *     # Run on port 80 (for multisite)
-	 *     sudo wp server --host=localhost.localdomain --port=80
+	 *     $ sudo wp server --host=localhost.localdomain --port=80
+	 *     PHP 5.6.9 Development Server started at Tue May 24 01:30:06 2016
+	 *     Listening on http://localhost1.localdomain1:8080
+	 *     Document root is /
+	 *     Press Ctrl-C to quit.
+	 *
+	 *     # Configure the server with a specific .ini file
+	 *     $ wp server --config=development.ini
+	 *     PHP 7.0.9 Development Server started at Mon Aug 22 12:09:04 2016
+	 *     Listening on http://localhost:8080
+	 *     Document root is /
+	 *     Press Ctrl-C to quit.
 	 *
 	 * @when before_wp_load
 	 */
@@ -37,7 +74,8 @@ class Server_Command extends WP_CLI_Command {
 		$defaults = array(
 			'host' => 'localhost',
 			'port' => 8080,
-			'docroot' => false
+			'docroot' => false,
+			'config' => false,
 		);
 		$assoc_args = array_merge( $defaults, $assoc_args );
 
@@ -53,15 +91,23 @@ class Server_Command extends WP_CLI_Command {
 			}
 		}
 
-		$cmd = \WP_CLI\Utils\esc_cmd( PHP_BINARY . ' -S %s -t %s %s',
+		$cmd = \WP_CLI\Utils\esc_cmd( '%s -S %s -t %s -c %s %s',
+			PHP_BINARY,
 			$assoc_args['host'] . ':' . $assoc_args['port'],
 			$docroot,
+			$assoc_args['config'],
 			\WP_CLI\Utils\extract_from_phar( WP_CLI_ROOT . '/php/router.php' )
 		);
 
 		$descriptors = array( STDIN, STDOUT, STDERR );
 
-		exit( proc_close( proc_open( $cmd, $descriptors, $pipes ) ) );
+		// https://bugs.php.net/bug.php?id=60181
+		$options = array();
+		if ( \WP_CLI\Utils\is_windows() ) {
+			$options["bypass_shell"] = TRUE;
+		}
+
+		exit( proc_close( proc_open( $cmd, $descriptors, $pipes, NULL, NULL, $options ) ) );
 	}
 }
 

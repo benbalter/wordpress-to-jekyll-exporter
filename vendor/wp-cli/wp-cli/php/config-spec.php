@@ -7,6 +7,18 @@ return array(
 		'desc' => 'Path to the WordPress files.',
 	),
 
+	'ssh' => array(
+		'runtime' => '=[<user>@]<host>[:<port>][<path>]',
+		'file' => '[<user>@]<host>[:<port>][<path>]',
+		'desc' => 'Perform operation against a remote server over SSH.',
+	),
+
+	'http' => array(
+		'runtime' => '=<http>',
+		'file' => '<http>',
+		'desc' => 'Perform operation against a remote WordPress install over HTTP.',
+	),
+
 	'url' => array(
 		'runtime' => '=<url>',
 		'file' => '<url>',
@@ -15,11 +27,6 @@ return array(
 	'blog' => array(
 		'deprecated' => 'Use --url instead.',
 		'runtime' => '=<url>',
-	),
-
-	'config' => array(
-		'deprecated' => 'Use the WP_CLI_CONFIG_PATH environment variable instead.',
-		'runtime' => '=<path>',
 	),
 
 	'user' => array(
@@ -31,15 +38,22 @@ return array(
 	'skip-plugins' => array(
 		'runtime' => '[=<plugin>]',
 		'file' => '<list>',
-		'desc' => 'Skip loading all or some plugins.',
+		'desc' => 'Skip loading all or some plugins. Note: mu-plugins are still loaded.',
 		'default' => '',
 	),
-	
+
 	'skip-themes' => array(
 		'runtime' => '[=<theme>]',
 		'file' => '<list>',
 		'desc' => 'Skip loading all or some themes.',
 		'default' => '',
+	),
+
+	'skip-packages' => array(
+		'runtime'   => '',
+		'file'      => '<bool>',
+		'desc'      => 'Skip loading all installed packages.',
+		'default'   => false,
 	),
 
 	'require' => array(
@@ -64,8 +78,8 @@ return array(
 	),
 
 	'debug' => array(
-		'runtime' => '',
-		'file' => '<bool>',
+		'runtime' => '[=<group>]',
+		'file' => '<group>',
 		'default' => false,
 		'desc' => 'Show all PHP errors; add verbosity to WP-CLI bootstrap.',
 	),
@@ -100,4 +114,3 @@ return array(
 	),
 
 );
-

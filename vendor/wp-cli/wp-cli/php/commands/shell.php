@@ -1,5 +1,15 @@
 <?php
-
+/**
+ * Interactive PHP console.
+ *
+ * ## EXAMPLES
+ *
+ *     # Start interactive PHP console
+ *     $ wp shell
+ *     wp>
+ *
+ * @package wp-cli
+ */
 class Shell_Command extends \WP_CLI_Command {
 
 	/**
@@ -13,6 +23,12 @@ class Shell_Command extends \WP_CLI_Command {
 	 *
 	 * [--basic]
 	 * : Start in fail-safe mode, even if Boris is available.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     # Start interactive PHP console
+	 *     $ wp shell
+	 *     wp>
 	 */
 	public function __invoke( $_, $assoc_args ) {
 		$implementations = array(
@@ -35,7 +51,7 @@ class Shell_Command extends \WP_CLI_Command {
 		if ( '\\Psy\\Shell' == $class ) {
 			\Psy\Shell::debug();
 		} else {
-			$repl = new $class( 'wp> ' );
+			$repl = new $class(  "wp> " );
 			$repl->start();
 		}
 	}

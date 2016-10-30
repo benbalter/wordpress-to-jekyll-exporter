@@ -118,8 +118,10 @@ class RecursiveDirectoryIterator extends \RecursiveDirectoryIterator
             return;
         }
 
-        // @see https://bugs.php.net/bug.php?id=49104
-        parent::next();
+        // @see https://bugs.php.net/68557
+        if (PHP_VERSION_ID < 50523 || PHP_VERSION_ID >= 50600 && PHP_VERSION_ID < 50607) {
+            parent::next();
+        }
 
         parent::rewind();
     }
@@ -133,6 +135,11 @@ class RecursiveDirectoryIterator extends \RecursiveDirectoryIterator
     {
         if (null !== $this->rewindable) {
             return $this->rewindable;
+        }
+
+        // workaround for an HHVM bug, should be removed when https://github.com/facebook/hhvm/issues/7281 is fixed
+        if ('' === $this->getPath()) {
+            return $this->rewindable = false;
         }
 
         if (false !== $stream = @opendir($this->getPath())) {

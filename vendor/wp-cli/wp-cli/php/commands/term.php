@@ -2,6 +2,33 @@
 /**
  * Manage terms.
  *
+ * ## EXAMPLES
+ *
+ *     # Create term
+ *     $ wp term create category Apple --description="A type of fruit"
+ *     Success: Created category 199.
+ *
+ *     # Get term
+ *     $ wp term get category 199 --format=json --fields=term_id,name,slug,count
+ *     {"term_id":199,"name":"Apple","slug":"apple","count":1}
+ *
+ *     # Update term
+ *     $ wp term update category 15 --name=Apple
+ *     Success: Term updated.
+ *
+ *     # Get term url
+ *     $ wp term url post_tag 123
+ *     http://example.com/tag/tips-and-tricks
+ *
+ *     # Delete post category
+ *     $ wp term delete category 15
+ *     Success: Deleted category 15.
+ *
+ *     # Recount posts assigned to each categories and tags
+ *     $ wp term recount category post_tag
+ *     Success: Updated category term count
+ *     Success: Updated post_tag term count
+ *
  * @package wp-cli
  */
 class Term_Command extends WP_CLI_Command {
@@ -34,7 +61,17 @@ class Term_Command extends WP_CLI_Command {
 	 * : Limit the output to specific object fields.
 	 *
 	 * [--format=<format>]
-	 * : Accepted values: table, csv, json, count. Default: table
+	 * : Render output in a particular format.
+	 * ---
+	 * default: table
+	 * options:
+	 *   - table
+	 *   - csv
+	 *   - ids
+	 *   - json
+	 *   - count
+	 *   - yaml
+	 * ---
 	 *
 	 * ## AVAILABLE FIELDS
 	 *
@@ -52,13 +89,34 @@ class Term_Command extends WP_CLI_Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp term list category --format=csv
+	 *     # List post categories
+	 *     $ wp term list category --format=csv
+	 *     term_id,term_taxonomy_id,name,slug,description,parent,count
+	 *     2,2,aciform,aciform,,0,1
+	 *     3,3,antiquarianism,antiquarianism,,0,1
+	 *     4,4,arrangement,arrangement,,0,1
+	 *     5,5,asmodeus,asmodeus,,0,1
 	 *
-	 *     wp term list post_tag --fields=name,slug
+	 *     # List post tags
+	 *     $ wp term list post_tag --fields=name,slug
+	 *     +-----------+-------------+
+	 *     | name      | slug        |
+	 *     +-----------+-------------+
+	 *     | 8BIT      | 8bit        |
+	 *     | alignment | alignment-2 |
+	 *     | Articles  | articles    |
+	 *     | aside     | aside       |
+	 *     +-----------+-------------+
 	 *
 	 * @subcommand list
 	 */
 	public function list_( $args, $assoc_args ) {
+		foreach ( $args as $taxonomy ) {
+			if ( ! taxonomy_exists( $taxonomy ) ) {
+				WP_CLI::error( "Taxonomy $taxonomy doesn't exist." );
+			}
+		}
+
 		$formatter = $this->get_formatter( $assoc_args );
 
 		$defaults = array(
@@ -112,7 +170,8 @@ class Term_Command extends WP_CLI_Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp term create category Apple --description="A type of fruit"
+	 *     $ wp term create category Apple --description="A type of fruit"
+	 *     Success: Created category 199.
 	 */
 	public function create( $args, $assoc_args ) {
 
@@ -133,6 +192,8 @@ class Term_Command extends WP_CLI_Command {
 			WP_CLI::error( 'Parent term does not exist.' );
 		}
 
+		$assoc_args = wp_slash( $assoc_args );
+		$term = wp_slash( $term );
 		$ret = wp_insert_term( $term, $taxonomy, $assoc_args );
 
 		if ( is_wp_error( $ret ) ) {
@@ -163,11 +224,20 @@ class Term_Command extends WP_CLI_Command {
 	 * : Limit the output to specific fields. Defaults to all fields.
 	 *
 	 * [--format=<format>]
-	 * : Accepted values: table, json, csv. Default: table
+	 * : Render output in a particular format.
+	 * ---
+	 * default: table
+	 * options:
+	 *   - table
+	 *   - csv
+	 *   - json
+	 *   - yaml
+	 * ---
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp term get category 1 --format=json
+	 *     $ wp term get category 199 --format=json
+	 *     {"term_id":199,"name":"Apple","slug":"apple","term_group":0,"term_taxonomy_id":199,"taxonomy":"category","description":"A type of fruit","parent":0,"count":0,"filter":"raw"}
 	 */
 	public function get( $args, $assoc_args ) {
 
@@ -214,7 +284,8 @@ class Term_Command extends WP_CLI_Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp term update category 15 --name=Apple
+	 *     $ wp term update category 15 --name=Apple
+	 *     Success: Term updated.
 	 */
 	public function update( $args, $assoc_args ) {
 
@@ -233,6 +304,7 @@ class Term_Command extends WP_CLI_Command {
 				unset( $assoc_args[$key] );
 		}
 
+		$assoc_args = wp_slash( $assoc_args );
 		$ret = wp_update_term( $term_id, $taxonomy, $assoc_args );
 
 		if ( is_wp_error( $ret ) )
@@ -254,8 +326,15 @@ class Term_Command extends WP_CLI_Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     # delete all post tags
-	 *     wp term list post_tag --field=term_id | xargs wp term delete post_tag
+	 *     # Delete post category
+	 *     $ wp term delete category 15
+	 *     Success: Deleted category 15.
+	 *
+	 *     # Delete all post tags
+	 *     $ wp term list post_tag --field=term_id | xargs wp term delete post_tag
+	 *     Success: Deleted post_tag 159.
+	 *     Success: Deleted post_tag 160.
+	 *     Success: Deleted post_tag 161.
 	 */
 	public function delete( $args ) {
 		$taxonomy = array_shift( $args );
@@ -282,14 +361,37 @@ class Term_Command extends WP_CLI_Command {
 	 * : The taxonomy for the generated terms.
 	 *
 	 * [--count=<number>]
-	 * : How many terms to generate. Default: 100
+	 * : How many terms to generate?
+	 * ---
+	 * default: 100
+	 * ---
 	 *
 	 * [--max_depth=<number>]
-	 * : Generate child terms down to a certain depth. Default: 1
+	 * : Generate child terms down to a certain depth.
+	 * ---
+	 * default: 1
+	 * ---
+	 *
+	 * [--format=<format>]
+	 * : Render output in a particular format.
+	 * ---
+	 * default: progress
+	 * options:
+	 *   - progress
+	 *   - ids
+	 * ---
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp term generate --count=10
+	 *     # Generate post categories.
+	 *     $ wp term generate category --count=10
+	 *     Generating terms  100% [=========] 0:02 / 0:02
+	 *
+	 *     # Add meta to every generated term.
+	 *     $ wp term generate category --format=ids --count=3 | xargs -d ' ' -I % wp term meta add % foo bar
+	 *     Success: Added custom field.
+	 *     Success: Added custom field.
+	 *     Success: Added custom field.
 	 */
 	public function generate( $args, $assoc_args ) {
 		global $wpdb;
@@ -312,7 +414,12 @@ class Term_Command extends WP_CLI_Command {
 
 		$hierarchical = get_taxonomy( $taxonomy )->hierarchical;
 
-		$notify = \WP_CLI\Utils\make_progress_bar( 'Generating terms', $count );
+		$format = \WP_CLI\Utils\get_flag_value( $assoc_args, 'format', 'progress' );
+
+		$notify = false;
+		if ( 'progress' === $format ) {
+			$notify = \WP_CLI\Utils\make_progress_bar( 'Generating terms', $count );
+		}
 
 		$previous_term_id = 0;
 		$current_parent = 0;
@@ -353,15 +460,25 @@ class Term_Command extends WP_CLI_Command {
 			} else {
 				$created[] = $term['term_id'];
 				$previous_term_id = $term['term_id'];
+				if ( 'ids' === $format ) {
+					echo $term['term_id'];
+					if ( $i < $max_id + $count ) {
+						echo ' ';
+					}
+				}
 			}
 
-			$notify->tick();
+			if ( 'progress' === $format ) {
+				$notify->tick();
+			}
 		}
 
 		wp_suspend_cache_invalidation( $suspend_cache_invalidation );
 		clean_term_cache( $created, $taxonomy );
 
-		$notify->finish();
+		if ( 'progress' === $format ) {
+			$notify->finish();
+		}
 	}
 
 	/**
@@ -377,16 +494,66 @@ class Term_Command extends WP_CLI_Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp term url post_tag 123
-	 *
-	 *     wp term url post_tag 123 324
+	 *     $ wp term url post_tag 123
+	 *     http://example.com/tag/tips-and-tricks
 	 */
 	public function url( $args ) {
-		$term_link = get_term_link( (int)$args[1], $args[0] );
-		if ( $term_link && ! is_wp_error( $term_link ) ) {
-			WP_CLI::line( $term_link );
-		} else {
-			WP_CLI::error( "Invalid term." );
+		$term_ids = array_slice( $args, 1 );
+		foreach ( $term_ids as $term_id ) {
+			$term_link = get_term_link( (int)$term_id, $args[0] );
+			if ( $term_link && ! is_wp_error( $term_link ) ) {
+				WP_CLI::line( $term_link );
+			} else {
+				WP_CLI::warning( sprintf( "Invalid term %s.", $term_id ) );
+			}
+		}
+	}
+
+	/**
+	 * Recalculate number of posts assigned to each term.
+	 *
+	 * In instances where manual updates are made to the terms assigned to
+	 * posts in the database, the number of posts associated with a term
+	 * can become out-of-sync with the actual number of posts.
+	 *
+	 * This command runs wp_update_term_count() on the taxonomy's terms
+	 * to bring the count back to the correct value.
+	 *
+	 * ## OPTIONS
+	 *
+	 * <taxonomy>...
+	 * : One or more taxonomies to recalculate.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     # Recount posts assigned to each categories and tags
+	 *     $ wp term recount category post_tag
+	 *     Success: Updated category term count.
+	 *     Success: Updated post_tag term count.
+	 *
+	 *     # Recount all listed taxonomies
+	 *     $ wp taxonomy list --field=name | xargs wp term recount
+	 *     Success: Updated category term count.
+	 *     Success: Updated post_tag term count.
+	 *     Success: Updated nav_menu term count.
+	 *     Success: Updated link_category term count.
+	 *     Success: Updated post_format term count.
+	 */
+	public function recount( $args ) {
+		foreach( $args as $taxonomy ) {
+
+			if ( ! taxonomy_exists( $taxonomy ) ) {
+				WP_CLI::warning( sprintf( "Taxonomy %s does not exist.", $taxonomy ) );
+			} else {
+
+				$terms = get_terms( $taxonomy, array( 'hide_empty' => false ) );
+				$term_taxonomy_ids = wp_list_pluck( $terms, 'term_taxonomy_id' );
+
+				wp_update_term_count( $term_taxonomy_ids, $taxonomy );
+
+				WP_CLI::success( sprintf( "Updated %s term count.", $taxonomy ) );
+			}
+
 		}
 	}
 
@@ -406,4 +573,3 @@ class Term_Command extends WP_CLI_Command {
 }
 
 WP_CLI::add_command( 'term', 'Term_Command' );
-

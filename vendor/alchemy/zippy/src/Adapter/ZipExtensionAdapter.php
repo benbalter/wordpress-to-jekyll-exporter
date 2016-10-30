@@ -11,16 +11,16 @@
 
 namespace Alchemy\Zippy\Adapter;
 
-use Alchemy\Zippy\Exception\RuntimeException;
-use Alchemy\Zippy\Exception\InvalidArgumentException;
-use Alchemy\Zippy\Exception\NotSupportedException;
-use Alchemy\Zippy\Archive\Member;
 use Alchemy\Zippy\Adapter\Resource\ResourceInterface;
 use Alchemy\Zippy\Adapter\Resource\ZipArchiveResource;
 use Alchemy\Zippy\Adapter\VersionProbe\ZipExtensionVersionProbe;
 use Alchemy\Zippy\Archive\Archive;
+use Alchemy\Zippy\Archive\Member;
+use Alchemy\Zippy\Exception\NotSupportedException;
+use Alchemy\Zippy\Exception\RuntimeException;
+use Alchemy\Zippy\Exception\InvalidArgumentException;
+use Alchemy\Zippy\Resource\Resource as ZippyResource;
 use Alchemy\Zippy\Resource\ResourceManager;
-use Alchemy\Zippy\Resource\Resource;
 
 /**
  * ZipExtensionAdapter allows you to create and extract files from archives
@@ -88,20 +88,23 @@ class ZipExtensionAdapter extends AbstractAdapter
     /**
      * @inheritdoc
      */
-    protected function doExtractMembers(ResourceInterface $resource, $members, $to)
+    protected function doExtractMembers(ResourceInterface $resource, $members, $to, $overwrite = false)
     {
         if (null === $to) {
             // if no destination is given, will extract to zip current folder
             $to = dirname(realpath($resource->getResource()->filename));
         }
+
         if (!is_dir($to)) {
             $resource->getResource()->close();
             throw new InvalidArgumentException(sprintf("%s is not a directory", $to));
         }
+
         if (!is_writable($to)) {
             $resource->getResource()->close();
             throw new InvalidArgumentException(sprintf("%s is not writable", $to));
         }
+
         if (null !== $members) {
             $membersTemp = (array) $members;
             if (empty($membersTemp)) {
@@ -115,11 +118,21 @@ class ZipExtensionAdapter extends AbstractAdapter
                 if ($member instanceof Member) {
                     $member = $member->getLocation();
                 }
+
                 if ($resource->getResource()->locateName($member) === false) {
                     $resource->getResource()->close();
 
                     throw new InvalidArgumentException(sprintf('%s is not in the zip file', $member));
                 }
+
+                if ($overwrite == false) {
+                    if (file_exists($member)) {
+                        $resource->getResource()->close();
+
+                        throw new RuntimeException('Target file ' . $member . ' already exists.');
+                    }
+                }
+
                 $members[] = $member;
             }
         }
@@ -225,7 +238,7 @@ class ZipExtensionAdapter extends AbstractAdapter
         return new ZipArchiveResource($zip);
     }
 
-    private function addEntries(ZipArchiveResource $zipresource, array $files, $recursive)
+    private function addEntries(ResourceInterface $zipResource, array $files, $recursive)
     {
         $stack = new \SplStack();
 
@@ -238,16 +251,16 @@ class ZipExtensionAdapter extends AbstractAdapter
         $adapter = $this;
 
         try {
-            $collection->forAll(function ($i, Resource $resource) use ($zipresource, $stack, $recursive, $adapter) {
-                $adapter->checkReadability($zipresource->getResource(), $resource->getTarget());
+            $collection->forAll(function($i, ZippyResource $resource) use ($zipResource, $stack, $recursive, $adapter) {
+                $adapter->checkReadability($zipResource->getResource(), $resource->getTarget());
                 if (is_dir($resource->getTarget())) {
                     if ($recursive) {
-                        $stack->push($resource->getTarget() . ((substr($resource->getTarget(), -1) === DIRECTORY_SEPARATOR) ? '' : DIRECTORY_SEPARATOR ));
+                        $stack->push($resource->getTarget() . ((substr($resource->getTarget(), -1) === DIRECTORY_SEPARATOR) ? '' : DIRECTORY_SEPARATOR));
                     } else {
-                        $adapter->addEmptyDir($zipresource->getResource(), $resource->getTarget());
+                        $adapter->addEmptyDir($zipResource->getResource(), $resource->getTarget());
                     }
                 } else {
-                    $adapter->addFileToZip($zipresource->getResource(), $resource->getTarget());
+                    $adapter->addFileToZip($zipResource->getResource(), $resource->getTarget());
                 }
 
                 return true;
@@ -261,18 +274,18 @@ class ZipExtensionAdapter extends AbstractAdapter
                 if (count($files) > 0) {
                     foreach ($files as $file) {
                         $file = $dir . $file;
-                        $this->checkReadability($zipresource->getResource(), $file);
+                        $this->checkReadability($zipResource->getResource(), $file);
                         if (is_dir($file)) {
                             $stack->push($file . DIRECTORY_SEPARATOR);
                         } else {
-                            $this->addFileToZip($zipresource->getResource(), $file);
+                            $this->addFileToZip($zipResource->getResource(), $file);
                         }
                     }
                 } else {
-                    $this->addEmptyDir($zipresource->getResource(), $dir);
+                    $this->addEmptyDir($zipResource->getResource(), $dir);
                 }
             }
-            $this->flush($zipresource->getResource());
+            $this->flush($zipResource->getResource());
 
             $this->manager->cleanup($collection);
         } catch (\Exception $e) {
@@ -288,6 +301,9 @@ class ZipExtensionAdapter extends AbstractAdapter
 
     /**
      * @info is public for PHP 5.3 compatibility, should be private
+     *
+     * @param \ZipArchive $zip
+     * @param string      $file
      */
     public function checkReadability(\ZipArchive $zip, $file)
     {
@@ -301,6 +317,9 @@ class ZipExtensionAdapter extends AbstractAdapter
 
     /**
      * @info is public for PHP 5.3 compatibility, should be private
+     *
+     * @param \ZipArchive $zip
+     * @param string      $file
      */
     public function addFileToZip(\ZipArchive $zip, $file)
     {
@@ -314,6 +333,9 @@ class ZipExtensionAdapter extends AbstractAdapter
 
     /**
      * @info is public for PHP 5.3 compatibility, should be private
+     *
+     * @param \ZipArchive $zip
+     * @param string      $dir
      */
     public function addEmptyDir(\ZipArchive $zip, $dir)
     {

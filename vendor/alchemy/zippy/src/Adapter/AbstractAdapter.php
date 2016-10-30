@@ -12,12 +12,14 @@
 
 namespace Alchemy\Zippy\Adapter;
 
-use Alchemy\Zippy\Archive\Archive;
-use Alchemy\Zippy\Exception\InvalidArgumentException;
-use Alchemy\Zippy\Resource\ResourceManager;
-use Alchemy\Zippy\Adapter\VersionProbe\VersionProbeInterface;
-use Alchemy\Zippy\Exception\RuntimeException;
 use Alchemy\Zippy\Adapter\Resource\ResourceInterface;
+use Alchemy\Zippy\Adapter\VersionProbe\VersionProbeInterface;
+use Alchemy\Zippy\Archive\Archive;
+use Alchemy\Zippy\Archive\ArchiveInterface;
+use Alchemy\Zippy\Exception\RuntimeException;
+use Alchemy\Zippy\Exception\InvalidArgumentException;
+use Alchemy\Zippy\Resource\PathUtil;
+use Alchemy\Zippy\Resource\ResourceManager;
 
 abstract class AbstractAdapter implements AdapterInterface
 {
@@ -99,11 +101,11 @@ abstract class AbstractAdapter implements AdapterInterface
     /**
      * @inheritdoc
      */
-    public function extractMembers(ResourceInterface $resource, $members, $to = null)
+    public function extractMembers(ResourceInterface $resource, $members, $to = null, $overwrite = false)
     {
         $this->requireSupport();
 
-        return $this->doExtractMembers($resource, $members, $to);
+        return $this->doExtractMembers($resource, $members, $to, $overwrite);
     }
 
     /**
@@ -118,6 +120,8 @@ abstract class AbstractAdapter implements AdapterInterface
 
     /**
      * Sets the version probe used by this adapter
+     *
+     * @param VersionProbeInterface $probe
      *
      * @return VersionProbeInterface
      */
@@ -175,6 +179,8 @@ abstract class AbstractAdapter implements AdapterInterface
     /**
      * Creates a resource given a path
      *
+     * @param string $path
+     *
      * @return ResourceInterface
      */
     abstract protected function createResource($path);
@@ -182,19 +188,29 @@ abstract class AbstractAdapter implements AdapterInterface
     /**
      * Do the removal after having check that the current adapter is supported
      *
-     * @return Array
+     * @param ResourceInterface $resource
+     * @param array             $files
+     *
+     * @return array
      */
     abstract protected function doRemove(ResourceInterface $resource, $files);
 
     /**
      * Do the add after having check that the current adapter is supported
      *
-     * @return Array
+     * @param ResourceInterface $resource
+     * @param array             $files
+     * @param bool              $recursive
+     *
+     * @return array
      */
     abstract protected function doAdd(ResourceInterface $resource, $files, $recursive);
 
     /**
      * Do the extract after having check that the current adapter is supported
+     *
+     * @param ResourceInterface $resource
+     * @param                   $to
      *
      * @return \SplFileInfo The extracted archive
      */
@@ -203,19 +219,30 @@ abstract class AbstractAdapter implements AdapterInterface
     /**
      * Do the extract members after having check that the current adapter is supported
      *
+     * @param ResourceInterface $resource
+     * @param string|string[]   $members
+     * @param string            $to
+     * @param bool              $overwrite
+     *
      * @return \SplFileInfo The extracted archive
      */
-    abstract protected function doExtractMembers(ResourceInterface $resource, $members, $to);
+    abstract protected function doExtractMembers(ResourceInterface $resource, $members, $to, $overwrite = false);
 
     /**
      * Do the list members after having check that the current adapter is supported
      *
-     * @return Array
+     * @param ResourceInterface $resource
+     *
+     * @return array
      */
     abstract protected function doListMembers(ResourceInterface $resource);
 
     /**
      * Do the create after having check that the current adapter is supported
+     *
+     * @param string $path
+     * @param string $file
+     * @param bool   $recursive
      *
      * @return ArchiveInterface
      */
@@ -224,7 +251,7 @@ abstract class AbstractAdapter implements AdapterInterface
     /**
      * Makes the target path absolute as the adapters might have a different directory
      *
-     * @param $path The path to convert
+     * @param string $path The path to convert
      *
      * @return string The absolute path
      *
@@ -241,6 +268,6 @@ abstract class AbstractAdapter implements AdapterInterface
             throw new InvalidArgumentException(sprintf('Target path %s is not writeable.', $directory));
         }
 
-        return realpath($directory).'/'.basename ($path);
+        return realpath($directory) . '/' . PathUtil::basename($path);
     }
 }

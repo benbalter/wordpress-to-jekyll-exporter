@@ -11,16 +11,16 @@
 
 namespace Alchemy\Zippy\Archive;
 
-use Alchemy\Zippy\Exception\InvalidArgumentException;
 use Alchemy\Zippy\Exception\RuntimeException;
+use Alchemy\Zippy\Exception\InvalidArgumentException;
 
 interface ArchiveInterface extends \IteratorAggregate, \Countable
 {
     /**
      * Adds a file or a folder into the archive
      *
-     * @param String|Array|\SplFileInfo $sources   The path to the file or a folder
-     * @param Boolean                   $recursive Recurse into sub-directories
+     * @param string|array|\SplFileInfo $sources   The path to the file or a folder
+     * @param bool                      $recursive Recurse into sub-directories
      *
      * @return ArchiveInterface
      *
@@ -32,7 +32,7 @@ interface ArchiveInterface extends \IteratorAggregate, \Countable
     /**
      * Removes a file from the archive
      *
-     * @param String|Array $sources The path to an archive or a folder member
+     * @param string|array $sources The path to an archive or a folder member
      *
      * @return ArchiveInterface
      *
@@ -43,7 +43,7 @@ interface ArchiveInterface extends \IteratorAggregate, \Countable
     /**
      * Lists files and directories archive members
      *
-     * @return Array An array of File
+     * @return MemberInterface[] An array of File
      *
      * @throws RuntimeException In case archive could not be read
      */
@@ -52,7 +52,7 @@ interface ArchiveInterface extends \IteratorAggregate, \Countable
     /**
      * Extracts current archive to the given directory
      *
-     * @param String $toDirectory The path the extracted archive
+     * @param string $toDirectory The path the extracted archive
      *
      * @return ArchiveInterface
      *
@@ -63,8 +63,8 @@ interface ArchiveInterface extends \IteratorAggregate, \Countable
     /**
      * Extracts specific members from the archive
      *
-     * @param String|Array $members     An array of members path
-     * @param string       $toDirectory The destination $directory
+     * @param string|MemberInterface[] $members     An array of members path
+     * @param string                   $toDirectory The destination $directory
      *
      * @return ArchiveInterface
      *

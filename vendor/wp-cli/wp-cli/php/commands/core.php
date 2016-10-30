@@ -1,10 +1,27 @@
 <?php
 
 use \Composer\Semver\Comparator;
+use \WP_CLI\Extractor;
 use \WP_CLI\Utils;
 
 /**
  * Download, install, update and otherwise manage WordPress proper.
+ *
+ * ## EXAMPLES
+ *
+ *     # Download WordPress core
+ *     $ wp core download --locale=nl_NL
+ *     Downloading WordPress 4.5.2 (nl_NL)...
+ *     md5 hash verified: c5366d05b521831dd0b29dfc386e56a5
+ *     Success: WordPress downloaded.
+ *
+ *     # Install WordPress
+ *     $ wp core install --url=example.com --title=Example --admin_user=supervisor --admin_password=strongpassword --admin_email=info@example.com
+ *     Success: WordPress installed successfully.
+ *
+ *     # Display the WordPress version
+ *     $ wp core version
+ *     4.5.2
  *
  * @package wp-cli
  */
@@ -30,7 +47,25 @@ class Core_Command extends WP_CLI_Command {
 	 * : Limit the output to specific object fields. Defaults to version,update_type,package_url.
 	 *
 	 * [--format=<format>]
-	 * : Accepted values: table, csv, json. Default: table
+	 * : Render output in a particular format.
+	 * ---
+	 * default: table
+	 * options:
+	 *   - table
+	 *   - csv
+	 *   - count
+	 *   - json
+	 *   - yaml
+	 * ---
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     $ wp core check-update
+	 *     +---------+-------------+-------------------------------------------------------------+
+	 *     | version | update_type | package_url                                                 |
+	 *     +---------+-------------+-------------------------------------------------------------+
+	 *     | 4.5.2   | major       | https://downloads.wordpress.org/release/wordpress-4.5.2.zip |
+	 *     +---------+-------------+-------------------------------------------------------------+
 	 *
 	 * @subcommand check-update
 	 */
@@ -61,35 +96,50 @@ class Core_Command extends WP_CLI_Command {
 	 * : Select which language you want to download.
 	 *
 	 * [--version=<version>]
-	 * : Select which version you want to download.
+	 * : Select which version you want to download. Accepts a version number, 'latest' or 'nightly'
 	 *
 	 * [--force]
 	 * : Overwrites existing files, if present.
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp core download --locale=nl_NL
+	 *     $ wp core download --locale=nl_NL
+	 *     Downloading WordPress 4.5.2 (nl_NL)...
+	 *     md5 hash verified: c5366d05b521831dd0b29dfc386e56a5
+	 *     Success: WordPress downloaded.
 	 *
 	 * @when before_wp_load
 	 */
 	public function download( $args, $assoc_args ) {
 
 		$download_dir = ! empty( $assoc_args['path'] ) ? $assoc_args['path'] : ABSPATH;
+		$wordpress_present = is_readable( $download_dir . 'wp-load.php' );
 
-		if ( ! \WP_CLI\Utils\get_flag_value( $assoc_args, 'force' ) && is_readable( $download_dir . 'wp-load.php' ) )
+		if ( ! \WP_CLI\Utils\get_flag_value( $assoc_args, 'force' ) && $wordpress_present )
 			WP_CLI::error( 'WordPress files seem to already be present here.' );
 
-		if ( !is_dir( $download_dir ) ) {
-			WP_CLI::log( sprintf( 'Creating directory %s', $download_dir ) );
+		if ( ! is_dir( $download_dir ) ) {
+			if ( ! is_writable( dirname( $download_dir ) ) ) {
+				WP_CLI::error( sprintf( "Insufficient permission to create directory '%s'.", $download_dir ) );
+			}
+
+			WP_CLI::log( sprintf( "Creating directory '%s'.", $download_dir ) );
 			$mkdir = \WP_CLI\Utils\is_windows() ? 'mkdir %s' : 'mkdir -p %s';
 			WP_CLI::launch( Utils\esc_cmd( $mkdir, $download_dir ) );
 		}
 
+		if ( ! is_writable( $download_dir ) ) {
+			WP_CLI::error( sprintf( "'%s' is not writable by current user.", $download_dir ) );
+		}
+
 		$locale = \WP_CLI\Utils\get_flag_value( $assoc_args, 'locale', 'en_US' );
 
-		if ( isset( $assoc_args['version'] ) ) {
+		if ( isset( $assoc_args['version'] ) && 'latest' !== $assoc_args['version'] ) {
 			$version = $assoc_args['version'];
-			$download_url = $this->get_download_url($version, $locale, 'tar.gz');
+			$version = ( in_array( strtolower( $version ), array( 'trunk', 'nightly' ) ) ? 'nightly' : $version );
+			//nightly builds are only available in .zip format
+			$ext     = ( 'nightly' === $version ? 'zip' : 'tar.gz' );
+			$download_url = $this->get_download_url( $version, $locale, $ext );
 		} else {
 			$offer = $this->get_download_offer( $locale );
 			if ( !$offer ) {
@@ -99,17 +149,37 @@ class Core_Command extends WP_CLI_Command {
 			$download_url = str_replace( '.zip', '.tar.gz', $offer['download'] );
 		}
 
+		if ( 'nightly' === $version && 'en_US' !== $locale ) {
+			WP_CLI::error( 'Nightly builds are only available for the en_US locale.' );
+		}
+
+		$from_version = '';
+		if ( file_exists( $download_dir . 'wp-includes/version.php' ) ) {
+			global $wp_version;
+			require_once( $download_dir . 'wp-includes/version.php' );
+			$from_version = $wp_version;
+		}
+
 		WP_CLI::log( sprintf( 'Downloading WordPress %s (%s)...', $version, $locale ) );
 
+		$path_parts = pathinfo( $download_url );
+		$extension  = 'tar.gz';
+		if ( 'zip' === $path_parts['extension'] ) {
+			$extension  = 'zip';
+			if ( ! class_exists( 'ZipArchive' ) ) {
+				WP_CLI::error( 'Extracting a zip file requires ZipArchive.' );
+			}
+		}
+
 		$cache = WP_CLI::get_cache();
-		$cache_key = "core/wordpress-{$version}-{$locale}.tar.gz";
+		$cache_key = "core/wordpress-{$version}-{$locale}.{$extension}";
 		$cache_file = $cache->has($cache_key);
 
 		$bad_cache = false;
 		if ( $cache_file ) {
 			WP_CLI::log( "Using cached file '$cache_file'..." );
 			try{
-				self::_extract( $cache_file, $download_dir );
+				Extractor::extract( $cache_file, $download_dir );
 			} catch ( Exception $e ) {
 				WP_CLI::warning( "Extraction failed, downloading a new copy..." );
 				$bad_cache = true;
@@ -119,7 +189,7 @@ class Core_Command extends WP_CLI_Command {
 		if ( ! $cache_file || $bad_cache ) {
 			// We need to use a temporary file because piping from cURL to tar is flaky
 			// on MinGW (and probably in other environments too).
-			$temp = \WP_CLI\Utils\get_temp_dir() . uniqid('wp_') . '.tar.gz';
+			$temp = \WP_CLI\Utils\get_temp_dir() . uniqid('wp_') . ".{$extension}";
 
 			$headers = array('Accept' => 'application/json');
 			$options = array(
@@ -131,84 +201,43 @@ class Core_Command extends WP_CLI_Command {
 			if ( 404 == $response->status_code ) {
 				WP_CLI::error( "Release not found. Double-check locale or version." );
 			} else if ( 20 != substr( $response->status_code, 0, 2 ) ) {
-				WP_CLI::error( "Couldn't access download URL (HTTP code {$response->status_code})" );
+				WP_CLI::error( "Couldn't access download URL (HTTP code {$response->status_code})." );
+			}
+
+			if ( 'nightly' !== $version ) {
+				$md5_response = Utils\http_request( 'GET', $download_url . '.md5' );
+				if ( 20 != substr( $md5_response->status_code, 0, 2 ) ) {
+					WP_CLI::error( "Couldn't access md5 hash for release (HTTP code {$response->status_code})." );
+				}
+
+				$md5_file = md5_file( $temp );
+
+				if ( $md5_file === $md5_response->body ) {
+					WP_CLI::log( 'md5 hash verified: ' . $md5_file );
+				} else {
+					WP_CLI::error( "md5 hash for download ({$md5_file}) is different than the release hash ({$md5_response->body})." );
+				}
+			} else {
+				WP_CLI::warning( 'md5 hash checks are not available for nightly downloads.' );
 			}
 
 			try {
-				self::_extract( $temp, $download_dir );
+				Extractor::extract( $temp, $download_dir );
 			} catch ( Exception $e ) {
 				WP_CLI::error( "Couldn't extract WordPress archive. " . $e->getMessage() );
 			}
-			$cache->import( $cache_key, $temp );
-			unlink($temp);
+
+			if ( 'nightly' !== $version ) {
+				$cache->import( $cache_key, $temp );
+			}
+			unlink( $temp );
+		}
+
+		if ( $wordpress_present ) {
+			$this->cleanup_extra_files( $from_version, $version, $locale );
 		}
 
 		WP_CLI::success( 'WordPress downloaded.' );
-	}
-
-	private static function _extract( $tarball, $dest ) {
-		if ( ! class_exists( 'PharData' ) ) {
-			$cmd = "tar xz --strip-components=1 --directory=%s -f $tarball";
-			WP_CLI::launch( Utils\esc_cmd( $cmd, $dest ) );
-			return;
-		}
-		$phar = new PharData( $tarball );
-		$tempdir = implode( DIRECTORY_SEPARATOR, Array (
-			dirname( $tarball ),
-			basename( $tarball, '.tar.gz' ),
-			$phar->getFileName()
-		) );
-
-		$phar->extractTo( dirname( $tempdir ), null, true );
-
-		self::_copy_overwrite_files( $tempdir, $dest );
-
-		self::_rmdir( dirname( $tempdir ) );
-	}
-
-	private static function _copy_overwrite_files( $source, $dest ) {
-		$iterator = new RecursiveIteratorIterator(
-			new RecursiveDirectoryIterator( $source, RecursiveDirectoryIterator::SKIP_DOTS ),
-			RecursiveIteratorIterator::SELF_FIRST);
-
-		$error = 0;
-
-		foreach ( $iterator as $item ) {
-
-			$dest_path = $dest . DIRECTORY_SEPARATOR . $iterator->getSubPathName();
-
-			if ( $item->isDir() ) {
-				if ( !is_dir( $dest_path ) ) {
-					mkdir( $dest_path );
-				}
-			} else {
-				if ( file_exists( $dest_path ) && is_writable( $dest_path ) ) {
-					copy( $item, $dest_path );
-				} elseif ( ! file_exists( $dest_path ) ) {
-					copy( $item, $dest_path );
-				} else {
-					$error = 1;
-					WP_CLI::warning( 'Unable to copy ' . $iterator->getSubPathName() . ' to current directory.' );
-				}
-			}
-		}
-
-		if ( $error ) {
-			WP_CLI::error( 'There was an error downloading all WordPress files.' );
-		}
-	}
-
-	private static function _rmdir( $dir ) {
-		$files = new RecursiveIteratorIterator(
-			new RecursiveDirectoryIterator( $dir, RecursiveDirectoryIterator::SKIP_DOTS ),
-			RecursiveIteratorIterator::CHILD_FIRST
-		);
-
-		foreach ( $files as $fileinfo ) {
-			$todo = $fileinfo->isDir() ? 'rmdir' : 'unlink';
-			$todo( $fileinfo->getRealPath() );
-		}
-		rmdir( $dir );
 	}
 
 	private static function _read( $url ) {
@@ -217,7 +246,7 @@ class Core_Command extends WP_CLI_Command {
 		if ( 200 === $response->status_code ) {
 			return $response->body;
 		} else {
-			WP_CLI::error( "Couldn't fetch response from {$url} (HTTP code {$response->status_code})" );
+			WP_CLI::error( "Couldn't fetch response from {$url} (HTTP code {$response->status_code})." );
 		}
 	}
 
@@ -260,16 +289,28 @@ class Core_Command extends WP_CLI_Command {
 	 * : Set the database user password.
 	 *
 	 * [--dbhost=<dbhost>]
-	 * : Set the database host. Default: 'localhost'
+	 * : Set the database host.
+	 * ---
+	 * default: localhost
+	 * ---
 	 *
 	 * [--dbprefix=<dbprefix>]
-	 * : Set the database table prefix. Default: 'wp_'
+	 * : Set the database table prefix.
+	 * ---
+	 * default: wp_
+	 * ---
 	 *
 	 * [--dbcharset=<dbcharset>]
-	 * : Set the database charset. Default: 'utf8'
+	 * : Set the database charset.
+	 * ---
+	 * default: utf8
+	 * ---
 	 *
 	 * [--dbcollate=<dbcollate>]
-	 * : Set the database collation. Default: ''
+	 * : Set the database collation.
+	 * ---
+	 * default:
+	 * ---
 	 *
 	 * [--locale=<locale>]
 	 * : Set the WPLANG constant. Defaults to $wp_local_package variable.
@@ -286,13 +327,15 @@ class Core_Command extends WP_CLI_Command {
 	 * ## EXAMPLES
 	 *
 	 *     # Standard wp-config.php file
-	 *     wp core config --dbname=testing --dbuser=wp --dbpass=securepswd --locale=ro_RO
+	 *     $ wp core config --dbname=testing --dbuser=wp --dbpass=securepswd --locale=ro_RO
+	 *     Success: Generated 'wp-config.php' file.
 	 *
 	 *     # Enable WP_DEBUG and WP_DEBUG_LOG
-	 *     wp core config --dbname=testing --dbuser=wp --dbpass=securepswd --extra-php <<PHP
-	 *     define( 'WP_DEBUG', true );
-	 *     define( 'WP_DEBUG_LOG', true );
-	 *     PHP
+	 *     $ wp core config --dbname=testing --dbuser=wp --dbpass=securepswd --extra-php <<PHP
+	 *     $ define( 'WP_DEBUG', true );
+	 *     $ define( 'WP_DEBUG_LOG', true );
+	 *     $ PHP
+	 *     Success: Generated 'wp-config.php' file.
 	 */
 	public function config( $_, $assoc_args ) {
 		global $wp_version;
@@ -346,9 +389,9 @@ class Core_Command extends WP_CLI_Command {
 
 		$bytes_written = file_put_contents( ABSPATH . 'wp-config.php', $out );
 		if ( ! $bytes_written ) {
-			WP_CLI::error( 'Could not create new wp-config.php file.' );
+			WP_CLI::error( "Could not create new 'wp-config.php' file." );
 		} else {
-			WP_CLI::success( 'Generated wp-config.php file.' );
+			WP_CLI::success( "Generated 'wp-config.php' file." );
 		}
 	}
 
@@ -356,10 +399,16 @@ class Core_Command extends WP_CLI_Command {
 	 * Determine if the WordPress tables are installed.
 	 *
 	 * [--network]
-	 * : Check if this is a multisite install
+	 * : Check if this is a multisite install.
 	 *
 	 * ## EXAMPLES
 	 *
+	 *     # Check whether WordPress is installed; exit status 0 if installed, otherwise 1
+	 *     $ wp core is-installed
+	 *     $ echo $?
+	 *     1
+	 *
+	 *     # Bash script for checking whether WordPress is installed or not
 	 *     if ! $(wp core is-installed); then
 	 *         wp core install
 	 *     fi
@@ -382,7 +431,21 @@ class Core_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Create the WordPress tables in the database.
+	 * Runs the standard WordPress installation process.
+	 *
+	 * Creates the WordPress tables in the database using the URL, title, and
+	 * default admin user details provided. Performs the famous 5 minute install
+	 * in seconds or less.
+	 *
+	 * Note: if you've installed WordPress in a subdirectory, then you'll need
+	 * to `wp option update siteurl` after `wp core install`. For instance, if
+	 * WordPress is installed in the `/wp` directory and your domain is wp.dev,
+	 * then you'll need to run `wp option update siteurl http://wp.dev/wp` for
+	 * your WordPress install to function properly.
+	 *
+	 * Note: When using custom user tables (e.g. `CUSTOM_USER_TABLE`), the admin
+	 * email and password are ignored if the user_login already exists. If the
+	 * user_login doesn't exist, a new user will be created.
 	 *
 	 * ## OPTIONS
 	 *
@@ -403,6 +466,11 @@ class Core_Command extends WP_CLI_Command {
 	 *
 	 * [--skip-email]
 	 * : Don't send an email notification to the new admin user.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     $ wp core install --url=example.com --title=Example --admin_user=supervisor --admin_password=strongpassword --admin_email=info@example.com
+	 *     Success: WordPress installed successfully.
 	 */
 	public function install( $args, $assoc_args ) {
 		if ( $this->_install( $assoc_args ) ) {
@@ -415,6 +483,9 @@ class Core_Command extends WP_CLI_Command {
 	/**
 	 * Transform a single-site install into a multi-site install.
 	 *
+	 * For those using WordPress with Apache, remember to update the `.htaccess`
+	 * file with the appropriate multisite rewrite rules.
+	 *
 	 * ## OPTIONS
 	 *
 	 * [--title=<network-title>]
@@ -422,10 +493,19 @@ class Core_Command extends WP_CLI_Command {
 	 *
 	 * [--base=<url-path>]
 	 * : Base path after the domain name that each site url will start with.
-	 * Default: '/'
+	 * ---
+	 * default: /
+	 * ---
 	 *
 	 * [--subdomains]
 	 * : If passed, the network will use subdomains, instead of subdirectories. Doesn't work with 'localhost'.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     $ wp core multisite-convert
+	 *     Set up multisite database tables.
+	 *     Added multisite constants to wp-config.php.
+	 *     Success: Network installed. Don't forget to set up rewrite rules.
 	 *
 	 * @subcommand multisite-convert
 	 * @alias install-network
@@ -454,7 +534,9 @@ class Core_Command extends WP_CLI_Command {
 	 *
 	 * [--base=<url-path>]
 	 * : Base path after the domain name that each site url in the network will start with.
-	 * Default: '/'
+	 * ---
+	 * default: /
+	 * ---
 	 *
 	 * [--subdomains]
 	 * : If passed, the network will use subdomains, instead of subdirectories. Doesn't work with 'localhost'.
@@ -463,7 +545,10 @@ class Core_Command extends WP_CLI_Command {
 	 * : The title of the new site.
 	 *
 	 * --admin_user=<username>
-	 * : The name of the admin user. Default: 'admin'
+	 * : The name of the admin user.
+	 * ---
+	 * default: admin
+	 * ---
 	 *
 	 * --admin_password=<password>
 	 * : The password for the admin user.
@@ -473,6 +558,16 @@ class Core_Command extends WP_CLI_Command {
 	 *
 	 * [--skip-email]
 	 * : Don't send an email notification to the new admin user.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     $ wp core multisite-install --title="Welcome to the WordPress" \
+	 *     > --admin_user="admin" --admin_password="password" \
+	 *     > --admin_email="user@example.com"
+	 *     Single site database tables already present.
+	 *     Set up multisite database tables.
+	 *     Added multisite constants to wp-config.php.
+	 *     Success: Network installed. Don't forget to set up rewrite rules.
 	 *
 	 * @subcommand multisite-install
 	 */
@@ -649,12 +744,10 @@ define( 'BLOG_ID_CURRENT_SITE', 1 );
 EOT;
 
 			$wp_config_path = Utils\locate_wp_config();
-			if ( is_writable( $wp_config_path ) ) {
-				self::modify_wp_config( $ms_config );
-				WP_CLI::log( 'Added multisite constants to wp-config.php.' );
+			if ( is_writable( $wp_config_path ) && self::modify_wp_config( $ms_config ) ) {
+				WP_CLI::log( "Added multisite constants to 'wp-config.php'." );
 			} else {
-				WP_CLI::warning( 'Multisite constants could not be written to wp-config.php. You may need to add them manually:' );
-				WP_CLI::log( $ms_config );
+				WP_CLI::warning( "Multisite constants could not be written to 'wp-config.php'. You may need to add them manually:" . PHP_EOL . $ms_config );
 			}
 		}
 
@@ -706,10 +799,17 @@ EOT;
 		$wp_config_path = Utils\locate_wp_config();
 
 		$token = "/* That's all, stop editing!";
+		$config_contents = file_get_contents( $wp_config_path );
+		if ( false === strpos( $config_contents, $token ) ) {
+			return false;
+		}
 
-		list( $before, $after ) = explode( $token, file_get_contents( $wp_config_path ) );
+		list( $before, $after ) = explode( $token, $config_contents );
+
+		$content = PHP_EOL . PHP_EOL . trim( $content ) . PHP_EOL . PHP_EOL;
 
 		file_put_contents( $wp_config_path, $before . $content . $token . $after );
+		return true;
 	}
 
 	private static function get_clean_basedomain() {
@@ -727,39 +827,236 @@ EOT;
 	 * [--extra]
 	 * : Show extended version information.
 	 *
+	 * ## EXAMPLES
+	 *
+	 *     # Display the WordPress version
+	 *     $ wp core version
+	 *     4.5.2
+	 *
+	 *     # Display WordPress version along with other information
+	 *     $ wp core version --extra
+	 *     WordPress version: 4.5.2
+	 *     Database revision: 36686
+	 *     TinyMCE version:   4.310 (4310-20160418)
+	 *     Package language:  en_US
+	 *
 	 * @when before_wp_load
 	 */
 	public function version( $args = array(), $assoc_args = array() ) {
-		$versions_path = ABSPATH . 'wp-includes/version.php';
-
-		if ( !is_readable( $versions_path ) ) {
-			WP_CLI::error(
-				"This does not seem to be a WordPress install.\n" .
-				"Pass --path=`path/to/wordpress` or run `wp core download`." );
-		}
-
-		include $versions_path;
+		$details = self::get_wp_details();
 
 		// @codingStandardsIgnoreStart
 		if ( \WP_CLI\Utils\get_flag_value( $assoc_args, 'extra' ) ) {
-			if ( preg_match( '/(\d)(\d+)-/', $tinymce_version, $match ) ) {
+			if ( preg_match( '/(\d)(\d+)-/', $details['tinymce_version'], $match ) ) {
 				$human_readable_tiny_mce = $match[1] . '.' . $match[2];
 			} else {
 				$human_readable_tiny_mce = '';
 			}
 
 			echo \WP_CLI\Utils\mustache_render( 'versions.mustache', array(
-				'wp-version' => $wp_version,
-				'db-version' => $wp_db_version,
-				'mce-version' => ( $human_readable_tiny_mce ?
-					"$human_readable_tiny_mce ($tinymce_version)"
-					: $tinymce_version
+				'wp-version'    => $details['wp_version'],
+				'db-version'    => $details['wp_db_version'],
+				'local-package' => ( empty( $details['wp_local_package'] ) ?
+					'en_US'
+					: $details['wp_local_package']
+				),
+				'mce-version'   => ( $human_readable_tiny_mce ?
+					"$human_readable_tiny_mce ({$details['tinymce_version']})"
+					: $details['tinymce_version']
 				)
 			) );
 		} else {
-			WP_CLI::line( $wp_version );
+			WP_CLI::line( $details['wp_version'] );
 		}
 		// @codingStandardsIgnoreEnd
+	}
+
+	/**
+	 * Verify WordPress files against WordPress.org's checksums.
+	 *
+	 * For security, avoids loading WordPress when verifying checksums.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--version=<version>]
+	 * : Verify checksums against a specific version of WordPress.
+	 *
+	 * [--locale=<locale>]
+	 * : Verify checksums against a specific locale of WordPress.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     # Verify checksums
+	 *     $ wp core verify-checksums
+	 *     Success: WordPress install verifies against checksums.
+	 *
+	 *     # Verify checksums for given WordPress version
+	 *     $ wp core verify-checksums --version=4.0
+	 *     Success: WordPress install verifies against checksums.
+	 *
+	 *     # Verify checksums for given locale
+	 *     $ wp core verify-checksums --locale=en_US
+	 *     Success: WordPress install verifies against checksums.
+	 *
+	 *     # Verify checksums for given locale
+	 *     $ wp core verify-checksums --locale=ja
+	 *     Warning: File doesn't verify against checksum: wp-includes/version.php
+	 *     Warning: File doesn't verify against checksum: readme.html
+	 *     Warning: File doesn't verify against checksum: wp-config-sample.php
+	 *     Error: WordPress install doesn't verify against checksums.
+	 *
+	 * @when before_wp_load
+	 *
+	 * @subcommand verify-checksums
+	 */
+	public function verify_checksums( $args, $assoc_args ) {
+		global $wp_version, $wp_local_package;
+
+		if ( ! empty( $assoc_args['version'] ) ) {
+			$wp_version = $assoc_args['version'];
+		}
+
+		if ( ! empty( $assoc_args['locale'] ) ) {
+			$wp_local_package = $assoc_args['locale'];
+		}
+
+		if ( empty( $wp_version ) ) {
+			$details = self::get_wp_details();
+			$wp_version = $details['wp_version'];
+
+			if ( empty( $wp_local_package ) ) {
+				$wp_local_package = $details['wp_local_package'];
+			}
+		}
+
+		$checksums = self::get_core_checksums( $wp_version,
+			! empty( $wp_local_package ) ? $wp_local_package : 'en_US' );
+
+		if ( ! is_array( $checksums ) ) {
+			WP_CLI::error( "Couldn't get checksums from WordPress.org." );
+		}
+
+		$has_errors = false;
+		foreach ( $checksums as $file => $checksum ) {
+			// Skip files which get updated
+			if ( 'wp-content' == substr( $file, 0, 10 ) ) {
+				continue;
+			}
+
+			if ( ! file_exists( ABSPATH . $file ) ) {
+				WP_CLI::warning( "File doesn't exist: {$file}" );
+				$has_errors = true;
+				continue;
+			}
+
+			$md5_file = md5_file( ABSPATH . $file );
+			if ( $md5_file !== $checksum ) {
+				WP_CLI::warning( "File doesn't verify against checksum: {$file}" );
+				$has_errors = true;
+			}
+		}
+
+		$core_checksums_files = array_filter( array_keys( $checksums ), array( $this, 'only_core_files_filter' ) );
+		$core_files           = $this->get_wp_core_files();
+		$additional_files     = array_diff( $core_files, $core_checksums_files );
+
+		if ( ! empty( $additional_files ) ) {
+			foreach ( $additional_files as $additional_file ) {
+				WP_CLI::warning( "File should not exist: {$additional_file}" );
+			}
+		}
+
+		if ( ! $has_errors ) {
+			WP_CLI::success( "WordPress install verifies against checksums." );
+		} else {
+			WP_CLI::error( "WordPress install doesn't verify against checksums." );
+		}
+	}
+
+	private function get_wp_core_files() {
+		$core_files = array();
+		try {
+			$files = new RecursiveIteratorIterator(
+				new RecursiveDirectoryIterator( ABSPATH, RecursiveDirectoryIterator::SKIP_DOTS ),
+				RecursiveIteratorIterator::CHILD_FIRST
+			);
+			foreach ( $files as $file_info ) {
+				$pathname = substr( $file_info->getPathname(), strlen( ABSPATH ) );
+				if ( $file_info->isFile() && ( 0 === strpos( $pathname, 'wp-admin/' ) || 0 === strpos( $pathname, 'wp-includes/' ) ) ) {
+					$core_files[] = str_replace( ABSPATH, '', $file_info->getPathname() );
+				}
+			}
+		} catch( Exception $e ) {
+			WP_CLI::error( $e->getMessage() );
+		}
+
+		return $core_files;
+	}
+
+	private function only_core_files_filter( $file ) {
+		return ( 0 === strpos( $file, 'wp-admin/' ) || 0 === strpos( $file, 'wp-includes/' ) );
+	}
+
+	/**
+	 * Get version information from `wp-includes/version.php`.
+	 *
+	 * @return array {
+	 *     @type string $wp_version The WordPress version.
+	 *     @type int $wp_db_version The WordPress DB revision.
+	 *     @type string $tinymce_version The TinyMCE version.
+	 *     @type string $wp_local_package The TinyMCE version.
+	 * }
+	 */
+	private static function get_wp_details() {
+		$versions_path = ABSPATH . 'wp-includes/version.php';
+
+		if ( ! is_readable( $versions_path ) ) {
+			WP_CLI::error(
+				"This does not seem to be a WordPress install.\n" .
+				"Pass --path=`path/to/wordpress` or run `wp core download`." );
+		}
+
+		$version_content = file_get_contents( $versions_path, null, null, 6, 2048 );
+
+		$vars   = array( 'wp_version', 'wp_db_version', 'tinymce_version', 'wp_local_package' );
+		$result = array();
+
+		foreach ( $vars as $var_name ) {
+			$result[ $var_name ] = self::find_var( $var_name, $version_content );
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Search for the value assigned to variable `$var_name` in PHP code `$code`.
+	 *
+	 * This is equivalent to matching the `\$VAR_NAME = ([^;]+)` regular expression and returning
+	 * the first match either as a `string` or as an `integer` (depending if it's surrounded by
+	 * quotes or not).
+	 *
+	 * @param string $var_name Variable name to search for.
+	 * @param string $code PHP code to search in.
+	 *
+	 * @return int|string|null
+	 */
+	private static function find_var( $var_name, $code ) {
+		$start = strpos( $code, '$' . $var_name . ' = ' );
+
+		if ( ! $start ) {
+			return null;
+		}
+
+		$start = $start + strlen( $var_name ) + 3;
+		$end   = strpos( $code, ";", $start );
+
+		$value = substr( $code, $start, $end - $start );
+
+		if ( $value[0] = "'" ) {
+			return trim( $value, "'" );
+		} else {
+			return intval( $value );
+		}
 	}
 
 	/**
@@ -794,69 +1091,6 @@ EOT;
 	}
 
 	/**
-	 * Verify WordPress files against WordPress.org's checksums.
-	 *
-	 * Specify version to verify checksums without loading WordPress.
-	 *
-	 * [--version=<version>]
-	 * : Verify checksums against a specific version of WordPress.
-	 *
-	 * [--locale=<locale>]
-	 * : Verify checksums against a specific locale of WordPress.
-	 *
-	 * @when before_wp_load
-	 *
-	 * @subcommand verify-checksums
-	 */
-	public function verify_checksums( $args, $assoc_args ) {
-		global $wp_version, $wp_local_package;
-
-		if ( ! empty( $assoc_args['version'] ) ) {
-			$wp_version = $assoc_args['version'];
-		}
-
-		if ( ! empty( $assoc_args['locale'] ) ) {
-			$wp_local_package = $assoc_args['locale'];
-		}
-
-		if ( empty( $wp_version ) ) {
-			WP_CLI::get_runner()->load_wordpress();
-		}
-
-		$checksums = self::get_core_checksums( $wp_version, isset( $wp_local_package ) ? $wp_local_package : 'en_US' );
-
-		if ( ! is_array( $checksums ) ) {
-			WP_CLI::error( "Couldn't get checksums from WordPress.org." );
-		}
-
-		$has_errors = false;
-		foreach ( $checksums as $file => $checksum ) {
-			// Skip files which get updated
-			if ( 'wp-content' == substr( $file, 0, 10 ) ) {
-				continue;
-			}
-
-			if ( ! file_exists( ABSPATH . $file ) ) {
-				WP_CLI::warning( "File doesn't exist: {$file}" );
-				$has_errors = true;
-				continue;
-			}
-
-			$md5_file = md5_file( ABSPATH . $file );
-			if ( $md5_file !== $checksum ) {
-				WP_CLI::warning( "File doesn't verify against checksum: {$file}" );
-				$has_errors = true;
-			}
-		}
-
-		if ( ! $has_errors ) {
-			WP_CLI::success( "WordPress install verifies against checksums." );
-		} else {
-			WP_CLI::error( "WordPress install doesn't verify against checksums." );
-		}
-	}
-
-	/**
 	 * Update WordPress.
 	 *
 	 * ## OPTIONS
@@ -865,7 +1099,7 @@ EOT;
 	 * : Path to zip file to use, instead of downloading from wordpress.org.
 	 *
 	 * [--minor]
-	 * : Only perform updates for minor releases.
+	 * : Only perform updates for minor releases (e.g. update from WP 4.3 to 4.3.3 instead of 4.4.2).
 	 *
 	 * [--version=<version>]
 	 * : Update to a specific version, instead of to the latest version.
@@ -878,11 +1112,33 @@ EOT;
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp core update
+	 *     # Update WordPress
+	 *     $ wp core update
+	 *     Updating to version 4.5.2 (en_US)...
+	 *     Downloading update from https://downloads.wordpress.org/release/wordpress-4.5.2-no-content.zip...
+	 *     Unpacking the update...
+	 *     Cleaning up files...
+	 *     No files found that need cleaned up
+	 *     Success: WordPress updated successfully.
 	 *
-	 *     wp core update --version=3.8 ../latest.zip
+	 *     # Update WordPress to latest version of 3.8 release
+	 *     $ wp core update --version=3.8 ../latest.zip
+	 *     Updating to version 3.8 ()...
+	 *     Unpacking the update...
+	 *     Cleaning up files...
+	 *     File removed: wp-admin/js/tags-box.js
+	 *     ...
+	 *     File removed: wp-admin/js/updates.min.
+	 *     377 files cleaned up
+	 *     Success: WordPress updated successfully.
 	 *
-	 *     wp core update --version=3.1 --force
+	 *     # Update WordPress to 3.1 forcefully
+	 *     $ wp core update --version=3.1 --force
+	 *     Updating to version 3.1 (en_US)...
+	 *     Downloading update from https://wordpress.org/wordpress-3.1.zip...
+	 *     Unpacking the update...
+	 *     Warning: Failed to fetch checksums. Please cleanup files manually.
+	 *     Success: WordPress updated successfully.
 	 *
 	 * @alias upgrade
 	 */
@@ -891,16 +1147,6 @@ EOT;
 
 		$update = $from_api = null;
 		$upgrader = 'WP_CLI\\CoreUpgrader';
-
-		if ( empty( $args[0] ) && empty( $assoc_args['version'] ) && \WP_CLI\Utils\get_flag_value( $assoc_args, 'minor' ) ) {
-			$updates = $this->get_updates( array( 'minor' => true ) );
-			if ( ! empty( $updates ) ) {
-				$assoc_args['version'] = $updates[0]['version'];
-			} else {
-				WP_CLI::success( 'WordPress is at the latest minor release.' );
-				return;
-			}
-		}
 
 		if ( ! empty( $args[0] ) ) {
 
@@ -926,8 +1172,23 @@ EOT;
 			wp_version_check();
 			$from_api = get_site_transient( 'update_core' );
 
-			if ( ! empty( $from_api->updates ) ) {
-				list( $update ) = $from_api->updates;
+			if ( \WP_CLI\Utils\get_flag_value( $assoc_args, 'minor' ) ) {
+				foreach( $from_api->updates as $offer ) {
+					$sem_ver = Utils\get_named_sem_ver( $offer->version, $wp_version );
+					if ( ! $sem_ver || 'patch' !== $sem_ver ) {
+						continue;
+					}
+					$update = $offer;
+					break;
+				}
+				if ( empty( $update ) ) {
+					WP_CLI::success( 'WordPress is at the latest minor release.' );
+					return;
+				}
+			} else {
+				if ( ! empty( $from_api->updates ) ) {
+					list( $update ) = $from_api->updates;
+				}
 			}
 
 		} else if (	\WP_CLI\Utils\wp_version_compare( $assoc_args['version'], '<' )
@@ -964,6 +1225,8 @@ EOT;
 				WP_CLI::log( "Starting update..." );
 			}
 
+			$from_version = $wp_version;
+
 			$GLOBALS['wp_cli_update_obj'] = $update;
 			$result = Utils\get_upgrader( $upgrader )->upgrade( $update );
 			unset( $GLOBALS['wp_cli_update_obj'] );
@@ -976,6 +1239,15 @@ EOT;
 					WP_CLI::success( $msg );
 				}
 			} else {
+
+				if ( file_exists( ABSPATH . 'wp-includes/version.php' ) ) {
+					include( ABSPATH . 'wp-includes/version.php' );
+					$to_version = $wp_version;
+				}
+
+				$locale = \WP_CLI\Utils\get_flag_value( $assoc_args, 'locale', get_locale() );
+				$this->cleanup_extra_files( $from_version, $to_version, $locale );
+
 				WP_CLI::success( 'WordPress updated successfully.' );
 			}
 
@@ -992,6 +1264,17 @@ EOT;
 	 *
 	 * [--dry-run]
 	 * : Compare database versions without performing the update.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     # Update the WordPress database
+	 *     $ wp core update-db
+	 *     Success: WordPress database upgraded successfully from db version 36686 to 35700.
+	 *
+	 *     # Update databases for all sites on a network
+	 *     $ wp core update-db --network
+	 *     WordPress database upgraded successfully from db version 35700 to 29630 on example.com/
+	 *     Success: WordPress database upgraded on 123/123 sites
 	 *
 	 * @subcommand update-db
 	 */
@@ -1018,11 +1301,12 @@ EOT;
 			foreach( $it as $blog ) {
 				$total++;
 				$url = $blog->domain . $blog->path;
-				$process = WP_CLI::launch_self( 'core update-db', array(), array(), false, true, array( 'url' => $url, 'dry-run' => $dry_run ) );
+				$process = WP_CLI::launch_self( 'core update-db', array(), array( 'dry-run' => $dry_run ), false, true, array( 'url' => $url ) );
 				if ( 0 == $process->return_code ) {
 					// See if we can parse the stdout
 					if ( preg_match( '#Success: (.+)#', $process->stdout, $matches ) ) {
-						$message = "{$matches[1]} on {$url}";
+						$message = rtrim( $matches[1], '.' );
+						$message = "{$message} on {$url}";
 					} else {
 						$message = "Database upgraded successfully on {$url}";
 					}
@@ -1035,17 +1319,19 @@ EOT;
 			if ( ! $dry_run && $total && $success == $total ) {
 				update_site_option( 'wpmu_upgrade_site', $wp_db_version );
 			}
-			WP_CLI::success( sprintf( 'WordPress database upgraded on %d/%d sites', $success, $total ) );
+			WP_CLI::success( sprintf( 'WordPress database upgraded on %d/%d sites.', $success, $total ) );
 		} else {
 			require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 			$wp_current_db_version = __get_option( 'db_version' );
 			if ( $wp_db_version != $wp_current_db_version ) {
-				if ( ! $dry_run ) {
+				if ( $dry_run ) {
+					WP_CLI::success( "WordPress database will be upgraded from db version {$wp_current_db_version} to {$wp_db_version}." );
+				} else {
 					wp_upgrade();
+					WP_CLI::success( "WordPress database upgraded successfully from db version {$wp_current_db_version} to {$wp_db_version}." );
 				}
-				WP_CLI::success( "WordPress database upgraded successfully from db version {$wp_current_db_version} to {$wp_db_version}" );
 			} else {
-				WP_CLI::success( "WordPress database already at latest db version {$wp_db_version}" );
+				WP_CLI::success( "WordPress database already at latest db version {$wp_db_version}." );
 			}
 		}
 	}
@@ -1058,9 +1344,17 @@ EOT;
 	 * @param string $file_type
 	 * @return string
 	 */
-	private function get_download_url($version, $locale = 'en_US', $file_type = 'zip')
-	{
-		if ('en_US' === $locale) {
+	private function get_download_url( $version, $locale = 'en_US', $file_type = 'zip' ) {
+
+		if ( 'nightly' === $version ) {
+			if ( 'zip' === $file_type ) {
+				return 'https://wordpress.org/nightly-builds/wordpress-latest.zip';
+			} else {
+				WP_CLI::error( 'Nightly builds are only available in .zip format.' );
+			}
+		}
+
+		if ( 'en_US' === $locale ) {
 			$url = 'https://wordpress.org/wordpress-' . $version . '.' . $file_type;
 
 			return $url;
@@ -1080,40 +1374,21 @@ EOT;
 	 * Returns update information
 	 */
 	private function get_updates( $assoc_args ) {
-		global $wp_version;
-		$versions_path = ABSPATH . 'wp-includes/version.php';
-		include $versions_path;
-
-		$url = 'https://api.wordpress.org/core/stable-check/1.0/';
-
-		$options = array(
-			'timeout' => 30
-		);
-		$headers = array(
-			'Accept' => 'application/json'
-		);
-		$response = Utils\http_request( 'GET', $url, $headers, $options );
-
-		if ( ! $response->success || 200 !== $response->status_code ) {
-			WP_CLI::error( "Failed to get latest version list." );
+		wp_version_check();
+		$from_api = get_site_transient( 'update_core' );
+		if ( ! $from_api ) {
+			return array();
 		}
 
-		$release_data = json_decode( $response->body );
-		$release_versions = array_keys( (array) $release_data );
-		usort( $release_versions, function( $a, $b ){
-			return 1 === version_compare( $a, $b );
-		});
-
-		$locale = get_locale();
 		$compare_version = str_replace( '-src', '', $GLOBALS['wp_version'] );
 
 		$updates = array(
 			'major'      => false,
 			'minor'      => false,
 			);
-		foreach ( $release_versions as $release_version ) {
+		foreach ( $from_api->updates as $offer ) {
 
-			$update_type = Utils\get_named_sem_ver( $release_version, $compare_version );
+			$update_type = Utils\get_named_sem_ver( $offer->version, $compare_version );
 			if ( ! $update_type ) {
 				continue;
 			}
@@ -1125,14 +1400,14 @@ EOT;
 				$update_type = 'minor';
 			}
 
-			if ( ! empty( $updates[ $update_type ] ) && ! Comparator::greaterThan( $release_version, $updates[ $update_type ]['version'] ) ) {
+			if ( ! empty( $updates[ $update_type ] ) && ! Comparator::greaterThan( $offer->version, $updates[ $update_type ]['version'] ) ) {
 				continue;
 			}
 
 			$updates[ $update_type ] = array(
-				'version'     => $release_version,
+				'version'     => $offer->version,
 				'update_type' => $update_type,
-				'package_url' => $this->get_download_url( $release_version, $locale )
+				'package_url' => ! empty( $offer->packages->partial ) ? $offer->packages->partial : $offer->packages->full,
 			);
 		}
 
@@ -1150,20 +1425,48 @@ EOT;
 		return array_values( $updates );
 	}
 
+	private function cleanup_extra_files( $version_from, $version_to, $locale ) {
+		if ( ! $version_from || ! $version_to ) {
+			WP_CLI::warning( 'Failed to find WordPress version. Please cleanup files manually.' );
+			return;
+		}
+
+		$old_checksums = self::get_core_checksums( $version_from, $locale ? $locale : 'en_US' );
+		$new_checksums = self::get_core_checksums( $version_to, $locale ? $locale : 'en_US' );
+
+		if ( empty( $old_checksums ) || empty( $new_checksums ) ) {
+			WP_CLI::warning( 'Failed to fetch checksums. Please cleanup files manually.' );
+			return;
+		}
+
+		$files_to_remove = array_diff( array_keys( $old_checksums ), array_keys( $new_checksums ) );
+
+		if ( ! empty( $files_to_remove ) ) {
+			WP_CLI::log( 'Cleaning up files...' );
+
+			$count = 0;
+			foreach ( $files_to_remove as $file ) {
+
+				// wp-content should be considered user data
+				if ( 0 === stripos( $file, 'wp-content' ) ) {
+					continue;
+				}
+
+				if ( file_exists( ABSPATH . $file ) ) {
+					unlink( ABSPATH . $file );
+					WP_CLI::log( 'File removed: ' . $file );
+					$count++;
+				}
+			}
+
+			if ( $count ) {
+				WP_CLI::log( number_format( $count ) . ' files cleaned up.' );
+			} else {
+				WP_CLI::log( 'No files found that need cleaned up.' );
+			}
+		}
+	}
+
 }
 
 WP_CLI::add_command( 'core', 'Core_Command' );
-
-class Core_Language_Command extends WP_CLI\CommandWithTranslation {
-
-	protected $obj_type = 'core';
-
-}
-
-WP_CLI::add_command( 'core language', 'Core_Language_Command', array(
-	'before_invoke' => function() {
-		if ( \WP_CLI\Utils\wp_version_compare( '4.0', '<' ) ) {
-			WP_CLI::error( "Requires WordPress 4.0 or greater." );
-		}
-	})
-);

@@ -11,18 +11,27 @@
 
 namespace Alchemy\Zippy\Resource\Teleporter;
 
-use Alchemy\Zippy\Resource\Resource;
-use Alchemy\Zippy\Exception\IOException;
 use Alchemy\Zippy\Exception\InvalidArgumentException;
-use Symfony\Component\Filesystem\Filesystem;
+use Alchemy\Zippy\Exception\IOException;
+use Alchemy\Zippy\Resource\Resource as ZippyResource;
+use Alchemy\Zippy\Resource\ResourceLocator;
 use Symfony\Component\Filesystem\Exception\IOException as SfIOException;
+use Symfony\Component\Filesystem\Filesystem;
 
 /**
- * This class transport an object using the local filesystem
+ * This class transports an object using the local filesystem
  */
 class LocalTeleporter extends AbstractTeleporter
 {
+    /**
+     * @var Filesystem
+     */
     private $filesystem;
+
+    /**
+     * @var ResourceLocator
+     */
+    private $resourceLocator;
 
     /**
      * Constructor
@@ -32,14 +41,15 @@ class LocalTeleporter extends AbstractTeleporter
     public function __construct(Filesystem $filesystem)
     {
         $this->filesystem = $filesystem;
+        $this->resourceLocator = new ResourceLocator();
     }
 
     /**
      * {@inheritdoc}
      */
-    public function teleport(Resource $resource, $context)
+    public function teleport(ZippyResource $resource, $context)
     {
-        $target = $this->getTarget($context, $resource);
+        $target = $this->resourceLocator->mapResourcePath($resource, $context);
         $path = $resource->getOriginal();
 
         if (!file_exists($path)) {
@@ -63,6 +73,7 @@ class LocalTeleporter extends AbstractTeleporter
      * Creates the LocalTeleporter
      *
      * @return LocalTeleporter
+     * @deprecated This method will be removed in a future release (0.5.x)
      */
     public static function create()
     {

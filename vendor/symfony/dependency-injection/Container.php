@@ -13,6 +13,7 @@ namespace Symfony\Component\DependencyInjection;
 
 use Symfony\Component\DependencyInjection\Exception\InactiveScopeException;
 use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
+use Symfony\Component\DependencyInjection\Exception\LogicException;
 use Symfony\Component\DependencyInjection\Exception\RuntimeException;
 use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use Symfony\Component\DependencyInjection\Exception\ServiceCircularReferenceException;
@@ -58,7 +59,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\FrozenParameterBag;
  * @author Fabien Potencier <fabien@symfony.com>
  * @author Johannes M. Schmitt <schmittjoh@gmail.com>
  */
-class Container implements IntrospectableContainerInterface
+class Container implements IntrospectableContainerInterface, ResettableContainerInterface
 {
     /**
      * @var ParameterBagInterface
@@ -77,8 +78,6 @@ class Container implements IntrospectableContainerInterface
     private $underscoreMap = array('_' => '', '.' => '_', '\\' => '_');
 
     /**
-     * Constructor.
-     *
      * @param ParameterBagInterface $parameterBag A ParameterBagInterface instance
      */
     public function __construct(ParameterBagInterface $parameterBag = null)
@@ -164,6 +163,8 @@ class Container implements IntrospectableContainerInterface
      * Setting a service to null resets the service: has() returns false and get()
      * behaves in the same way as if the service was never created.
      *
+     * Note: The $scope parameter is deprecated since version 2.8 and will be removed in 3.0.
+     *
      * @param string $id      The service identifier
      * @param object $service The service instance
      * @param string $scope   The scope of the service
@@ -173,6 +174,10 @@ class Container implements IntrospectableContainerInterface
      */
     public function set($id, $service, $scope = self::SCOPE_CONTAINER)
     {
+        if (!in_array($scope, array('container', 'request')) || ('request' === $scope && 'request' !== $id)) {
+            @trigger_error('The concept of container scopes is deprecated since version 2.8 and will be removed in 3.0. Omit the third parameter.', E_USER_DEPRECATED);
+        }
+
         if (self::SCOPE_PROTOTYPE === $scope) {
             throw new InvalidArgumentException(sprintf('You cannot set service "%s" of scope "prototype".', $id));
         }
@@ -191,6 +196,10 @@ class Container implements IntrospectableContainerInterface
             }
 
             $this->scopedServices[$scope][$id] = $service;
+        }
+
+        if (isset($this->aliases[$id])) {
+            unset($this->aliases[$id]);
         }
 
         $this->services[$id] = $service;
@@ -286,10 +295,10 @@ class Container implements IntrospectableContainerInterface
                     }
 
                     $alternatives = array();
-                    foreach ($this->services as $key => $associatedService) {
-                        $lev = levenshtein($id, $key);
-                        if ($lev <= strlen($id) / 3 || false !== strpos($key, $id)) {
-                            $alternatives[] = $key;
+                    foreach ($this->getServiceIds() as $knownId) {
+                        $lev = levenshtein($id, $knownId);
+                        if ($lev <= strlen($id) / 3 || false !== strpos($knownId, $id)) {
+                            $alternatives[] = $knownId;
                         }
                     }
 
@@ -310,6 +319,11 @@ class Container implements IntrospectableContainerInterface
                 if ($e instanceof InactiveScopeException && self::EXCEPTION_ON_INVALID_REFERENCE !== $invalidBehavior) {
                     return;
                 }
+
+                throw $e;
+            } catch (\Throwable $e) {
+                unset($this->loading[$id]);
+                unset($this->services[$id]);
 
                 throw $e;
             }
@@ -345,6 +359,18 @@ class Container implements IntrospectableContainerInterface
     }
 
     /**
+     * {@inheritdoc}
+     */
+    public function reset()
+    {
+        if (!empty($this->scopedServices)) {
+            throw new LogicException('Resetting the container is not allowed when a scope is active.');
+        }
+
+        $this->services = array();
+    }
+
+    /**
      * Gets all service ids.
      *
      * @return array An array of all defined service ids
@@ -352,9 +378,8 @@ class Container implements IntrospectableContainerInterface
     public function getServiceIds()
     {
         $ids = array();
-        $r = new \ReflectionClass($this);
-        foreach ($r->getMethods() as $method) {
-            if (preg_match('/^get(.+)Service$/', $method->name, $match)) {
+        foreach (get_class_methods($this) as $method) {
+            if (preg_match('/^get(.+)Service$/', $method, $match)) {
                 $ids[] = self::underscore($match[1]);
             }
         }
@@ -370,9 +395,15 @@ class Container implements IntrospectableContainerInterface
      *
      * @throws RuntimeException         When the parent scope is inactive
      * @throws InvalidArgumentException When the scope does not exist
+     *
+     * @deprecated since version 2.8, to be removed in 3.0.
      */
     public function enterScope($name)
     {
+        if ('request' !== $name) {
+            @trigger_error('The '.__METHOD__.' method is deprecated since version 2.8 and will be removed in 3.0.', E_USER_DEPRECATED);
+        }
+
         if (!isset($this->scopes[$name])) {
             throw new InvalidArgumentException(sprintf('The scope "%s" does not exist.', $name));
         }
@@ -416,9 +447,15 @@ class Container implements IntrospectableContainerInterface
      * @param string $name The name of the scope to leave
      *
      * @throws InvalidArgumentException if the scope is not active
+     *
+     * @deprecated since version 2.8, to be removed in 3.0.
      */
     public function leaveScope($name)
     {
+        if ('request' !== $name) {
+            @trigger_error('The '.__METHOD__.' method is deprecated since version 2.8 and will be removed in 3.0.', E_USER_DEPRECATED);
+        }
+
         if (!isset($this->scopedServices[$name])) {
             throw new InvalidArgumentException(sprintf('The scope "%s" is not active.', $name));
         }
@@ -461,12 +498,17 @@ class Container implements IntrospectableContainerInterface
      * @param ScopeInterface $scope
      *
      * @throws InvalidArgumentException
+     *
+     * @deprecated since version 2.8, to be removed in 3.0.
      */
     public function addScope(ScopeInterface $scope)
     {
         $name = $scope->getName();
         $parentScope = $scope->getParentName();
 
+        if ('request' !== $name) {
+            @trigger_error('The '.__METHOD__.' method is deprecated since version 2.8 and will be removed in 3.0.', E_USER_DEPRECATED);
+        }
         if (self::SCOPE_CONTAINER === $name || self::SCOPE_PROTOTYPE === $name) {
             throw new InvalidArgumentException(sprintf('The scope "%s" is reserved.', $name));
         }
@@ -493,9 +535,15 @@ class Container implements IntrospectableContainerInterface
      * @param string $name The name of the scope
      *
      * @return bool
+     *
+     * @deprecated since version 2.8, to be removed in 3.0.
      */
     public function hasScope($name)
     {
+        if ('request' !== $name) {
+            @trigger_error('The '.__METHOD__.' method is deprecated since version 2.8 and will be removed in 3.0.', E_USER_DEPRECATED);
+        }
+
         return isset($this->scopes[$name]);
     }
 
@@ -507,9 +555,13 @@ class Container implements IntrospectableContainerInterface
      * @param string $name
      *
      * @return bool
+     *
+     * @deprecated since version 2.8, to be removed in 3.0.
      */
     public function isScopeActive($name)
     {
+        @trigger_error('The '.__METHOD__.' method is deprecated since version 2.8 and will be removed in 3.0.', E_USER_DEPRECATED);
+
         return isset($this->scopedServices[$name]);
     }
 
@@ -534,6 +586,10 @@ class Container implements IntrospectableContainerInterface
      */
     public static function underscore($id)
     {
-        return strtolower(preg_replace(array('/([A-Z]+)([A-Z][a-z])/', '/([a-z\d])([A-Z])/'), array('\\1_\\2', '\\1_\\2'), strtr($id, '_', '.')));
+        return strtolower(preg_replace(array('/([A-Z]+)([A-Z][a-z])/', '/([a-z\d])([A-Z])/'), array('\\1_\\2', '\\1_\\2'), str_replace('_', '.', $id)));
+    }
+
+    private function __clone()
+    {
     }
 }

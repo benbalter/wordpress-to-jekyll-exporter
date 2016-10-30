@@ -2,6 +2,22 @@
 /**
  * Manage taxonomies.
  *
+ * ## EXAMPLES
+ *
+ *     # List all taxonomies with 'post' object type.
+ *     $ wp taxonomy list --object_type=post --fields=name,public
+ *     +-------------+--------+
+ *     | name        | public |
+ *     +-------------+--------+
+ *     | category    | 1      |
+ *     | post_tag    | 1      |
+ *     | post_format | 1      |
+ *     +-------------+--------+
+ *
+ *     # Get capabilities of 'post_tag' taxonomy.
+ *     $ wp taxonomy get post_tag --field=cap
+ *     {"manage_terms":"manage_categories","edit_terms":"manage_categories","delete_terms":"manage_categories","assign_terms":"edit_posts"}
+ *
  * @package wp-cli
  */
 class Taxonomy_Command extends WP_CLI_Command {
@@ -29,6 +45,8 @@ class Taxonomy_Command extends WP_CLI_Command {
 	/**
 	 * List taxonomies.
 	 *
+	 * Displays list of registered taxonomies.
+	 *
 	 * ## OPTIONS
 	 *
 	 * [--<field>=<value>]
@@ -41,7 +59,16 @@ class Taxonomy_Command extends WP_CLI_Command {
 	 * : Limit the output to specific taxonomy fields.
 	 *
 	 * [--format=<format>]
-	 * : Accepted values: table, csv, json, count. Default: table
+	 * : Render output in a particular format.
+	 * ---
+	 * default: table
+	 * options:
+	 *   - table
+	 *   - csv
+	 *   - json
+	 *   - count
+	 *   - yaml
+	 * ---
 	 *
 	 * ## AVAILABLE FIELDS
 	 *
@@ -57,9 +84,24 @@ class Taxonomy_Command extends WP_CLI_Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp taxonomy list --format=csv
+	 *     # List all taxonomies.
+	 *     $ wp taxonomy list --format=csv
+	 *     name,label,description,object_type,show_tagcloud,hierarchical,public
+	 *     category,Categories,,post,1,1,1
+	 *     post_tag,Tags,,post,1,,1
+	 *     nav_menu,"Navigation Menus",,nav_menu_item,,,
+	 *     link_category,"Link Categories",,link,1,,
+	 *     post_format,Format,,post,,,1
 	 *
-	 *     wp taxonomy list --object-type=post --fields=name,public
+	 *     # List all taxonomies with 'post' object type.
+	 *     $ wp taxonomy list --object_type=post --fields=name,public
+	 *     +-------------+--------+
+	 *     | name        | public |
+	 *     +-------------+--------+
+	 *     | category    | 1      |
+	 *     | post_tag    | 1      |
+	 *     | post_format | 1      |
+	 *     +-------------+--------+
 	 *
 	 * @subcommand list
 	 */
@@ -81,12 +123,14 @@ class Taxonomy_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Get a taxonomy
+	 * Get a taxonomy.
+	 *
+	 * Displays detail of the taxonomy.
 	 *
 	 * ## OPTIONS
 	 *
 	 * <taxonomy>
-	 * : Taxonomy slug
+	 * : Taxonomy slug.
 	 *
 	 * [--field=<field>]
 	 * : Instead of returning the whole taxonomy, returns the value of a single field.
@@ -95,11 +139,31 @@ class Taxonomy_Command extends WP_CLI_Command {
 	 * : Limit the output to specific fields. Defaults to all fields.
 	 *
 	 * [--format=<format>]
-	 * : Accepted values: table, json, csv. Default: table
+	 * : Render output in a particular format.
+	 * ---
+	 * default: table
+	 * options:
+	 *   - table
+	 *   - csv
+	 *   - json
+	 *   - yaml
+	 * ---
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp taxonomy get post_tag --format=json
+	 *     # Get details of `category` taxonomy.
+	 *     $ wp taxonomy get category --fields=name,label,object_type
+	 *     +-------------+------------+
+	 *     | Field       | Value      |
+	 *     +-------------+------------+
+	 *     | name        | category   |
+	 *     | label       | Categories |
+	 *     | object_type | ["post"]   |
+	 *     +-------------+------------+
+	 *
+	 *     # Get capabilities of 'post_tag' taxonomy.
+	 *     $ wp taxonomy get post_tag --field=cap
+	 *     {"manage_terms":"manage_categories","edit_terms":"manage_categories","delete_terms":"manage_categories","assign_terms":"edit_posts"}
 	 */
 	public function get( $args, $assoc_args ) {
 		$taxonomy = get_taxonomy( $args[0] );

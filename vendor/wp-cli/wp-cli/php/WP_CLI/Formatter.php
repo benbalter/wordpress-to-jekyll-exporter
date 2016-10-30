@@ -40,6 +40,8 @@ class Formatter {
 			$format_args['fields'] = explode( ',', $format_args['fields'] );
 		}
 
+		$format_args['fields'] = array_map( 'trim', $format_args['fields'] );
+
 		$this->args = $format_args;
 		$this->prefix = $prefix;
 	}
@@ -136,12 +138,17 @@ class Formatter {
 			break;
 
 		case 'json':
+		case 'yaml':
 			$out = array();
 			foreach ( $items as $item ) {
 				$out[] = \WP_CLI\Utils\pick_fields( $item, $fields );
 			}
 
-			echo json_encode( $out );
+			if ( 'json' === $this->args['format'] ) {
+				echo json_encode( $out );
+			} else if ( 'yaml' === $this->args['format'] ) {
+				echo \Spyc::YAMLDump( $out, 2, 0 );
+			}
 			break;
 
 		default:
@@ -237,6 +244,7 @@ class Formatter {
 			}
 			break;
 
+		case 'yaml':
 		case 'json':
 			\WP_CLI::print_value( $data, array( 'format' => $format ) );
 			break;
@@ -258,13 +266,24 @@ class Formatter {
 	private static function show_table( $items, $fields ) {
 		$table = new \cli\Table();
 
+		$enabled = \cli\Colors::shouldColorize();
+		if ( $enabled ) {
+			\cli\Colors::disable( true );
+		}
+
 		$table->setHeaders( $fields );
 
 		foreach ( $items as $item ) {
 			$table->addRow( array_values( \WP_CLI\Utils\pick_fields( $item, $fields ) ) );
 		}
 
-		$table->display();
+		foreach( $table->getDisplayLines() as $line ) {
+			\WP_CLI::line( $line );
+		}
+
+		if ( $enabled ) {
+			\cli\Colors::enable( true );
+		}
 	}
 
 	/**

@@ -19,14 +19,14 @@ class ProcessBuilderFactory implements ProcessBuilderFactoryInterface
     /**
      * The binary path
      *
-     * @var String
+     * @var string
      */
     protected $binary;
 
     /**
      * Constructor
      *
-     * @param String $binary The path to the binary
+     * @param string $binary The path to the binary
      *
      * @throws InvalidArgumentException In case binary path is invalid
      */

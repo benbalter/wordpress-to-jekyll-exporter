@@ -11,23 +11,27 @@
 
 namespace Alchemy\Zippy\Archive;
 
+use Alchemy\Zippy\Adapter\Resource\ResourceInterface;
+use Alchemy\Zippy\Exception\InvalidArgumentException;
+use Alchemy\Zippy\Exception\RuntimeException;
+
 interface MemberInterface
 {
     /**
      * Gets the location of an archive member
      *
-     * @return String
+     * @return string
      */
     public function getLocation();
 
     /**
      * Tells whether the member is a directory or not
      *
-     * @return Boolean
+     * @return bool
      */
     public function isDir();
 
-    /*
+    /**
      * Returns the last modified date of the member
      *
      * @return \DateTime
@@ -39,7 +43,7 @@ interface MemberInterface
      *
      * If the size is unknown, returns -1
      *
-     * @return Integer
+     * @return integer
      */
     public function getSize();
 
@@ -50,15 +54,23 @@ interface MemberInterface
      * This will execute one extraction process for each file
      * Prefer the use of ArchiveInterface::extractMembers in that use case
      *
-     * @param String|null $to The path where to extract the member, if no path is not provided the member is extracted in the same directory of its archive
+     * @param string|null $to        The path where to extract the member, if no path is not provided the member is extracted in the same directory of its archive
+     * @param bool        $overwrite Whether to overwrite destination file if it already exists. Defaults to false
      *
      * @return \SplFileInfo The extracted file
      *
-     * @throws RuntimeException         In case of failure
+     * @throws RuntimeException In case of failure
      * @throws InvalidArgumentException In case no members could be removed or provide extract target directory is not valid
      */
-    public function extract($to = null);
-
+    public function extract($to = null, $overwrite = false);
+    
+    /**
+     * Get resource.
+     * 
+     * @return ResourceInterface
+     * */
+    public function getResource();
+    
     /**
      * @inheritdoc
      */

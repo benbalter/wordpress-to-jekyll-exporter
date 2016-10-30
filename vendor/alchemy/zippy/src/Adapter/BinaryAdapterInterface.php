@@ -67,28 +67,28 @@ interface BinaryAdapterInterface
     /**
      * Returns the inflator binary version
      *
-     * @return String
+     * @return string
      */
     public function getInflatorVersion();
 
     /**
      * Returns the deflator binary version
      *
-     * @return String
+     * @return string
      */
     public function getDeflatorVersion();
 
     /**
      * Gets the inflator adapter binary name
      *
-     * @return Array
+     * @return array
      */
     public static function getDefaultInflatorBinaryName();
 
     /**
      * Gets the deflator adapter binary name
      *
-     * @return Array
+     * @return array
      */
     public static function getDefaultDeflatorBinaryName();
 }

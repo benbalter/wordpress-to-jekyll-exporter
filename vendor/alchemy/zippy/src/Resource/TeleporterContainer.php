@@ -12,10 +12,15 @@
 namespace Alchemy\Zippy\Resource;
 
 use Alchemy\Zippy\Exception\InvalidArgumentException;
+use Alchemy\Zippy\Resource\Reader\Guzzle\GuzzleReaderFactory;
+use Alchemy\Zippy\Resource\Reader\Guzzle\LegacyGuzzleReaderFactory;
+use Alchemy\Zippy\Resource\Resource as ZippyResource;
+use Alchemy\Zippy\Resource\Teleporter\GenericTeleporter;
 use Alchemy\Zippy\Resource\Teleporter\LocalTeleporter;
-use Alchemy\Zippy\Resource\Teleporter\GuzzleTeleporter;
 use Alchemy\Zippy\Resource\Teleporter\StreamTeleporter;
 use Alchemy\Zippy\Resource\Teleporter\TeleporterInterface;
+use Alchemy\Zippy\Resource\Writer\FilesystemWriter;
+use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * A container of TeleporterInterface
@@ -35,10 +40,11 @@ class TeleporterContainer implements \ArrayAccess, \Countable
     /**
      * Returns the appropriate TeleporterInterface for a given Resource
      *
-     * @param Resource $resource
+     * @param ZippyResource $resource
+     *
      * @return TeleporterInterface
      */
-    public function fromResource(Resource $resource)
+    public function fromResource(ZippyResource $resource)
     {
         switch (true) {
             case is_resource($resource->getOriginal()):
@@ -64,7 +70,7 @@ class TeleporterContainer implements \ArrayAccess, \Countable
 
     private function getTeleporter($typeName)
     {
-        if (! isset($this->teleporters[$typeName])) {
+        if (!isset($this->teleporters[$typeName])) {
             $factory = $this->factories[$typeName];
             $this->teleporters[$typeName] = $factory();
         }
@@ -82,16 +88,29 @@ class TeleporterContainer implements \ArrayAccess, \Countable
         $container = new static();
 
         $container->factories['stream-teleporter'] = function () {
-            return StreamTeleporter::create();
+            return new StreamTeleporter();
         };
 
         $container->factories['local-teleporter'] = function () {
-            return LocalTeleporter::create();
+            return new LocalTeleporter(new Filesystem());
         };
 
-        if (class_exists('Guzzle\Http\Client')) {
+        if (class_exists('GuzzleHttp\Client')) {
             $container->factories['guzzle-teleporter'] = function () {
-                return GuzzleTeleporter::create();
+                return new GenericTeleporter(
+                    new GuzzleReaderFactory(),
+                    new FilesystemWriter(),
+                    new ResourceLocator()
+                );
+            };
+        }
+        elseif (class_exists('Guzzle\Http\Client')) {
+            $container->factories['guzzle-teleporter'] = function () {
+                return new GenericTeleporter(
+                    new LegacyGuzzleReaderFactory(),
+                    new FilesystemWriter(),
+                    new ResourceLocator()
+                );
             };
         }
 
@@ -101,11 +120,14 @@ class TeleporterContainer implements \ArrayAccess, \Countable
     /**
      * (PHP 5 &gt;= 5.0.0)<br/>
      * Whether a offset exists
+     *
      * @link http://php.net/manual/en/arrayaccess.offsetexists.php
+     *
      * @param mixed $offset <p>
-     * An offset to check for.
-     * </p>
-     * @return boolean true on success or false on failure.
+     *                      An offset to check for.
+     *                      </p>
+     *
+     * @return bool true on success or false on failure.
      * </p>
      * <p>
      * The return value will be casted to boolean if non-boolean was returned.

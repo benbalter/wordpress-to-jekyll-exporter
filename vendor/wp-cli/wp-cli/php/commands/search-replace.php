@@ -3,15 +3,41 @@
 /**
  * Search and replace strings in the database.
  *
+ * ## EXAMPLES
+ *
+ *     # Search and replace strings in the table
+ *     $ wp search-replace foo bar wp_options
+ *     +------------+--------------+--------------+------+
+ *     | Table      | Column       | Replacements | Type |
+ *     +------------+--------------+--------------+------+
+ *     | wp_options | option_name  | 2            | SQL  |
+ *     | wp_options | option_value | 0            | PHP  |
+ *     | wp_options | autoload     | 0            | SQL  |
+ *     +------------+--------------+--------------+------+
+ *     Success: Made 2 replacements.
+ *
+ *     # Run search/replace operation but dont save in database
+ *     $ wp search-replace foo bar wp_options --dry-run
+ *     +------------+--------------+--------------+------+
+ *     | Table      | Column       | Replacements | Type |
+ *     +------------+--------------+--------------+------+
+ *     | wp_options | option_name  | 2            | SQL  |
+ *     | wp_options | option_value | 0            | PHP  |
+ *     | wp_options | autoload     | 0            | SQL  |
+ *     +------------+--------------+--------------+------+
+ *     Success: 2 replacements to be made.
+ *
  * @package wp-cli
  */
 class Search_Replace_Command extends WP_CLI_Command {
 
 	private $dry_run;
 	private $export_handle = false;
+	private $export_insert_size;
 	private $recurse_objects;
 	private $regex;
 	private $skip_columns;
+	private $include_columns;
 
 	/**
 	 * Search/replace strings in the database.
@@ -38,7 +64,7 @@ class Search_Replace_Command extends WP_CLI_Command {
 	 *
 	 * [<table>...]
 	 * : List of database tables to restrict the replacement to. Wildcards are
-	 * supported, e.g. 'wp_*_options' or 'wp_post*'.
+	 * supported, e.g. `'wp_*_options'` or `'wp_post*'`.
 	 *
 	 * [--dry-run]
 	 * : Run the entire search/replace operation and show report, but don't save
@@ -61,9 +87,18 @@ class Search_Replace_Command extends WP_CLI_Command {
 	 * : Write transformed data as SQL file instead of saving replacements to
 	 * the database. If <file> is not supplied, will output to STDOUT.
 	 *
+	 * [--export_insert_size=<rows>]
+	 * : Define number of rows in single INSERT statement when doing SQL export.
+	 * You might want to change this depending on your database configuration
+	 * (e.g. if you need to do fewer queries). Default: 50
+	 *
 	 * [--skip-columns=<columns>]
 	 * : Do not perform the replacement on specific columns. Use commas to
 	 * specify multiple columns. 'guid' is skipped by default.
+	 *
+	 * [--include-columns=<columns>]
+	 * : Perform the replacement on specific columns. Use commas to
+	 * specify multiple columns.
 	 *
 	 * [--precise]
 	 * : Force the use of PHP (instead of SQL) which is more thorough,
@@ -82,15 +117,25 @@ class Search_Replace_Command extends WP_CLI_Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp search-replace 'http://example.dev' 'http://example.com' --skip-columns=guid
+	 *     # Search and replace but skip one column
+	 *     $ wp search-replace 'http://example.dev' 'http://example.com' --skip-columns=guid
 	 *
-	 *     wp search-replace 'foo' 'bar' wp_posts wp_postmeta wp_terms --dry-run
+	 *     # Run search/replace operation but dont save in database
+	 *     $ wp search-replace 'foo' 'bar' wp_posts wp_postmeta wp_terms --dry-run
 	 *
-	 *     # Turn your production database into a local database
-	 *     wp search-replace --url=example.com example.com example.dev wp_\*_options
+	 *     # Turn your production multisite database into a local dev database
+	 *     $ wp search-replace --url=example.com example.com example.dev 'wp_*_options' wp_blogs
 	 *
 	 *     # Search/replace to a SQL file without transforming the database
-	 *     wp search-replace foo bar --export=database.sql
+	 *     $ wp search-replace foo bar --export=database.sql
+	 *
+	 *     # Bash script: Search/replace production to development url (multisite compatible)
+	 *     #!/bin/bash
+	 *     if $(wp --url=http://example.com core is-installed --network); then
+	 *         wp search-replace --url=http://example.com 'http://example.com' 'http://example.dev' --recurse-objects --network --skip-columns=guid
+	 *     else
+	 *         wp search-replace 'http://example.com' 'http://example.dev' --recurse-objects --skip-columns=guid
+	 *     fi
 	 */
 	public function __invoke( $args, $assoc_args ) {
 		global $wpdb;
@@ -105,6 +150,7 @@ class Search_Replace_Command extends WP_CLI_Command {
 		$this->regex           =  \WP_CLI\Utils\get_flag_value( $assoc_args, 'regex' );
 
 		$this->skip_columns = explode( ',', \WP_CLI\Utils\get_flag_value( $assoc_args, 'skip-columns' ) );
+		$this->include_columns = array_filter( explode( ',', \WP_CLI\Utils\get_flag_value( $assoc_args, 'include-columns' ) ) );
 
 		if ( $old === $new && ! $this->regex ) {
 			WP_CLI::warning( "Replacement value '{$old}' is identical to search value '{$new}'. Skipping operation." );
@@ -123,6 +169,10 @@ class Search_Replace_Command extends WP_CLI_Command {
 				if ( false === $this->export_handle ) {
 					WP_CLI::error( sprintf( 'Unable to open "%s" for writing.', $assoc_args['export'] ) );
 				}
+			}
+			$export_insert_size = WP_CLI\Utils\get_flag_value( $assoc_args, 'export_insert_size', 50 );
+			if ( (int) $export_insert_size == $export_insert_size && $export_insert_size > 0 ) {
+				$this->export_insert_size = $export_insert_size;
 			}
 			$php_only = true;
 		}
@@ -155,6 +205,10 @@ class Search_Replace_Command extends WP_CLI_Command {
 			}
 
 			foreach ( $columns as $col ) {
+				if ( ! empty( $this->include_columns ) && ! in_array( $col, $this->include_columns ) ) {
+					continue;
+				}
+
 				if ( in_array( $col, $this->skip_columns ) ) {
 					continue;
 				}
@@ -165,7 +219,12 @@ class Search_Replace_Command extends WP_CLI_Command {
 				}
 
 				if ( ! $php_only && ! $this->regex ) {
+					$wpdb->last_error = '';
 					$serialRow = $wpdb->get_row( "SELECT * FROM `$table` WHERE `$col` REGEXP '^[aiO]:[1-9]' LIMIT 1" );
+					// When the regex triggers an error, we should fall back to PHP
+					if ( false !== strpos( $wpdb->last_error, 'ERROR 1139' ) ) {
+						$serialRow = true;
+					}
 				}
 
 				if ( $php_only || $this->regex || NULL !== $serialRow ) {
@@ -207,6 +266,10 @@ class Search_Replace_Command extends WP_CLI_Command {
 			}
 			WP_CLI::success( $success_message );
 		}
+		else {
+			$success_message = ( 1 === $total ) ? '%d replacement to be made.' : '%d replacements to be made.';
+			WP_CLI::success( sprintf( $success_message, $total ) );
+		}
 	}
 
 	private function php_export_table( $table, $old, $new ) {
@@ -224,6 +287,8 @@ class Search_Replace_Command extends WP_CLI_Command {
 			$this->start_time = microtime( true );
 			WP_CLI::log( sprintf( 'Checking: %s', $table ) );
 		}
+
+		$rows = array();
 		foreach ( new \WP_CLI\Iterators\Table( $args ) as $i => $row ) {
 			$row_fields = array();
 			foreach( $all_columns as $col ) {
@@ -237,8 +302,9 @@ class Search_Replace_Command extends WP_CLI_Command {
 				}
 				$row_fields[ $col ] = $value;
 			}
-			$this->write_sql_row_fields( $table, $row_fields );
+			$rows[] = $row_fields;
 		}
+		$this->write_sql_row_fields( $table, $rows );
 
 		$table_report = array();
 		$total_rows = $total_cols = 0;
@@ -252,7 +318,7 @@ class Search_Replace_Command extends WP_CLI_Command {
 
 		if ( $this->verbose ) {
 			$time = round( microtime( true ) - $this->start_time, 3 );
-			WP_CLI::log( sprintf( '%d columns and %d total rows affected using PHP (in %ss)', $total_cols, $total_rows, $time ) );
+			WP_CLI::log( sprintf( '%d columns and %d total rows affected using PHP (in %ss).', $total_cols, $total_rows, $time ) );
 		}
 
 		return array( $table_report, $total_rows );
@@ -269,7 +335,7 @@ class Search_Replace_Command extends WP_CLI_Command {
 
 		if ( $this->verbose ) {
 			$time = round( microtime( true ) - $this->start_time, 3 );
-			WP_CLI::log( sprintf( '%d rows affected using SQL (in %ss)', $count, $time ) );
+			WP_CLI::log( sprintf( '%d rows affected using SQL (in %ss).', $count, $time ) );
 		}
 		return $count;
 	}
@@ -283,14 +349,16 @@ class Search_Replace_Command extends WP_CLI_Command {
 		$where = $this->regex ? '' : " WHERE `$col`" . $wpdb->prepare( ' LIKE %s', '%' . self::esc_like( $old ) . '%' );
 		$primary_keys_sql = esc_sql( implode( ',', $primary_keys ) );
 		$col_sql = esc_sql( $col );
-		$table_sql = esc_sql( $table );
-		$rows = $wpdb->get_results( "SELECT {$primary_keys_sql} FROM {$table_sql}{$where}" );
+		$rows = $wpdb->get_results( "SELECT {$primary_keys_sql} FROM `{$table}` {$where}" );
 		foreach ( $rows as $keys ) {
 			$where_sql = '';
 			foreach( (array) $keys as $k => $v ) {
-				$where_sql .= "{$k}={$v}";
+				if ( strlen( $where_sql ) ) {
+					$where_sql .= ' AND ';
+				}
+				$where_sql .= "{$k}='{$v}'";
 			}
-			$col_value = $wpdb->get_var( "SELECT {$col_sql} FROM {$table_sql} WHERE {$where_sql}" );
+			$col_value = $wpdb->get_var( "SELECT {$col_sql} FROM `{$table}` WHERE {$where_sql}" );
 			if ( '' === $col_value )
 				continue;
 
@@ -315,33 +383,70 @@ class Search_Replace_Command extends WP_CLI_Command {
 
 		if ( $this->verbose ) {
 			$time = round( microtime( true ) - $this->start_time, 3 );
-			WP_CLI::log( sprintf( '%d rows affected using PHP (in %ss)', $count, $time ) );
+			WP_CLI::log( sprintf( '%d rows affected using PHP (in %ss).', $count, $time ) );
 		}
 
 		return $count;
 	}
 
-	private function write_sql_row_fields( $table, $row_fields ) {
+	private function write_sql_row_fields( $table, $rows ) {
 		global $wpdb;
-		$sql = "INSERT INTO `$table` (";
-		$sql .= join( ', ', array_map(
-		function ( $field ) {
-			return "`$field`";
-		},
-		array_keys( $row_fields )
+
+		if(empty($rows)) {
+			return;
+		}
+
+		$insert = "INSERT INTO `$table` (";
+		$insert .= join( ', ', array_map(
+			function ( $field ) {
+				return "`$field`";
+			},
+			array_keys( $rows[0] )
 		) );
-		$sql .= ') VALUES (';
-		$sql .= join( ', ', array_fill( 0, count( $row_fields ), '%s' ) );
-		$sql .= ");\n";
-		$sql = $wpdb->prepare( $sql, array_values( $row_fields ) );
-		fwrite( $this->export_handle, $sql );
+		$insert .= ') VALUES ';
+		$insert .= "\n";
+
+		$sql = $insert;
+		$values = array();
+
+		$index = 1;
+		$count = count( $rows );
+		$export_insert_size = $this->export_insert_size;
+
+		foreach($rows as $row_fields) {
+			$sql .= '(' . join( ', ', array_fill( 0, count( $row_fields ), '%s' ) ) . ')';
+			$values = array_merge( $values, array_values( $row_fields ) );
+
+			// Add new insert statement if needed. Before this we close the previous with semicolon and write statement to sql-file.
+			// "Statement break" is needed:
+			//		1. When the loop is running every nth time (where n is insert statement size, $export_index_size). Remainder is zero also on first round, so it have to be excluded.
+			//			$index % $export_insert_size == 0 && $index > 0
+			//		2. Or when the loop is running last time
+			//			$index == $count
+			if( ( $index % $export_insert_size == 0 && $index > 0 ) || $index == $count ) {
+				$sql .= ";\n";
+
+				$sql = $wpdb->prepare( $sql, array_values( $values ) );
+				fwrite( $this->export_handle, $sql );
+
+				// If there is still rows to loop, reset $sql and $values variables.
+				if( $count > $index ) {
+					$sql = $insert;
+					$values = array();
+				}
+			} else { // Otherwise just add comma and new line
+				$sql .= ",\n";
+			}
+
+			$index++;
+		}
 	}
 
 	private static function get_columns( $table ) {
 		global $wpdb;
 
 		$primary_keys = $text_columns = $all_columns = array();
-		foreach ( $wpdb->get_results( "DESCRIBE $table" ) as $col ) {
+		foreach ( $wpdb->get_results( "DESCRIBE `$table`" ) as $col ) {
 			if ( 'PRI' === $col->Key ) {
 				$primary_keys[] = $col->Field;
 			}
@@ -380,4 +485,3 @@ class Search_Replace_Command extends WP_CLI_Command {
 }
 
 WP_CLI::add_command( 'search-replace', 'Search_Replace_Command' );
-

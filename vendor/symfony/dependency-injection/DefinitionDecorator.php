@@ -25,9 +25,7 @@ class DefinitionDecorator extends Definition
     private $changes = array();
 
     /**
-     * Constructor.
-     *
-     * @param string $parent The id of Definition instance to decorate.
+     * @param string $parent The id of Definition instance to decorate
      */
     public function __construct($parent)
     {
@@ -78,7 +76,6 @@ class DefinitionDecorator extends Definition
 
     /**
      * {@inheritdoc}
-     *
      */
     public function setFactoryClass($class)
     {
@@ -100,11 +97,11 @@ class DefinitionDecorator extends Definition
     /**
      * {@inheritdoc}
      */
-    public function setFactoryService($service)
+    public function setFactoryService($service, $triggerDeprecationError = true)
     {
         $this->changes['factory_service'] = true;
 
-        return parent::setFactoryService($service);
+        return parent::setFactoryService($service, $triggerDeprecationError);
     }
 
     /**
@@ -150,11 +147,31 @@ class DefinitionDecorator extends Definition
     /**
      * {@inheritdoc}
      */
-    public function setDecoratedService($id, $renamedId = null)
+    public function setDecoratedService($id, $renamedId = null, $priority = 0)
     {
         $this->changes['decorated_service'] = true;
 
-        return parent::setDecoratedService($id, $renamedId);
+        return parent::setDecoratedService($id, $renamedId, $priority);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setDeprecated($boolean = true, $template = null)
+    {
+        $this->changes['deprecated'] = true;
+
+        return parent::setDeprecated($boolean, $template);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setAutowired($autowired)
+    {
+        $this->changes['autowire'] = true;
+
+        return parent::setAutowired($autowired);
     }
 
     /**

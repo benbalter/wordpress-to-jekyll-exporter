@@ -5,15 +5,17 @@
 # authors: [vlad andersen (vlad.andersen@gmail.com), chris wanstrath (chris@ozmm.org)]
 # websites: [http://www.yaml.org, http://spyc.sourceforge.net/]
 # license: [MIT License, http://www.opensource.org/licenses/mit-license.php]
-# copyright: (c) 2005-2006 Chris Wanstrath, 2006-2011 Vlad Andersen
+# copyright: (c) 2005-2006 Chris Wanstrath, 2006-2014 Vlad Andersen
 #
-# spyc.yml - A file containing the YAML that Spyc understands.
+# spyc.yaml - A file containing the YAML that Spyc understands.
 
 ---
 
 # Mappings - with proper types
 String: Anyone's name, really.
 Int: 13
+BadHex: f0xf3
+Hex: 0xf3
 True: true
 False: false
 Zero: 0
@@ -26,6 +28,7 @@ Float: 5.34
 Negative: -90
 SmallFloat: 0.7
 NewLine: \n
+QuotedNewLine: "\n"
 
 # A sequence
 - PHP Class
@@ -116,6 +119,9 @@ all languages:
 # Added in .2.4: bug [ 1418193 ] Quote Values in Nested Arrays
 - [a, ['1', "2"], b]
 
+# Add in .5.2: Quoted new line values.
+- "First line\nSecond line\nThird line"
+
 # Added in .2.4: malformed YAML
 all
   javascripts:     [dom1.js, dom.js]
@@ -197,9 +203,16 @@ noindent_records:
 "a:1": [1000]
 "a:2":
   - 2000
+a:3: [3000]
+
+complex_unquoted_key:
+  a:b:''test': value
 
 array with commas:
   ["0","1"]
+
+invoice: ["Something", "", '', "Something else"]
+quotes: ['Something', "Nothing", 'Anything', "Thing"]
 
 # [Endloop]
 endloop: |

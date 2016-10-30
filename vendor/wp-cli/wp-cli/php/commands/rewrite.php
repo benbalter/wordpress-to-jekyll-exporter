@@ -3,6 +3,25 @@
 /**
  * Manage rewrite rules.
  *
+ * ## EXAMPLES
+ *
+ *     # Flush rewrite rules
+ *     $ wp rewrite flush
+ *     Success: Rewrite rules flushed.
+ *
+ *     # Update permalink structure
+ *     $ wp rewrite structure '/%year%/%monthnum%/%postname%'
+ *     Success: Rewrite structure set.
+ *
+ *     # List rewrite rules
+ *     $ wp rewrite list --format=csv
+ *     match,query,source
+ *     ^wp-json/?$,index.php?rest_route=/,other
+ *     ^wp-json/(.*)?,index.php?rest_route=/$matches[1],other
+ *     category/(.+?)/feed/(feed|rdf|rss|rss2|atom)/?$,index.php?category_name=$matches[1]&feed=$matches[2],category
+ *     category/(.+?)/(feed|rdf|rss|rss2|atom)/?$,index.php?category_name=$matches[1]&feed=$matches[2],category
+ *     category/(.+?)/embed/?$,index.php?category_name=$matches[1]&embed=true,category
+ *
  * @package wp-cli
  */
 class Rewrite_Command extends WP_CLI_Command {
@@ -24,6 +43,11 @@ class Rewrite_Command extends WP_CLI_Command {
 	 *
 	 * [--hard]
 	 * : Perform a hard flush - update `.htaccess` rules as well as rewrite rules in database. Works only on single site installs.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     $ wp rewrite flush
+	 *     Success: Rewrite rules flushed.
 	 */
 	public function flush( $args, $assoc_args ) {
 		// make sure we detect mod_rewrite if configured in apache_modules in config
@@ -75,7 +99,8 @@ class Rewrite_Command extends WP_CLI_Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp rewrite structure '/%year%/%monthnum%/%postname%'
+	 *     $ wp rewrite structure '/%year%/%monthnum%/%postname%'
+	 *     Success: Rewrite structure set.
 	 */
 	public function structure( $args, $assoc_args ) {
 		global $wp_rewrite;
@@ -151,11 +176,26 @@ class Rewrite_Command extends WP_CLI_Command {
 	 * : Limit the output to specific fields. Defaults to match,query,source.
 	 *
 	 * [--format=<format>]
-	 * : Accepted values: table, csv, json, count. Default: table
+	 * : Render output in a particular format.
+	 * ---
+	 * default: table
+	 * options:
+	 *   - table
+	 *   - csv
+	 *   - json
+	 *   - count
+	 *   - yaml
+	 * ---
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp rewrite list --format=csv
+	 *     $ wp rewrite list --format=csv
+	 *     match,query,source
+	 *     ^wp-json/?$,index.php?rest_route=/,other
+	 *     ^wp-json/(.*)?,index.php?rest_route=/$matches[1],other
+	 *     category/(.+?)/feed/(feed|rdf|rss|rss2|atom)/?$,index.php?category_name=$matches[1]&feed=$matches[2],category
+	 *     category/(.+?)/(feed|rdf|rss|rss2|atom)/?$,index.php?category_name=$matches[1]&feed=$matches[2],category
+	 *     category/(.+?)/embed/?$,index.php?category_name=$matches[1]&embed=true,category
 	 *
 	 * @subcommand list
 	 */
@@ -263,5 +303,5 @@ class Rewrite_Command extends WP_CLI_Command {
 	}
 }
 
-WP_CLI:: add_command( 'rewrite', 'Rewrite_Command' );
+WP_CLI::add_command( 'rewrite', 'Rewrite_Command' );
 

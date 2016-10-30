@@ -17,12 +17,12 @@ use Alchemy\Zippy\Exception\RuntimeException;
  */
 class GNUTarOutputParser implements ParserInterface
 {
-    const PERMISSIONS   = "([ldrwx-]+)";
-    const OWNER         = "([a-z][-a-z0-9]*)";
-    const GROUP         = "([a-z][-a-z0-9]*)";
-    const FILESIZE      = "(\d*)";
-    const ISO_DATE      = "([0-9]+-[0-9]+-[0-9]+\s+[0-9]+:[0-9]+)";
-    const FILENAME      = "(.*)";
+    const PERMISSIONS   = '([ldrwx-]+)';
+    const OWNER         = '([a-z][-a-z0-9]*)';
+    const GROUP         = '([a-z][-a-z0-9]*)';
+    const FILESIZE      = '(\d*)';
+    const ISO_DATE      = '([0-9]+-[0-9]+-[0-9]+\s+[0-9]+:[0-9]+)';
+    const FILENAME      = '(.*)';
 
     /**
      * @inheritdoc
@@ -83,7 +83,7 @@ class GNUTarOutputParser implements ParserInterface
             return null;
         }
 
-        list($name, $version) = $chunks;
+        list(, $version) = $chunks;
 
         return $version;
     }
@@ -93,6 +93,6 @@ class GNUTarOutputParser implements ParserInterface
      */
     public function parseDeflatorVersion($output)
     {
-        return $this->parseInflatoVersion($output);
+        return $this->parseInflatorVersion($output);
     }
 }

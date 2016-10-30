@@ -50,7 +50,9 @@ class Runtime
 
         // PHP >= 5.4.0
         if (self::$binary === null && defined('PHP_BINARY')) {
-            self::$binary = escapeshellarg(PHP_BINARY);
+            if (PHP_BINARY !== '') {
+                self::$binary = escapeshellarg(PHP_BINARY);
+            }
         }
 
         // PHP < 5.4.0
@@ -123,7 +125,7 @@ class Runtime
         if ($this->isHHVM()) {
             return 'http://hhvm.com/';
         } else {
-            return 'http://php.net/';
+            return 'https://secure.php.net/';
         }
     }
 

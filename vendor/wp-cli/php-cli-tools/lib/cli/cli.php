@@ -202,8 +202,9 @@ function safe_substr( $str, $start, $length = false ) {
  * @return string
  */
 function safe_str_pad( $string, $length ) {
+	$cleaned_string = Colors::shouldColorize() ? Colors::decolorize( $string ) : $string;
 	// Hebrew vowel characters
-	$cleaned_string = preg_replace( '#[\x{591}-\x{5C7}]+#u', '', Colors::decolorize( $string ) );
+	$cleaned_string = preg_replace( '#[\x{591}-\x{5C7}]+#u', '', $cleaned_string );
 	if ( function_exists( 'mb_strwidth' ) && function_exists( 'mb_detect_encoding' ) ) {
 		$real_length = mb_strwidth( $cleaned_string, mb_detect_encoding( $string ) );
 	} else {

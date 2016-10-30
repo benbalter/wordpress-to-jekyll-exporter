@@ -156,7 +156,7 @@ class TextDescriptor extends Descriptor
             $this->writeText("\n");
             $this->writeText('<comment>Help:</comment>', $options);
             $this->writeText("\n");
-            $this->writeText(' '.str_replace("\n", "\n ", $help), $options);
+            $this->writeText('  '.str_replace("\n", "\n  ", $help), $options);
             $this->writeText("\n");
         }
     }
@@ -173,7 +173,7 @@ class TextDescriptor extends Descriptor
             $width = $this->getColumnWidth($description->getCommands());
 
             foreach ($description->getCommands() as $command) {
-                $this->writeText(sprintf("%-${width}s %s", $command->getName(), $command->getDescription()), $options);
+                $this->writeText(sprintf("%-{$width}s %s", $command->getName(), $command->getDescription()), $options);
                 $this->writeText("\n");
             }
         } else {

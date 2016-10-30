@@ -11,16 +11,16 @@
 
 namespace Alchemy\Zippy;
 
-use Alchemy\Zippy\Adapter\AdapterInterface;
 use Alchemy\Zippy\Adapter\AdapterContainer;
+use Alchemy\Zippy\Adapter\AdapterInterface;
 use Alchemy\Zippy\Archive\ArchiveInterface;
 use Alchemy\Zippy\Exception\ExceptionInterface;
 use Alchemy\Zippy\Exception\FormatNotSupportedException;
 use Alchemy\Zippy\Exception\NoAdapterOnPlatformException;
 use Alchemy\Zippy\Exception\RuntimeException;
 use Alchemy\Zippy\FileStrategy\FileStrategyInterface;
-use Alchemy\Zippy\FileStrategy\TarFileStrategy;
 use Alchemy\Zippy\FileStrategy\TarBz2FileStrategy;
+use Alchemy\Zippy\FileStrategy\TarFileStrategy;
 use Alchemy\Zippy\FileStrategy\TarGzFileStrategy;
 use Alchemy\Zippy\FileStrategy\TB2FileStrategy;
 use Alchemy\Zippy\FileStrategy\TBz2FileStrategy;
@@ -48,8 +48,8 @@ class Zippy
      * Creates an archive
      *
      * @param string                         $path
-     * @param String|Array|\Traversable|null $files
-     * @param Boolean                        $recursive
+     * @param string|array|\Traversable|null $files
+     * @param bool                           $recursive
      * @param string|null                    $type
      *
      * @return ArchiveInterface

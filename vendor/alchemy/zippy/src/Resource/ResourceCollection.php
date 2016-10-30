@@ -17,31 +17,34 @@ use Doctrine\Common\Collections\ArrayCollection;
 class ResourceCollection extends ArrayCollection
 {
     private $context;
+    /**
+     * @var bool
+     */
     private $temporary;
 
     /**
      * Constructor
-     *
-     * @param String     $context
+     * @param string $context
      * @param Resource[] $elements An array of Resource
+     * @param bool $temporary
      */
     public function __construct($context, array $elements, $temporary)
     {
-        array_walk($elements, function ($element) {
+        array_walk($elements, function($element) {
             if (!$element instanceof Resource) {
                 throw new InvalidArgumentException('ResourceCollection only accept Resource elements');
             }
         });
 
         $this->context = $context;
-        $this->temporary = (Boolean) $temporary;
+        $this->temporary = (bool) $temporary;
         parent::__construct($elements);
     }
 
     /**
      * Returns the context related to the collection
      *
-     * @return String
+     * @return string
      */
     public function getContext()
     {
@@ -54,7 +57,7 @@ class ResourceCollection extends ArrayCollection
      * A ResourceCollection is temporary when it required a temporary folder to
      * fetch data
      *
-     * @return type
+     * @return bool
      */
     public function isTemporary()
     {
@@ -64,7 +67,7 @@ class ResourceCollection extends ArrayCollection
     /**
      * Returns true if all resources can be processed in place, false otherwise
      *
-     * @return Boolean
+     * @return bool
      */
     public function canBeProcessedInPlace()
     {

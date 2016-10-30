@@ -13,6 +13,7 @@
 namespace Alchemy\Zippy\Adapter\VersionProbe;
 
 use Alchemy\Zippy\ProcessBuilder\ProcessBuilderFactoryInterface;
+use Symfony\Component\Process\Process;
 
 abstract class AbstractTarVersionProbe implements VersionProbeInterface
 {
@@ -42,6 +43,7 @@ abstract class AbstractTarVersionProbe implements VersionProbeInterface
         $good = true;
 
         foreach (array($this->inflator, $this->deflator) as $builder) {
+            /** @var Process $process */
             $process = $builder
                 ->create()
                 ->add('--version')

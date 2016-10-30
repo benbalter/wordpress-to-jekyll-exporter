@@ -2,6 +2,8 @@
 
 namespace WP_CLI;
 
+use WP_CLI;
+
 abstract class CommandWithUpgrade extends \WP_CLI_Command {
 
 	protected $item_type;
@@ -11,12 +13,9 @@ abstract class CommandWithUpgrade extends \WP_CLI_Command {
 	protected $upgrade_transient;
 
 	function __construct() {
-		// After updating plugins/themes also update translations by running the `core language update` command.
+		// Do not automatically check translations updates after updating plugins/themes.
 		add_action( 'upgrader_process_complete', function() {
 			remove_action( 'upgrader_process_complete', array( 'Language_Pack_Upgrader', 'async_upgrade' ), 20 );
-			if ( Utils\wp_version_compare( '4.0', '>=' ) ) {
-				\WP_CLI::run_command( array( 'core', 'language', 'update' ), array( 'dry-run' => false ) );
-			}
 		}, 1 );
 	}
 
@@ -120,6 +119,12 @@ abstract class CommandWithUpgrade extends \WP_CLI_Command {
 	function install( $args, $assoc_args ) {
 
 		foreach ( $args as $slug ) {
+
+			if ( empty( $slug ) ) {
+				WP_CLI::warning( "Ignoring ambigious empty slug value." );
+				continue;
+			}
+
 			$local_or_remote_zip_file = false;
 			$result = false;
 
@@ -132,9 +137,31 @@ abstract class CommandWithUpgrade extends \WP_CLI_Command {
 				// Install from local or remote zip file
 				$file_upgrader = $this->get_upgrader( $assoc_args );
 
+				$filter = false;
+				if ( strpos( $local_or_remote_zip_file, '://' ) !== false
+						&& 'github.com' === parse_url( $local_or_remote_zip_file, PHP_URL_HOST ) ) {
+					$filter = function( $source, $remote_source, $upgrader ) use ( $local_or_remote_zip_file ) {
+						$branch_length = strlen( pathinfo( $local_or_remote_zip_file, PATHINFO_FILENAME ) );
+						if ( $branch_length ) {
+							$new_path = substr( rtrim( $source, '/' ), 0, - ( $branch_length + 1 ) ) . '/';
+							if ( $GLOBALS['wp_filesystem']->move( $source, $new_path ) ) {
+								WP_CLI::log( "Renamed Github-based project from '" . basename( $source ) . "' to '" . basename( $new_path ) . "'." );
+								return $new_path;
+							} else {
+								return new \WP_CLI( 'wpcli_install_gitub', "Couldn't move Github-based project to appropriate directory." );
+							}
+						}
+						return $source;
+					};
+					add_filter( 'upgrader_source_selection', $filter, 10, 3 );
+				}
+
 				if ( $file_upgrader->install( $local_or_remote_zip_file ) ) {
 					$slug = $file_upgrader->result['destination_name'];
 					$result = true;
+					if ( $filter ) {
+						remove_filter( 'upgrader_source_selection', $filter, 10, 3 );
+					}
 				}
 			} else {
 				// Assume a plugin/theme slug from the WordPress.org repository has been specified
@@ -215,6 +242,11 @@ abstract class CommandWithUpgrade extends \WP_CLI_Command {
 	protected function update_many( $args, $assoc_args ) {
 		call_user_func( $this->upgrade_refresh );
 
+		if ( ! empty( $assoc_args['format'] ) && in_array( $assoc_args['format'], array( 'json', 'csv' ) ) ) {
+			$logger = new \WP_CLI\Loggers\Quiet;
+			\WP_CLI::set_logger( $logger );
+		}
+
 		if ( ! \WP_CLI\Utils\get_flag_value( $assoc_args, 'all' ) && empty( $args ) ) {
 			\WP_CLI::error( "Please specify one or more {$this->item_type}s, or use --all." );
 		}
@@ -235,10 +267,17 @@ abstract class CommandWithUpgrade extends \WP_CLI_Command {
 				return;
 			}
 
-			\WP_CLI::line( "Available {$this->item_type} updates:" );
-
-			\WP_CLI\Utils\format_items( 'table', $items_to_update,
-				array( 'name', 'status', 'version', 'update_version' ) );
+			if ( ! empty( $assoc_args['format'] ) && in_array( $assoc_args['format'], array( 'json', 'csv' ) ) ) {
+				\WP_CLI\Utils\format_items( $assoc_args['format'], $items_to_update, array( 'name', 'status', 'version', 'update_version' ) );
+			} else if ( ! empty( $assoc_args['format'] ) && 'summary' === $assoc_args['format'] ) {
+				\WP_CLI::line( "Available {$this->item_type} updates:" );
+				foreach( $items_to_update as $item_to_update => $info ) {
+					\WP_CLI::log( "{$info['title']} update from version {$info['version']} to version {$info['update_version']}" );
+				}
+			} else {
+				\WP_CLI::line( "Available {$this->item_type} updates:" );
+				\WP_CLI\Utils\format_items( 'table', $items_to_update, array( 'name', 'status', 'version', 'update_version' ) );
+			}
 
 			return;
 		}
@@ -285,7 +324,13 @@ abstract class CommandWithUpgrade extends \WP_CLI_Command {
 						'status' => $result[ $info['update_id'] ] !== null ? 'Updated' : 'Error',
 					);
 				}
-				\WP_CLI\Utils\format_items( 'table', $status, array( 'name', 'old_version', 'new_version', 'status' ) );
+
+				$format = 'table';
+				if ( ! empty( $assoc_args['format'] ) && in_array( $assoc_args['format'], array( 'json', 'csv' ) ) ) {
+					$format = $assoc_args['format'];
+				}
+
+				\WP_CLI\Utils\format_items( $format, $status, array( 'name', 'old_version', 'new_version', 'status' ) );
 			}
 		}
 	}
@@ -357,12 +402,14 @@ abstract class CommandWithUpgrade extends \WP_CLI_Command {
 			'active' => 'A',
 			'active-network' => 'N',
 			'must-use' => 'M',
+			'parent' => 'P',
 		),
 		'long' => array(
 			'inactive' => 'Inactive',
 			'active' => 'Active',
 			'active-network' => 'Network Active',
 			'must-use' => 'Must Use',
+			'parent' => 'Parent',
 		)
 	);
 
@@ -376,6 +423,7 @@ abstract class CommandWithUpgrade extends \WP_CLI_Command {
 			'active' => '%g',
 			'active-network' => '%g',
 			'must-use' => '%c',
+			'parent' => '%p',
 		);
 
 		return $colors[ $status ];
@@ -392,15 +440,22 @@ abstract class CommandWithUpgrade extends \WP_CLI_Command {
 
 		$defaults = array(
 			'per-page' => 10,
-			'fields' => array( 'name', 'slug', 'rating' )
+			'page' => 1,
+			'fields' => implode( ',', array( 'name', 'slug', 'rating' ) ),
 		);
 		$assoc_args = array_merge( $defaults, $assoc_args );
+		$fields = array();
+		foreach( explode( ',', $assoc_args['fields'] ) as $field ) {
+			$fields[ $field ] = true;
+		}
 
 		$formatter = $this->get_formatter( $assoc_args );
 
 		$api_args = array(
 			'per_page' => (int) $assoc_args['per-page'],
+			'page' => (int) $assoc_args['page'],
 			'search' => $term,
+			'fields' => $fields,
 		);
 
 		if ( 'plugin' == $this->item_type ) {

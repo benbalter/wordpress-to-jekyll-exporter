@@ -30,7 +30,7 @@ class PHPUnit_Runner_Version
         }
 
         if (self::$version === null) {
-            $version       = new SebastianBergmann\Version('4.8.21', dirname(dirname(__DIR__)));
+            $version       = new SebastianBergmann\Version('4.8.27', dirname(dirname(__DIR__)));
             self::$version = $version->getVersion();
         }
 
@@ -44,7 +44,14 @@ class PHPUnit_Runner_Version
      */
     public static function series()
     {
-        return implode('.', array_slice(explode('.', self::id()), 0, 2));
+        if (strpos(self::id(), '-')) {
+            $tmp     = explode('-', self::id());
+            $version = $tmp[0];
+        } else {
+            $version = self::id();
+        }
+
+        return implode('.', array_slice(explode('.', $version), 0, 2));
     }
 
     /**
@@ -62,12 +69,8 @@ class PHPUnit_Runner_Version
      */
     public static function getReleaseChannel()
     {
-        if (strpos(self::$pharVersion, 'alpha') !== false) {
-            return '-alpha';
-        }
-
-        if (strpos(self::$pharVersion, 'beta') !== false) {
-            return '-beta';
+        if (strpos(self::$pharVersion, '-') !== false) {
+            return '-nightly';
         }
 
         return '';
