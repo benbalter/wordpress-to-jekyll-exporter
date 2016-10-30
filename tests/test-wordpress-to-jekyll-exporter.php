@@ -105,7 +105,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 	function test_convert_meta() {
 		global $jekyll_export;
 		$posts = $jekyll_export->get_posts();
-		$post = get_post( $posts[2] );
+		$post = get_post( $posts[0] );
 		$meta = $jekyll_export->convert_meta( $post );
 		$expected = array(
 		'id'        => $post->ID,
@@ -126,7 +126,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 	function test_convert_terms() {
 		global $jekyll_export;
 		$posts = $jekyll_export->get_posts();
-		$post = get_post( $posts[2] );
+		$post = get_post( $posts[0] );
 		$terms = $jekyll_export->convert_terms( $post->ID );
 		$this->assertEquals( array( 0 => 'Testing' ), $terms['categories'] );
 		$this->assertEquals( array( 0 => 'tag1', 1 => 'tag2' ), $terms['tags'] );
@@ -138,7 +138,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 	function test_convert_content() {
 		global $jekyll_export;
 		$posts = $jekyll_export->get_posts();
-		$post = get_post( $posts[2] );
+		$post = get_post( $posts[0] );
 		$content = $jekyll_export->convert_content( $post );
 		$this->assertEquals( 'This is a test **post**.', $content );
 	}
@@ -217,7 +217,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 	function test_write() {
 		global $jekyll_export;
 		$posts = $jekyll_export->get_posts();
-		$post = get_post( $posts[2] );
+		$post = get_post( $posts[0] );
 		$jekyll_export->write( 'Foo', $post );
 		$post = $jekyll_export->dir . '/_posts/2014-01-01-test-post.md';
 		$this->assertTrue( file_exists( $post ) );

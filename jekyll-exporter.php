@@ -125,10 +125,27 @@ class Jekyll_Export {
 	 * Note: We don't use core's get_posts as it doesn't scale as well on large sites
 	 */
 	function get_posts() {
-
 		global $wpdb;
+
+		if ( $posts = wp_cache_get( 'jekyll_export_posts' ) ) {
+			return $posts;
+		}
+
+		$posts = array();
 		$post_types = apply_filters( 'jekyll_export_post_types', array( 'post', 'page' ) );
-		return $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_status = 'publish' AND post_type IN (%s)", $post_types ) );
+
+		/**
+		 * WordPress style rules don't let us interpolate a string before passing it to
+		 * $wpdb->prepare, but I can't find any other way to do an "IN" query
+		 * So query each post_type individually and merge the IDs
+		 */
+		foreach ( $post_types as $post_type ) {
+			$ids = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_status = 'publish' AND post_type = %s", $post_type ) );
+			$posts = array_merge( $posts, $ids );
+		}
+
+		wp_cache_set( 'jekyll_export_posts', $posts );
+		return $posts;
 
 	}
 
@@ -191,7 +208,7 @@ class Jekyll_Export {
 		$output = array();
 		foreach ( get_taxonomies( array( 'object_type' => array( get_post_type( $post ) ) ) ) as $tax ) {
 
-			$terms = wp_get_post_terms( $post, $tax );
+			$terms = get_the_terms( $post, $tax );
 
 			// Convert tax name for Jekyll.
 			switch ( $tax ) {
