@@ -1,7 +1,7 @@
 === Jekyll Exporter ===
 Contributors: benbalter
 Tags: jekyll, github, github pages, yaml, export
-Requires at least: 4.2
+Requires at least: 4.3
 Tested up to: 4.6.0
 Stable tag: 2.1.1
 License: GPLv3 or later
