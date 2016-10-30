@@ -1,0 +1,3 @@
+#!/bin/sh
+
+phpcbf --standard=WordPress $(find . -name '*.php' -not -path "./vendor/*")
