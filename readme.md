@@ -62,6 +62,17 @@ The custom post type will be exported as a Jekyll collection. You'll need to ini
 
 [View Past Releases](https://github.com/benbalter/wordpress-to-jekyll-exporter/releases)
 
+## Developing locally
+
+1. `git clone https://github.com/benbalter/wordpress-to-jekyll-exporter`
+2. `cd wordpress-to-jekyll-exporter`
+3. `script/bootstrap`
+4. `script/setup`
+
+To run tests
+
+`script/cibuild`
+
 ## License
 
 The project is licensed under the GPLv3 or later
