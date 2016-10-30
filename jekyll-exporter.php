@@ -12,7 +12,7 @@
  * Plugin Name: WordPress to Jekyll Exporter
  * Plugin URI:  https://github.com/benbalter/wordpress-to-jekyll-exporter/
  * Description: Exports WordPress posts, pages, and options as YAML files parsable by Jekyll
- * Version:     2.1.1
+ * Version:     2.2.0
  * Author:      Ben Balter
  * Author URI:  http://ben.balter.com
  * Text Domain: jekyll-export
