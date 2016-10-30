@@ -4,7 +4,7 @@
  *
  * @package    JekyllExporter
  * @author     Ben Balter <ben.balter@github.com>
- * @copyright  2013-2016 Ben Balter
+ * @copyright  2012-2016 Ben Balter
  * @license    GPLv3
  * @link       https://github.com/benbalter/wordpress-to-jekyll-exporter/
  *
@@ -48,7 +48,7 @@ use Alchemy\Zippy\Zippy;
  *
  * @package    JekyllExporter
  * @author     Ben Balter <ben.balter@github.com>
- * @copyright  2013-2016 Ben Balter
+ * @copyright  2012-2016 Ben Balter
  * @license    GPLv3
  * @link       https://github.com/benbalter/wordpress-to-jekyll-exporter/
  */
