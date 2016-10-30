@@ -3,5 +3,9 @@
 set -e
 
 export PATH="$HOME/.composer/vendor/bin:./bin:$PATH"
-phpcs --standard=phpcs.ruleset.xml --warning-severity=0 $(find . -name '*.php' -not -path "./vendor/*")
+
+echo "Running Style checks..."
+phpcs --standard=phpcs.ruleset.xml -p --warning-severity=0 $(find . -name '*.php' -not -path "./vendor/*")
+
+echo "Running unit tests..."
 phpunit
