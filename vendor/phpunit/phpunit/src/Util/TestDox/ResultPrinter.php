@@ -33,12 +33,17 @@ abstract class PHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_Printer i
     /**
      * @var array
      */
-    protected $tests = array();
+    protected $tests = [];
 
     /**
      * @var int
      */
     protected $successful = 0;
+
+    /**
+     * @var int
+     */
+    protected $warned = 0;
 
     /**
      * @var int
@@ -71,13 +76,26 @@ abstract class PHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_Printer i
     protected $currentTestMethodPrettified;
 
     /**
-     * Constructor.
-     *
-     * @param resource $out
+     * @var array
      */
-    public function __construct($out = null)
+    private $groups;
+
+    /**
+     * @var array
+     */
+    private $excludeGroups;
+
+    /**
+     * @param resource $out
+     * @param array    $groups
+     * @param array    $excludeGroups
+     */
+    public function __construct($out = null, array $groups = [], array $excludeGroups = [])
     {
         parent::__construct($out);
+
+        $this->groups        = $groups;
+        $this->excludeGroups = $excludeGroups;
 
         $this->prettifier = new PHPUnit_Util_TestDox_NamePrettifier;
         $this->startRun();
@@ -109,6 +127,25 @@ abstract class PHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_Printer i
 
         $this->testStatus = PHPUnit_Runner_BaseTestRunner::STATUS_ERROR;
         $this->failed++;
+    }
+
+    /**
+     * A warning occurred.
+     *
+     * @param PHPUnit_Framework_Test    $test
+     * @param PHPUnit_Framework_Warning $e
+     * @param float                     $time
+     *
+     * @since Method available since Release 5.1.0
+     */
+    public function addWarning(PHPUnit_Framework_Test $test, PHPUnit_Framework_Warning $e, $time)
+    {
+        if (!$this->isOfInterest($test)) {
+            return;
+        }
+
+        $this->testStatus = PHPUnit_Runner_BaseTestRunner::STATUS_WARNING;
+        $this->warned++;
     }
 
     /**
@@ -152,7 +189,7 @@ abstract class PHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_Printer i
      * @param Exception              $e
      * @param float                  $time
      *
-     * @since  Method available since Release 4.0.0
+     * @since Method available since Release 4.0.0
      */
     public function addRiskyTest(PHPUnit_Framework_Test $test, Exception $e, $time)
     {
@@ -171,7 +208,7 @@ abstract class PHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_Printer i
      * @param Exception              $e
      * @param float                  $time
      *
-     * @since  Method available since Release 3.0.0
+     * @since Method available since Release 3.0.0
      */
     public function addSkippedTest(PHPUnit_Framework_Test $test, Exception $e, $time)
     {
@@ -188,7 +225,7 @@ abstract class PHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_Printer i
      *
      * @param PHPUnit_Framework_TestSuite $suite
      *
-     * @since  Method available since Release 2.2.0
+     * @since Method available since Release 2.2.0
      */
     public function startTestSuite(PHPUnit_Framework_TestSuite $suite)
     {
@@ -199,7 +236,7 @@ abstract class PHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_Printer i
      *
      * @param PHPUnit_Framework_TestSuite $suite
      *
-     * @since  Method available since Release 2.2.0
+     * @since Method available since Release 2.2.0
      */
     public function endTestSuite(PHPUnit_Framework_TestSuite $suite)
     {
@@ -223,24 +260,29 @@ abstract class PHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_Printer i
                 $this->doEndClass();
             }
 
-            $this->currentTestClassPrettified = $this->prettifier->prettifyTestClass($class);
+            $classAnnotations = PHPUnit_Util_Test::parseTestMethodAnnotations($class);
+            if (isset($classAnnotations['class']['testdox'][0])) {
+                $this->currentTestClassPrettified = $classAnnotations['class']['testdox'][0];
+            } else {
+                $this->currentTestClassPrettified = $this->prettifier->prettifyTestClass($class);
+            }
+
             $this->startClass($class);
 
             $this->testClass = $class;
-            $this->tests     = array();
+            $this->tests     = [];
         }
-
-        $prettified = false;
 
         $annotations = $test->getAnnotations();
 
         if (isset($annotations['method']['testdox'][0])) {
             $this->currentTestMethodPrettified = $annotations['method']['testdox'][0];
-            $prettified                        = true;
+        } else {
+            $this->currentTestMethodPrettified = $this->prettifier->prettifyTestMethod($test->getName(false));
         }
 
-        if (!$prettified) {
-            $this->currentTestMethodPrettified = $this->prettifier->prettifyTestMethod($test->getName(false));
+        if ($test instanceof PHPUnit_Framework_TestCase && $test->usesDataProvider()) {
+            $this->currentTestMethodPrettified .= ' ' . $test->dataDescription();
         }
 
         $this->testStatus = PHPUnit_Runner_BaseTestRunner::STATUS_PASSED;
@@ -279,7 +321,7 @@ abstract class PHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_Printer i
     }
 
     /**
-     * @since  Method available since Release 2.3.0
+     * @since Method available since Release 2.3.0
      */
     protected function doEndClass()
     {
@@ -332,8 +374,41 @@ abstract class PHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_Printer i
     {
     }
 
+    /**
+     * @param PHPUnit_Framework_Test $test
+     *
+     * @return bool
+     */
     private function isOfInterest(PHPUnit_Framework_Test $test)
     {
-        return $test instanceof PHPUnit_Framework_TestCase && get_class($test) != 'PHPUnit_Framework_Warning';
+        if (!$test instanceof PHPUnit_Framework_TestCase) {
+            return false;
+        }
+
+        if ($test instanceof PHPUnit_Framework_WarningTestCase) {
+            return false;
+        }
+
+        if (!empty($this->groups)) {
+            foreach ($test->getGroups() as $group) {
+                if (in_array($group, $this->groups)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        if (!empty($this->excludeGroups)) {
+            foreach ($test->getGroups() as $group) {
+                if (in_array($group, $this->excludeGroups)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return true;
     }
 }

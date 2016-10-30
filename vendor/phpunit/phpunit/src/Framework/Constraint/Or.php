@@ -18,14 +18,14 @@ class PHPUnit_Framework_Constraint_Or extends PHPUnit_Framework_Constraint
     /**
      * @var PHPUnit_Framework_Constraint[]
      */
-    protected $constraints = array();
+    protected $constraints = [];
 
     /**
      * @param PHPUnit_Framework_Constraint[] $constraints
      */
     public function setConstraints(array $constraints)
     {
-        $this->constraints = array();
+        $this->constraints = [];
 
         foreach ($constraints as $constraint) {
             if (!($constraint instanceof PHPUnit_Framework_Constraint)) {
@@ -102,7 +102,7 @@ class PHPUnit_Framework_Constraint_Or extends PHPUnit_Framework_Constraint
      *
      * @return int
      *
-     * @since  Method available since Release 3.4.0
+     * @since Method available since Release 3.4.0
      */
     public function count()
     {

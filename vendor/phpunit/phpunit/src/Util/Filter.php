@@ -23,7 +23,7 @@ class PHPUnit_Util_Filter
      *
      * @return string
      */
-    public static function getFilteredStacktrace(Exception $e, $asString = true)
+    public static function getFilteredStacktrace($e, $asString = true)
     {
         $prefix = false;
         $script = realpath($GLOBALS['_SERVER']['SCRIPT_NAME']);
@@ -35,7 +35,7 @@ class PHPUnit_Util_Filter
         if ($asString === true) {
             $filteredStacktrace = '';
         } else {
-            $filteredStacktrace = array();
+            $filteredStacktrace = [];
         }
 
         if ($e instanceof PHPUnit_Framework_SyntheticError) {
@@ -58,7 +58,7 @@ class PHPUnit_Util_Filter
         if (!self::frameExists($eTrace, $eFile, $eLine)) {
             array_unshift(
                 $eTrace,
-                array('file' => $eFile, 'line' => $eLine)
+                ['file' => $eFile, 'line' => $eLine]
             );
         }
 
@@ -91,7 +91,7 @@ class PHPUnit_Util_Filter
      *
      * @return bool
      *
-     * @since  Method available since Release 3.3.2
+     * @since Method available since Release 3.3.2
      */
     private static function frameExists(array $trace, $file, $line)
     {

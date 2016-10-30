@@ -20,27 +20,27 @@ class PHPUnit_Framework_MockObject_Invocation_Static implements PHPUnit_Framewor
     /**
      * @var array
      */
-    protected static $uncloneableExtensions = array(
-      'mysqli'    => true,
-      'SQLite'    => true,
-      'sqlite3'   => true,
-      'tidy'      => true,
-      'xmlwriter' => true,
-      'xsl'       => true
-    );
+    protected static $uncloneableExtensions = [
+        'mysqli'    => true,
+        'SQLite'    => true,
+        'sqlite3'   => true,
+        'tidy'      => true,
+        'xmlwriter' => true,
+        'xsl'       => true
+    ];
 
     /**
      * @var array
      */
-    protected static $uncloneableClasses = array(
-      'Closure',
-      'COMPersistHelper',
-      'IteratorIterator',
-      'RecursiveIteratorIterator',
-      'SplFileObject',
-      'PDORow',
-      'ZipArchive'
-    );
+    protected static $uncloneableClasses = [
+        'Closure',
+        'COMPersistHelper',
+        'IteratorIterator',
+        'RecursiveIteratorIterator',
+        'SplFileObject',
+        'PDORow',
+        'ZipArchive'
+    ];
 
     /**
      * @var string
@@ -58,16 +58,23 @@ class PHPUnit_Framework_MockObject_Invocation_Static implements PHPUnit_Framewor
     public $parameters;
 
     /**
+     * @var string
+     */
+    public $returnType;
+
+    /**
      * @param string $className
-     * @param string $methodname
+     * @param string $methodName
      * @param array  $parameters
+     * @param string $returnType
      * @param bool   $cloneObjects
      */
-    public function __construct($className, $methodName, array $parameters, $cloneObjects = false)
+    public function __construct($className, $methodName, array $parameters, $returnType, $cloneObjects = false)
     {
         $this->className  = $className;
         $this->methodName = $methodName;
         $this->parameters = $parameters;
+        $this->returnType = $returnType;
 
         if (!$cloneObjects) {
             return;
@@ -88,21 +95,54 @@ class PHPUnit_Framework_MockObject_Invocation_Static implements PHPUnit_Framewor
         $exporter = new Exporter;
 
         return sprintf(
-            '%s::%s(%s)',
+            '%s::%s(%s)%s',
             $this->className,
             $this->methodName,
             implode(
                 ', ',
                 array_map(
-                    array($exporter, 'shortenedExport'),
+                    [$exporter, 'shortenedExport'],
                     $this->parameters
                 )
-            )
+            ),
+            $this->returnType ? sprintf(': %s', $this->returnType) : ''
         );
     }
 
     /**
-     * @param  object $original
+     * @return mixed Mocked return value.
+     */
+    public function generateReturnValue()
+    {
+        switch ($this->returnType) {
+            case '':       return;
+            case 'string': return '';
+            case 'float':  return 0.0;
+            case 'int':    return 0;
+            case 'bool':   return false;
+            case 'array':  return [];
+            case 'void':   return;
+
+            case 'callable':
+            case 'Closure':
+                return function () {};
+
+            case 'Traversable':
+            case 'Generator':
+                $generator = function () { yield; };
+
+                return $generator();
+
+            default:
+                $generator = new PHPUnit_Framework_MockObject_Generator;
+
+                return $generator->getMock($this->returnType, [], [], '', false);
+        }
+    }
+
+    /**
+     * @param object $original
+     *
      * @return object
      */
     protected function cloneObject($original)

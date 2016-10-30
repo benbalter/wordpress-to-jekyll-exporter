@@ -28,7 +28,7 @@ class PHPUnit_Util_TestDox_NamePrettifier
     /**
      * @var array
      */
-    protected $strings = array();
+    protected $strings = [];
 
     /**
      * Prettifies the name of a test class.
@@ -83,6 +83,10 @@ class PHPUnit_Util_TestDox_NamePrettifier
 
         if (substr($name, 0, 4) == 'test') {
             $name = substr($name, 4);
+        }
+
+        if (strlen($name) == 0) {
+            return $buffer;
         }
 
         $name[0] = strtoupper($name[0]);
