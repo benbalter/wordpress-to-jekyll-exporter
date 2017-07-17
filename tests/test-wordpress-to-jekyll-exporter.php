@@ -28,7 +28,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 		));
 
 		$category_id = wp_insert_category( array(
-			'cat_name' => "Testing",
+			'cat_name' => 'Testing',
 		) );
 
 		wp_insert_post(array(
@@ -251,7 +251,8 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 		$archive = $zippy->open( $jekyll_export->zip );
 
 		$temp_dir = get_temp_dir() . 'jekyll-export-extract';
-		system( 'rm -rf ' . escapeshellarg( $temp_dir ) );
+		array_map( 'unlink', glob( "$temp_dir/*.*" ) );
+		delete_dir( $temp_dir );
 		mkdir( $temp_dir );
 		$archive->extract( $temp_dir );
 		$this->assertTrue( file_exists( $temp_dir . '/foo.txt' ) );

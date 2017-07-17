@@ -94,11 +94,11 @@ class Jekyll_Export {
 	 */
 	function callback() {
 
-		if ( get_current_screen()->id != 'export' ) {
+		if ( get_current_screen()->id !== 'export' ) {
 			return;
 		}
 
-		if ( ! isset( $_GET['type'] ) ||'jekyll' != $_GET['type'] ) {
+		if ( ! isset( $_GET['type'] ) ||'jekyll' !== $_GET['type'] ) {
 			return;
 		}
 
@@ -129,7 +129,8 @@ class Jekyll_Export {
 	function get_posts() {
 		global $wpdb;
 
-		if ( $posts = wp_cache_get( 'jekyll_export_posts' ) ) {
+		$posts = wp_cache_get( 'jekyll_export_posts' );
+		if ( $posts ) {
 			return $posts;
 		}
 
@@ -169,14 +170,14 @@ class Jekyll_Export {
 		);
 
 		// Preserve exact permalink, since Jekyll doesn't support redirection.
-		if ( 'page' != $post->post_type ) {
+		if ( 'page' !== $post->post_type ) {
 			$output['permalink'] = str_replace( home_url(), '', get_permalink( $post ) );
 		}
 
 		// Convert traditional post_meta values, hide hidden values.
 		foreach ( get_post_custom( $post->ID ) as $key => $value ) {
 
-			if ( substr( $key, 0, 1 ) == '_' ) {
+			if ( substr( $key, 0, 1 ) === '_' ) {
 				continue;
 			}
 
@@ -224,7 +225,7 @@ class Jekyll_Export {
 				break;
 			}
 
-			if ( 'post_format' == $tax ) {
+			if ( 'post_format' === $tax ) {
 				$output['format'] = get_post_format( $post );
 			} else {
 				$output[ $tax ] = wp_list_pluck( $terms, 'name' );
@@ -352,7 +353,7 @@ class Jekyll_Export {
 		$options = wp_load_alloptions();
 		foreach ( $options as $key => &$option ) {
 
-			if ( substr( $key, 0, 1 ) == '_' ) {
+			if ( substr( $key, 0, 1 ) === '_' ) {
 				unset( $options[ $key ] );
 			}
 
@@ -360,7 +361,7 @@ class Jekyll_Export {
 			foreach ( $this->rename_options as $rename ) {
 
 				$len = strlen( $rename );
-				if ( substr( $key, 0, $len ) != $rename ) {
+				if ( substr( $key, 0, $len ) !== $rename ) {
 					continue;
 				}
 
@@ -374,7 +375,7 @@ class Jekyll_Export {
 
 		foreach ( $options as $key => $value ) {
 
-			if ( ! in_array( $key, $this->options ) ) {
+			if ( ! in_array( $key, $this->options, true ) ) {
 				unset( $options[ $key ] );
 			}
 		}
@@ -399,7 +400,7 @@ class Jekyll_Export {
 
 		global $wp_filesystem;
 
-		if ( get_post_type( $post ) == 'page' ) {
+		if ( get_post_type( $post ) === 'page' ) {
 			$wp_filesystem->mkdir( $this->dir . get_page_uri( $post->id ) );
 			$filename = get_page_uri( $post->id ) . '.md';
 		} else {
@@ -462,7 +463,7 @@ class Jekyll_Export {
 	function rename_key( &$array, $from, $to ) {
 
 		$keys = array_keys( $array );
-		$index = array_search( $from, $keys );
+		$index = array_search( $from, $keys, true );
 
 		if ( false === $index ) {
 			return;
@@ -516,9 +517,9 @@ class Jekyll_Export {
 
 		// Loop through the folder.
 		$dir = dir( $source );
-		while ( false !== $entry = $dir->read() ) {
+		while ( $entry = $dir->read() ) {
 			// Skip pointers.
-			if ( '.' == $entry  || '..' == $entry ) {
+			if ( '.' === $entry  || '..' === $entry ) {
 				continue;
 			}
 

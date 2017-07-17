@@ -20,7 +20,7 @@ include '../../../wp-load.php';
 include '../../../wp-admin/includes/file.php';
 require_once 'jekyll-exporter.php'; // Ensure plugin is "activated".
 
-if ( php_sapi_name() != 'cli' ) {
+if ( php_sapi_name() !== 'cli' ) {
 	wp_die( 'Jekyll export must be run via the command line or administrative dashboard.' );
 }
 
