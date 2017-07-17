@@ -328,11 +328,13 @@ class Jekyll_Export {
 	 */
 	function export() {
 		do_action( 'jekyll_export' );
+		ob_start();
 		$this->init_temp_dir();
 		$this->convert_options();
 		$this->convert_posts();
 		$this->convert_uploads();
 		$this->zip();
+		ob_end_clean();
 		$this->send();
 		$this->cleanup();
 	}
