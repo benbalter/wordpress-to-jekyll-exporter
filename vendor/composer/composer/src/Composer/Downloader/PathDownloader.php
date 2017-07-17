@@ -30,12 +30,12 @@ use Symfony\Component\Filesystem\Filesystem;
 class PathDownloader extends FileDownloader implements VcsCapableDownloaderInterface
 {
     const STRATEGY_SYMLINK = 10;
-    const STRATEGY_MIRROR  = 20;
+    const STRATEGY_MIRROR = 20;
 
     /**
      * {@inheritdoc}
      */
-    public function download(PackageInterface $package, $path)
+    public function download(PackageInterface $package, $path, $output = true)
     {
         $url = $package->getDistUrl();
         $realUrl = realpath($url);
@@ -46,6 +46,10 @@ class PathDownloader extends FileDownloader implements VcsCapableDownloaderInter
         }
 
         if (strpos(realpath($path) . DIRECTORY_SEPARATOR, $realUrl . DIRECTORY_SEPARATOR) === 0) {
+            // IMPORTANT NOTICE: If you wish to change this, don't. You are wasting your time and ours.
+            //
+            // Please see https://github.com/composer/composer/pull/5974 and https://github.com/composer/composer/pull/6174
+            // for previous attempts that were shut down because they did not work well enough or introduced too many risks.
             throw new \RuntimeException(sprintf(
                 'Package %s cannot install to "%s" inside its source at "%s"',
                 $package->getName(), realpath($path), $realUrl
@@ -59,6 +63,11 @@ class PathDownloader extends FileDownloader implements VcsCapableDownloaderInter
         $currentStrategy = self::STRATEGY_SYMLINK;
         $allowedStrategies = array(self::STRATEGY_SYMLINK, self::STRATEGY_MIRROR);
 
+        $mirrorPathRepos = getenv('COMPOSER_MIRROR_PATH_REPOS');
+        if ($mirrorPathRepos) {
+            $currentStrategy = self::STRATEGY_MIRROR;
+        }
+
         if (true === $transportOptions['symlink']) {
             $currentStrategy = self::STRATEGY_SYMLINK;
             $allowedStrategies = array(self::STRATEGY_SYMLINK);
@@ -70,18 +79,21 @@ class PathDownloader extends FileDownloader implements VcsCapableDownloaderInter
         $fileSystem = new Filesystem();
         $this->filesystem->removeDirectory($path);
 
-        $this->io->writeError(sprintf(
-            '  - Installing <info>%s</info> (<comment>%s</comment>)',
-            $package->getName(),
-            $package->getFullPrettyVersion()
-        ));
+        if ($output) {
+            $this->io->writeError(sprintf(
+                '  - Installing <info>%s</info> (<comment>%s</comment>): ',
+                $package->getName(),
+                $package->getFullPrettyVersion()
+            ), false);
+        }
 
+        $isFallback = false;
         if (self::STRATEGY_SYMLINK == $currentStrategy) {
             try {
                 if (Platform::isWindows()) {
                     // Implement symlinks as NTFS junctions on Windows
+                    $this->io->writeError(sprintf('Junctioning from %s', $url), false);
                     $this->filesystem->junction($realUrl, $path);
-                    $this->io->writeError(sprintf('    Junctioned from %s', $url));
                 } else {
                     $absolutePath = $path;
                     if (!$this->filesystem->isAbsolutePath($absolutePath)) {
@@ -89,13 +101,15 @@ class PathDownloader extends FileDownloader implements VcsCapableDownloaderInter
                     }
                     $shortestPath = $this->filesystem->findShortestPath($absolutePath, $realUrl);
                     $path = rtrim($path, "/");
+                    $this->io->writeError(sprintf('Symlinking from %s', $url), false);
                     $fileSystem->symlink($shortestPath, $path);
-                    $this->io->writeError(sprintf('    Symlinked from %s', $url));
                 }
             } catch (IOException $e) {
                 if (in_array(self::STRATEGY_MIRROR, $allowedStrategies)) {
+                    $this->io->writeError('');
                     $this->io->writeError('    <error>Symlink failed, fallback to use mirroring!</error>');
                     $currentStrategy = self::STRATEGY_MIRROR;
+                    $isFallback = true;
                 } else {
                     throw new \RuntimeException(sprintf('Symlink from "%s" to "%s" failed!', $realUrl, $path));
                 }
@@ -104,8 +118,8 @@ class PathDownloader extends FileDownloader implements VcsCapableDownloaderInter
 
         // Fallback if symlink failed or if symlink is not allowed for the package
         if (self::STRATEGY_MIRROR == $currentStrategy) {
+            $this->io->writeError(sprintf('%sMirroring from %s', $isFallback ? '    ' : '', $url), false);
             $fileSystem->mirror($realUrl, $path);
-            $this->io->writeError(sprintf('    Mirrored from %s', $url));
         }
 
         $this->io->writeError('');
@@ -114,7 +128,7 @@ class PathDownloader extends FileDownloader implements VcsCapableDownloaderInter
     /**
      * {@inheritDoc}
      */
-    public function remove(PackageInterface $package, $path)
+    public function remove(PackageInterface $package, $path, $output = true)
     {
         /**
          * For junctions don't blindly rely on Filesystem::removeDirectory as it may be overzealous. If a process
@@ -122,13 +136,15 @@ class PathDownloader extends FileDownloader implements VcsCapableDownloaderInter
          * is disastrous within a junction. So in that case we have no other real choice but to fail hard.
          */
         if (Platform::isWindows() && $this->filesystem->isJunction($path)) {
-            $this->io->writeError("  - Removing junction for <info>" . $package->getName() . "</info> (<comment>" . $package->getFullPrettyVersion() . "</comment>)");
+            if ($output) {
+                $this->io->writeError("  - Removing junction for <info>" . $package->getName() . "</info> (<comment>" . $package->getFullPrettyVersion() . "</comment>)");
+            }
             if (!$this->filesystem->removeJunction($path)) {
-                $this->io->writeError("<warn>Could not remove junction at " . $path . " - is another process locking it?</warn>");
+                $this->io->writeError("    <warn>Could not remove junction at " . $path . " - is another process locking it?</warn>");
                 throw new \RuntimeException('Could not reliably remove junction for package ' . $package->getName());
             }
         } else {
-            parent::remove($package, $path);
+            parent::remove($package, $path, $output);
         }
     }
 

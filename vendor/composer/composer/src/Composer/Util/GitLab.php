@@ -64,6 +64,15 @@ class GitLab
             return true;
         }
 
+        // if available use token from composer config
+        $authTokens = $this->config->get('gitlab-token');
+
+        if (isset($authTokens[$originUrl])) {
+            $this->io->setAuthentication($originUrl, $authTokens[$originUrl], 'private-token');
+
+            return true;
+        }
+
         return false;
     }
 
@@ -135,7 +144,7 @@ class GitLab
             'username' => $username,
             'password' => $password,
             'grant_type' => 'password',
-        ));
+        ), null, '&');
         $options = array(
             'retry-auth-failure' => false,
             'http' => array(

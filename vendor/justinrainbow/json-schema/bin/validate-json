@@ -17,7 +17,6 @@ function __autoload($className)
 {
     $className = ltrim($className, '\\');
     $fileName  = '';
-    $namespace = '';
     if ($lastNsPos = strrpos($className, '\\')) {
         $namespace = substr($className, 0, $lastNsPos);
         $className = substr($className, $lastNsPos + 1);
@@ -28,61 +27,6 @@ function __autoload($className)
         require_once $fileName;
     }
 }
-
-/**
- * Show the json parse error that happened last
- *
- * @return void
- */
-function showJsonError()
-{
-    $constants = get_defined_constants(true);
-    $json_errors = array();
-    foreach ($constants['json'] as $name => $value) {
-        if (!strncmp($name, 'JSON_ERROR_', 11)) {
-            $json_errors[$value] = $name;
-        }
-    }
-
-    echo 'JSON parse error: ' . $json_errors[json_last_error()] . "\n";
-}
-
-function getUrlFromPath($path)
-{
-    if (parse_url($path, PHP_URL_SCHEME) !== null) {
-        //already an URL
-        return $path;
-    }
-    if ($path{0} == '/') {
-        //absolute path
-        return 'file://' . $path;
-    }
-
-    //relative path: make absolute
-    return 'file://' . getcwd() . '/' . $path;
-}
-
-/**
- * Take a HTTP header value and split it up into parts.
- *
- * @return array Key "_value" contains the main value, all others
- *               as given in the header value
- */
-function parseHeaderValue($headerValue)
-{
-    if (strpos($headerValue, ';') === false) {
-        return array('_value' => $headerValue);
-    }
-
-    $parts = explode(';', $headerValue);
-    $arData = array('_value' => array_shift($parts));
-    foreach ($parts as $part) {
-        list($name, $value) = explode('=', $part);
-        $arData[$name] = trim($value, ' "\'');
-    }
-    return $arData;
-}
-
 
 // support running this tool from git checkout
 if (is_dir(__DIR__ . '/../src/JsonSchema')) {
@@ -111,6 +55,8 @@ Usage: validate-json data.json
 Options:
       --dump-schema     Output full schema and exit
       --dump-schema-url Output URL of schema
+      --verbose         Show additional output
+      --quiet           Suppress all output
    -h --help            Show this help
 
 HLP;
@@ -123,6 +69,73 @@ if (count($arArgs) == 1) {
 } else {
     $pathData   = $arArgs[0];
     $pathSchema = getUrlFromPath($arArgs[1]);
+}
+
+/**
+ * Show the json parse error that happened last
+ *
+ * @return void
+ */
+function showJsonError()
+{
+    $constants = get_defined_constants(true);
+    $json_errors = array();
+    foreach ($constants['json'] as $name => $value) {
+        if (!strncmp($name, 'JSON_ERROR_', 11)) {
+            $json_errors[$value] = $name;
+        }
+    }
+
+    output('JSON parse error: ' . $json_errors[json_last_error()] . "\n");
+}
+
+function getUrlFromPath($path)
+{
+    if (parse_url($path, PHP_URL_SCHEME) !== null) {
+        //already an URL
+        return $path;
+    }
+    if ($path{0} == '/') {
+        //absolute path
+        return 'file://' . $path;
+    }
+
+    //relative path: make absolute
+    return 'file://' . getcwd() . '/' . $path;
+}
+
+/**
+ * Take a HTTP header value and split it up into parts.
+ *
+ * @param $headerValue
+ * @return array Key "_value" contains the main value, all others
+ *               as given in the header value
+ */
+function parseHeaderValue($headerValue)
+{
+    if (strpos($headerValue, ';') === false) {
+        return array('_value' => $headerValue);
+    }
+
+    $parts = explode(';', $headerValue);
+    $arData = array('_value' => array_shift($parts));
+    foreach ($parts as $part) {
+        list($name, $value) = explode('=', $part);
+        $arData[$name] = trim($value, ' "\'');
+    }
+    return $arData;
+}
+
+/**
+ * Send a string to the output stream, but only if --quiet is not enabled
+ *
+ * @param $str A string output
+ */
+function output($str) {
+    global $arOptions;
+    if (!isset($arOptions['--quiet'])) {
+        echo $str;
+    }
 }
 
 $urlData = getUrlFromPath($pathData);
@@ -140,14 +153,14 @@ $context = stream_context_create(
 );
 $dataString = file_get_contents($pathData, false, $context);
 if ($dataString == '') {
-    echo "Data file is not readable or empty.\n";
+    output("Data file is not readable or empty.\n");
     exit(3);
 }
 
 $data = json_decode($dataString);
 unset($dataString);
 if ($data === null) {
-    echo "Error loading JSON data file\n";
+    output("Error loading JSON data file\n");
     showJsonError();
     exit(5);
 }
@@ -181,9 +194,9 @@ if ($pathSchema === null) {
 
     //autodetect schema
     if ($pathSchema === null) {
-        echo "JSON data must be an object and have a \$schema property.\n";
-        echo "You can pass the schema file on the command line as well.\n";
-        echo "Schema autodetection failed.\n";
+        output("JSON data must be an object and have a \$schema property.\n");
+        output("You can pass the schema file on the command line as well.\n");
+        output("Schema autodetection failed.\n");
         exit(6);
     }
 }
@@ -201,13 +214,13 @@ try {
         exit();
     }
 } catch (Exception $e) {
-    echo "Error loading JSON schema file\n";
-    echo $urlSchema . "\n";
-    echo $e->getMessage() . "\n";
+    output("Error loading JSON schema file\n");
+    output($urlSchema . "\n");
+    output($e->getMessage() . "\n");
     exit(2);
 }
-$refResolver = new JsonSchema\RefResolver($retriever, $resolver);
-$schema = $refResolver->resolve($urlSchema);
+$refResolver = new JsonSchema\SchemaStorage($retriever, $resolver);
+$schema = $refResolver->resolveRef($urlSchema);
 
 if (isset($arOptions['--dump-schema'])) {
     $options = defined('JSON_PRETTY_PRINT') ? JSON_PRETTY_PRINT : 0;
@@ -220,17 +233,19 @@ try {
     $validator->check($data, $schema);
 
     if ($validator->isValid()) {
-        echo "OK. The supplied JSON validates against the schema.\n";
+        if(isset($arOptions['--verbose'])) {
+            output("OK. The supplied JSON validates against the schema.\n");
+        }
     } else {
-        echo "JSON does not validate. Violations:\n";
+        output("JSON does not validate. Violations:\n");
         foreach ($validator->getErrors() as $error) {
-            echo sprintf("[%s] %s\n", $error['property'], $error['message']);
+            output(sprintf("[%s] %s\n", $error['property'], $error['message']));
         }
         exit(23);
     }
 } catch (Exception $e) {
-    echo "JSON does not validate. Error:\n";
-    echo $e->getMessage() . "\n";
-    echo "Error code: " . $e->getCode() . "\n";
+    output("JSON does not validate. Error:\n");
+    output($e->getMessage() . "\n");
+    output("Error code: " . $e->getCode() . "\n");
     exit(24);
 }

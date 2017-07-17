@@ -32,9 +32,6 @@ class GitLabDriver extends VcsDriver
     private $owner;
     private $repository;
 
-    private $cache;
-    private $infoCache = array();
-
     /**
      * @var array Project data returned by GitLab API
      */
@@ -61,6 +58,13 @@ class GitLabDriver extends VcsDriver
      * @var GitDriver
      */
     protected $gitDriver;
+
+    /**
+     * Defaults to true unless we can make sure it is public
+     *
+     * @var bool defines whether the repo is private or not
+     */
+    private $isPrivate = true;
 
     const URL_REGEX = '#^(?:(?P<scheme>https?)://(?P<domain>.+?)/|git@(?P<domain2>[^:]+):)(?P<owner>[^/]+)/(?P<repo>[^/]+?)(?:\.git|/)?$#';
 
@@ -99,14 +103,14 @@ class GitLabDriver extends VcsDriver
     }
 
     /**
-     * Fetches the composer.json file from the project by a identifier.
-     *
-     * if specific keys arent present it will try and infer them by default values.
-     *
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
-    public function getComposerInformation($identifier)
+    public function getFileContent($file, $identifier)
     {
+        if ($this->gitDriver) {
+            return $this->gitDriver->getFileContent($file, $identifier);
+        }
+
         // Convert the root identifier to a cachable commit id
         if (!preg_match('{[a-f0-9]{40}}i', $identifier)) {
             $branches = $this->getBranches();
@@ -115,32 +119,35 @@ class GitLabDriver extends VcsDriver
             }
         }
 
-        if (isset($this->infoCache[$identifier])) {
-            return $this->infoCache[$identifier];
-        }
-
-        if (preg_match('{[a-f0-9]{40}}i', $identifier) && $res = $this->cache->read($identifier)) {
-            return $this->infoCache[$identifier] = JsonFile::parseJson($res, $res);
-        }
+        $resource = $this->getApiUrl().'/repository/blobs/'.$identifier.'?filepath=' . $file;
 
         try {
-            $composer = $this->fetchComposerFile($identifier);
+            $content = $this->getContents($resource);
         } catch (TransportException $e) {
             if ($e->getCode() !== 404) {
                 throw $e;
             }
-            $composer = false;
+
+            return null;
         }
 
-        if ($composer && !isset($composer['time']) && isset($this->commits[$identifier])) {
-            $composer['time'] = $this->commits[$identifier]['committed_date'];
+        return $content;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getChangeDate($identifier)
+    {
+        if ($this->gitDriver) {
+            return $this->gitDriver->getChangeDate($identifier);
         }
 
-        if (preg_match('{[a-f0-9]{40}}i', $identifier)) {
-            $this->cache->write($identifier, json_encode($composer));
+        if (isset($this->commits[$identifier])) {
+            return new \DateTime($this->commits[$identifier]['committed_date']);
         }
 
-        return $this->infoCache[$identifier] = $composer;
+        return new \DateTime();
     }
 
     /**
@@ -148,7 +155,7 @@ class GitLabDriver extends VcsDriver
      */
     public function getRepositoryUrl()
     {
-        return $this->project['ssh_url_to_repo'];
+        return $this->isPrivate ? $this->project['ssh_url_to_repo'] : $this->project['http_url_to_repo'];
     }
 
     /**
@@ -156,6 +163,10 @@ class GitLabDriver extends VcsDriver
      */
     public function getUrl()
     {
+        if ($this->gitDriver) {
+            return $this->gitDriver->getUrl();
+        }
+
         return $this->project['web_url'];
     }
 
@@ -174,6 +185,10 @@ class GitLabDriver extends VcsDriver
      */
     public function getSource($identifier)
     {
+        if ($this->gitDriver) {
+            return $this->gitDriver->getSource($identifier);
+        }
+
         return array('type' => 'git', 'url' => $this->getRepositoryUrl(), 'reference' => $identifier);
     }
 
@@ -182,6 +197,10 @@ class GitLabDriver extends VcsDriver
      */
     public function getRootIdentifier()
     {
+        if ($this->gitDriver) {
+            return $this->gitDriver->getRootIdentifier();
+        }
+
         return $this->project['default_branch'];
     }
 
@@ -190,6 +209,10 @@ class GitLabDriver extends VcsDriver
      */
     public function getBranches()
     {
+        if ($this->gitDriver) {
+            return $this->gitDriver->getBranches();
+        }
+
         if (!$this->branches) {
             $this->branches = $this->getReferences('branches');
         }
@@ -202,6 +225,10 @@ class GitLabDriver extends VcsDriver
      */
     public function getTags()
     {
+        if ($this->gitDriver) {
+            return $this->gitDriver->getTags();
+        }
+
         if (!$this->tags) {
             $this->tags = $this->getReferences('tags');
         }
@@ -210,25 +237,31 @@ class GitLabDriver extends VcsDriver
     }
 
     /**
-     * Fetches composer.json file from the repository through api.
-     *
-     * @param string $identifier
-     *
-     * @return array
-     */
-    protected function fetchComposerFile($identifier)
-    {
-        $resource = $this->getApiUrl().'/repository/blobs/'.$identifier.'?filepath=composer.json';
-
-        return JsonFile::parseJson($this->getContents($resource), $resource);
-    }
-
-    /**
      * @return string Base URL for GitLab API v3
      */
     public function getApiUrl()
     {
-        return $this->scheme.'://'.$this->originUrl.'/api/v3/projects/'.$this->owner.'%2F'.$this->repository;
+        return $this->scheme.'://'.$this->originUrl.'/api/v3/projects/'.$this->urlEncodeAll($this->owner).'%2F'.$this->urlEncodeAll($this->repository);
+    }
+
+    /**
+     * Urlencode all non alphanumeric characters. rawurlencode() can not be used as it does not encode `.`
+     *
+     * @param  string $string
+     * @return string
+     */
+    private function urlEncodeAll($string)
+    {
+        $encoded = '';
+        for ($i = 0; isset($string[$i]); $i++) {
+            $character = $string[$i];
+            if (!ctype_alnum($character) && !in_array($character, array('-', '_'), true)) {
+                $character = '%' . sprintf('%02X', ord($character));
+            }
+            $encoded .= $character;
+        }
+
+        return $encoded;
     }
 
     /**
@@ -260,21 +293,28 @@ class GitLabDriver extends VcsDriver
         // we need to fetch the default branch from the api
         $resource = $this->getApiUrl();
         $this->project = JsonFile::parseJson($this->getContents($resource, true), $resource);
+        $this->isPrivate = !$this->project['public'];
     }
 
     protected function attemptCloneFallback()
     {
         try {
+            if ($this->isPrivate === false) {
+                $url = $this->generatePublicUrl();
+            } else {
+                $url = $this->generateSshUrl();
+            }
+
             // If this repository may be private and we
             // cannot ask for authentication credentials (because we
             // are not interactive) then we fallback to GitDriver.
-            $this->setupGitDriver($this->generateSshUrl());
+            $this->setupGitDriver($url);
 
             return;
         } catch (\RuntimeException $e) {
             $this->gitDriver = null;
 
-            $this->io->writeError('<error>Failed to clone the '.$this->generateSshUrl().' repository, try running in interactive mode so that you can enter your credentials</error>');
+            $this->io->writeError('<error>Failed to clone the '.$url.' repository, try running in interactive mode so that you can enter your credentials</error>');
             throw $e;
         }
     }
@@ -287,6 +327,11 @@ class GitLabDriver extends VcsDriver
     protected function generateSshUrl()
     {
         return 'git@' . $this->originUrl . ':'.$this->owner.'/'.$this->repository.'.git';
+    }
+
+    protected function generatePublicUrl()
+    {
+        return 'https://' . $this->originUrl . '/'.$this->owner.'/'.$this->repository.'.git';
     }
 
     protected function setupGitDriver($url)
@@ -307,7 +352,22 @@ class GitLabDriver extends VcsDriver
     protected function getContents($url, $fetchingRepoData = false)
     {
         try {
-            return parent::getContents($url);
+            $res = parent::getContents($url);
+
+            if ($fetchingRepoData) {
+                $json = JsonFile::parseJson($res, $url);
+
+                // force auth as the unauthenticated version of the API is broken
+                if (!isset($json['default_branch'])) {
+                    if (!empty($json['id'])) {
+                        $this->isPrivate = false;
+                    }
+
+                    throw new TransportException('GitLab API seems to not be authenticated as it did not return a default_branch', 401);
+                }
+            }
+
+            return $res;
         } catch (TransportException $e) {
             $gitLabUtil = new GitLab($this->io, $this->config, $this->process, $this->remoteFilesystem);
 

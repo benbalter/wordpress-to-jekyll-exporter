@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:annotation>
-    <xs:documentation source="https://phpunit.de/manual/5.6/en/appendixes.configuration.html">
-      This Schema file defines the rules by which the XML configuration file of PHPUnit 5.6 may be structured.
+    <xs:documentation source="https://phpunit.de/manual/5.7/en/appendixes.configuration.html">
+      This Schema file defines the rules by which the XML configuration file of PHPUnit 5.7 may be structured.
     </xs:documentation>
     <xs:appinfo source="http://www.phpunit.de/manual/current/en/appendixes.configuration.html"/>
   </xs:annotation>
@@ -29,8 +29,8 @@
   <xs:complexType name="whiteListType">
     <xs:complexContent>
       <xs:extension base="filterType">
-        <xs:attribute name="addUncoveredFilesFromWhitelist" default="false" type="xs:boolean"/>
-        <xs:attribute name="processUncoveredFilesFromWhitelist" default="true" type="xs:boolean"/>
+        <xs:attribute name="addUncoveredFilesFromWhitelist" default="true" type="xs:boolean"/>
+        <xs:attribute name="processUncoveredFilesFromWhitelist" default="false" type="xs:boolean"/>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -223,6 +223,7 @@
     <xs:attribute name="stderr" type="xs:boolean" default="false"/>
     <xs:attribute name="reverseDefectList" type="xs:boolean" default="false"/>
     <xs:attribute name="registerMockObjectsFromTestArgumentsRecursively" type="xs:boolean" default="false"/>
+    <xs:attribute name="extensionsDirectory" type="xs:string"/>
   </xs:attributeGroup>
   <xs:group name="configGroup">
     <xs:all>

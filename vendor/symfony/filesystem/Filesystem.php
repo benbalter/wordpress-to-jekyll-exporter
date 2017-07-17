@@ -37,7 +37,8 @@ class Filesystem
      */
     public function copy($originFile, $targetFile, $overwriteNewerFiles = false)
     {
-        if (stream_is_local($originFile) && !is_file($originFile)) {
+        $originIsLocal = stream_is_local($originFile) || 0 === stripos($originFile, 'file://');
+        if ($originIsLocal && !is_file($originFile)) {
             throw new FileNotFoundException(sprintf('Failed to copy "%s" because file does not exist.', $originFile), 0, null, $originFile);
         }
 
@@ -68,11 +69,13 @@ class Filesystem
                 throw new IOException(sprintf('Failed to copy "%s" to "%s".', $originFile, $targetFile), 0, null, $originFile);
             }
 
-            // Like `cp`, preserve executable permission bits
-            @chmod($targetFile, fileperms($targetFile) | (fileperms($originFile) & 0111));
+            if ($originIsLocal) {
+                // Like `cp`, preserve executable permission bits
+                @chmod($targetFile, fileperms($targetFile) | (fileperms($originFile) & 0111));
 
-            if (stream_is_local($originFile) && $bytesCopied !== ($bytesOrigin = filesize($originFile))) {
-                throw new IOException(sprintf('Failed to copy the whole content of "%s" to "%s" (%g of %g bytes copied).', $originFile, $targetFile, $bytesCopied, $bytesOrigin), 0, null, $originFile);
+                if ($bytesCopied !== $bytesOrigin = filesize($originFile)) {
+                    throw new IOException(sprintf('Failed to copy the whole content of "%s" to "%s" (%g of %g bytes copied).', $originFile, $targetFile, $bytesCopied, $bytesOrigin), 0, null, $originFile);
+                }
             }
         }
     }
@@ -276,6 +279,13 @@ class Filesystem
         }
 
         if (true !== @rename($origin, $target)) {
+            if (is_dir($origin)) {
+                // See https://bugs.php.net/bug.php?id=54097 & http://php.net/manual/en/function.rename.php#113943
+                $this->mirror($origin, $target, null, array('override' => $overwrite, 'delete' => $overwrite));
+                $this->remove($origin);
+
+                return;
+            }
             throw new IOException(sprintf('Cannot rename "%s" to "%s".', $origin, $target), 0, null, $target);
         }
     }
@@ -361,6 +371,31 @@ class Filesystem
         // Split the paths into arrays
         $startPathArr = explode('/', trim($startPath, '/'));
         $endPathArr = explode('/', trim($endPath, '/'));
+
+        if ('/' !== $startPath[0]) {
+            array_shift($startPathArr);
+        }
+
+        if ('/' !== $endPath[0]) {
+            array_shift($endPathArr);
+        }
+
+        $normalizePathArray = function ($pathSegments) {
+            $result = array();
+
+            foreach ($pathSegments as $segment) {
+                if ('..' === $segment) {
+                    array_pop($result);
+                } else {
+                    $result[] = $segment;
+                }
+            }
+
+            return $result;
+        };
+
+        $startPathArr = $normalizePathArray($startPathArr);
+        $endPathArr = $normalizePathArray($endPathArr);
 
         // Find for which directory the common path stops
         $index = 0;
@@ -550,7 +585,9 @@ class Filesystem
 
         if (!is_dir($dir)) {
             $this->mkdir($dir);
-        } elseif (!is_writable($dir)) {
+        }
+
+        if (!is_writable($dir)) {
             throw new IOException(sprintf('Unable to write to the "%s" directory.', $dir), 0, null, $dir);
         }
 
@@ -566,7 +603,10 @@ class Filesystem
             }
 
             $this->chmod($tmpFile, $mode);
+        } elseif (file_exists($filename)) {
+            @chmod($tmpFile, fileperms($filename));
         }
+
         $this->rename($tmpFile, $filename, true);
     }
 

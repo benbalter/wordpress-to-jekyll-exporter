@@ -1,7 +1,11 @@
 <?php
 
 require_once 'common.php';
-
+/*
+ * Please notice that the data has to be an 0-based array,
+ * not an associative one if you intend to work with custom
+ * column widths.
+ */
 $headers = array('First Name', 'Last Name', 'City', 'State');
 $data = array(
 	array('Maryam',   'Elliott',    'Elizabeth City',   'SD'),
@@ -34,4 +38,5 @@ $data = array(
 $table = new \cli\Table();
 $table->setHeaders($headers);
 $table->setRows($data);
+$table->setRenderer(new \cli\table\Ascii([10, 10, 20, 5]));
 $table->display();

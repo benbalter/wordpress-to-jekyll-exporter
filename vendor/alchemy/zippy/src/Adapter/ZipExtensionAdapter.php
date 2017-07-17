@@ -300,7 +300,7 @@ class ZipExtensionAdapter extends AbstractAdapter
     }
 
     /**
-     * @info is public for PHP 5.3 compatibility, should be private
+     * Is public for PHP 5.3 compatibility, should be private
      *
      * @param \ZipArchive $zip
      * @param string      $file
@@ -316,7 +316,7 @@ class ZipExtensionAdapter extends AbstractAdapter
     }
 
     /**
-     * @info is public for PHP 5.3 compatibility, should be private
+     * Is public for PHP 5.3 compatibility, should be private
      *
      * @param \ZipArchive $zip
      * @param string      $file
@@ -332,7 +332,7 @@ class ZipExtensionAdapter extends AbstractAdapter
     }
 
     /**
-     * @info is public for PHP 5.3 compatibility, should be private
+     * Is public for PHP 5.3 compatibility, should be private
      *
      * @param \ZipArchive $zip
      * @param string      $dir

@@ -392,6 +392,8 @@ class Arguments implements \ArrayAccess {
 		$this->_parsed = array();
 		$this->_lexer = new Lexer($this->_input);
 
+		$this->_applyDefaults();
+
 		foreach ($this->_lexer as $argument) {
 			if ($this->_parseFlag($argument)) {
 				continue;
@@ -405,6 +407,24 @@ class Arguments implements \ArrayAccess {
 
 		if ($this->_strict && !empty($this->_invalid)) {
 			throw new InvalidArguments($this->_invalid);
+		}
+	}
+
+	/**
+	 * This applies the default values, if any, of all of the
+	 * flags and options, so that if there is a default value
+	 * it will be available.
+	 */
+	private function _applyDefaults() {
+		foreach($this->_flags as $flag => $settings) {
+			$this[$flag] = $settings['default'];
+		}
+
+		foreach($this->_options as $option => $settings) {
+			// If the default is 0 we should still let it be set.
+			if (!empty($settings['default']) || $settings['default'] === 0) {
+				$this[$option] = $settings['default'];
+			}
 		}
 	}
 
@@ -439,7 +459,7 @@ class Arguments implements \ArrayAccess {
 		if ($this->_lexer->end() || !$this->_lexer->peek->isValue) {
 			$optionSettings = $this->getOption($option->key);
 
-			if (empty($optionSettings['default'])) {
+			if (empty($optionSettings['default']) && $optionSettings !== 0) {
 				// Oops! Got no value and no default , throw a warning and continue.
 				$this->_warn('no value given for ' . $option->raw);
 				$this[$option->key] = null;
@@ -466,4 +486,3 @@ class Arguments implements \ArrayAccess {
 		return true;
 	}
 }
-

@@ -51,6 +51,7 @@ class SelfUpdateCommand extends BaseCommand
                 new InputOption('stable', null, InputOption::VALUE_NONE, 'Force an update to the stable channel'),
                 new InputOption('preview', null, InputOption::VALUE_NONE, 'Force an update to the preview channel'),
                 new InputOption('snapshot', null, InputOption::VALUE_NONE, 'Force an update to the snapshot channel'),
+                new InputOption('set-channel-only', null, InputOption::VALUE_NONE, 'Only store the channel as the default one and then exit'),
             ))
             ->setHelp(<<<EOT
 The <info>self-update</info> command checks getcomposer.org for newer
@@ -83,6 +84,10 @@ EOT
             if ($input->getOption($channel)) {
                 $versionsUtil->setChannel($channel);
             }
+        }
+
+        if ($input->getOption('set-channel-only')) {
+            return 0;
         }
 
         $cacheDir = $config->get('cache-dir');
@@ -141,7 +146,10 @@ EOT
         $io->write(sprintf("Updating to version <info>%s</info> (%s channel).", $updateVersion, $versionsUtil->getChannel()));
         $remoteFilename = $baseUrl . ($updatingToTag ? "/download/{$updateVersion}/composer.phar" : '/composer.phar');
         $signature = $remoteFilesystem->getContents(self::HOMEPAGE, $remoteFilename.'.sig', false);
+        $io->writeError('   ', false);
         $remoteFilesystem->copy(self::HOMEPAGE, $remoteFilename, $tempFilename, !$input->getOption('no-progress'));
+        $io->writeError('');
+
         if (!file_exists($tempFilename) || !$signature) {
             $io->writeError('<error>The download of the new composer version failed for an unexpected reason</error>');
 

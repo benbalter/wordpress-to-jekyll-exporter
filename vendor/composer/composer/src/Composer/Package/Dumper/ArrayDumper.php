@@ -83,7 +83,7 @@ class ArrayDumper
         }
 
         if ($package->getReleaseDate()) {
-            $data['time'] = $package->getReleaseDate()->format('Y-m-d H:i:s');
+            $data['time'] = $package->getReleaseDate()->format(DATE_RFC3339);
         }
 
         $data = $this->dumpValues($package, $keys, $data);
@@ -133,7 +133,7 @@ class ArrayDumper
             }
 
             $getter = 'get'.ucfirst($method);
-            $value  = $package->$getter();
+            $value = $package->$getter();
 
             if (null !== $value && !(is_array($value) && 0 === count($value))) {
                 $data[$key] = $value;

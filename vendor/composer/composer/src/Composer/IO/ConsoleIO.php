@@ -16,7 +16,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Helper\HelperSet;
-use Symfony\Component\Console\Question\ConfirmationQuestion;
+use Composer\Question\StrictConfirmationQuestion;
 use Symfony\Component\Console\Question\Question;
 
 /**
@@ -158,13 +158,13 @@ class ConsoleIO extends BaseIO
 
         if (true === $stderr && $this->output instanceof ConsoleOutputInterface) {
             $this->output->getErrorOutput()->write($messages, $newline, $sfVerbosity);
-            $this->lastMessageErr = join($newline ? "\n" : '', (array) $messages);
+            $this->lastMessageErr = implode($newline ? "\n" : '', (array) $messages);
 
             return;
         }
 
         $this->output->write($messages, $newline, $sfVerbosity);
-        $this->lastMessage = join($newline ? "\n" : '', (array) $messages);
+        $this->lastMessage = implode($newline ? "\n" : '', (array) $messages);
     }
 
     /**
@@ -193,7 +193,7 @@ class ConsoleIO extends BaseIO
     private function doOverwrite($messages, $newline, $size, $stderr, $verbosity)
     {
         // messages can be an array, let's convert it to string anyway
-        $messages = join($newline ? "\n" : '', (array) $messages);
+        $messages = implode($newline ? "\n" : '', (array) $messages);
 
         // since overwrite is supposed to overwrite last message...
         if (!isset($size)) {
@@ -206,6 +206,9 @@ class ConsoleIO extends BaseIO
         // write the new message
         $this->doWrite($messages, false, $stderr, $verbosity);
 
+        // In cmd.exe on Win8.1 (possibly 10?), the line can not be cleared, so we need to
+        // track the length of previous output and fill it with spaces to make sure the line is cleared.
+        // See https://github.com/composer/composer/pull/5836 for more details
         $fill = $size - strlen(strip_tags($messages));
         if ($fill > 0) {
             // whitespace whatever has left
@@ -244,7 +247,7 @@ class ConsoleIO extends BaseIO
     {
         /** @var \Symfony\Component\Console\Helper\QuestionHelper $helper */
         $helper = $this->helperSet->get('question');
-        $question = new ConfirmationQuestion($question, $default);
+        $question = new StrictConfirmationQuestion($question, $default);
 
         return $helper->ask($this->input, $this->getErrorOutput(), $question);
     }

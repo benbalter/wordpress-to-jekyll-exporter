@@ -117,12 +117,13 @@ class JsonParser
 
     /**
      * @param  string                $input JSON string
+     * @param  int                   $flags Bitmask of parse/lint options (see constants of this class)
      * @return null|ParsingException null if no error is found, a ParsingException containing all details otherwise
      */
-    public function lint($input)
+    public function lint($input, $flags = 0)
     {
         try {
-            $this->parse($input);
+            $this->parse($input, $flags);
         } catch (ParsingException $e) {
             return $e;
         }
@@ -130,6 +131,7 @@ class JsonParser
 
     /**
      * @param  string           $input JSON string
+     * @param  int              $flags Bitmask of parse/lint options (see constants of this class)
      * @return mixed
      * @throws ParsingException
      */
@@ -376,7 +378,11 @@ class JsonParser
             $yyval->token = array($tokens[$len-2], $tokens[$len]);
             break;
         case 16:
-            $property = $tokens[$len][0] === '' ? '_empty_' : $tokens[$len][0];
+            if (PHP_VERSION_ID < 70100) {
+                $property = $tokens[$len][0] === '' ? '_empty_' : $tokens[$len][0];
+            } else {
+                $property = $tokens[$len][0];
+            }
             if ($this->flags & self::PARSE_TO_ASSOC) {
                 $yyval->token = array();
                 $yyval->token[$property] = $tokens[$len][1];
@@ -404,7 +410,11 @@ class JsonParser
                 $tokens[$len-2][$key] = $tokens[$len][1];
             } else {
                 $yyval->token = $tokens[$len-2];
-                $key = $tokens[$len][0] === '' ? '_empty_' : $tokens[$len][0];
+                if (PHP_VERSION_ID < 70100) {
+                    $key = $tokens[$len][0] === '' ? '_empty_' : $tokens[$len][0];
+                } else {
+                    $key = $tokens[$len][0];
+                }
                 if (($this->flags & self::DETECT_KEY_CONFLICTS) && isset($tokens[$len-2]->{$key})) {
                     $errStr = 'Parse error on line ' . ($yylineno+1) . ":\n";
                     $errStr .= $this->lexer->showPosition() . "\n";

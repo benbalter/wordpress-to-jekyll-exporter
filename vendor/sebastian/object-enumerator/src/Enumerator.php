@@ -48,10 +48,11 @@ class Enumerator
             return $objects;
         }
 
+        $array = $variable;
         $processed->add($variable);
 
         if (is_array($variable)) {
-            foreach ($variable as $element) {
+            foreach ($array as $element) {
                 if (!is_array($element) && !is_object($element)) {
                     continue;
                 }
@@ -68,7 +69,13 @@ class Enumerator
             foreach ($reflector->getProperties() as $attribute) {
                 $attribute->setAccessible(true);
 
-                $value = $attribute->getValue($variable);
+                try {
+                    $value = $attribute->getValue($variable);
+                } catch (\Throwable $e) {
+                    continue;
+                } catch (\Exception $e) {
+                    continue;
+                }
 
                 if (!is_array($value) && !is_object($value)) {
                     continue;

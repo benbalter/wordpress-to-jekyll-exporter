@@ -166,7 +166,7 @@ class PEAR_Sniffs_WhiteSpace_ScopeClosingBraceSniff implements PHP_CodeSniffer_S
                 $fix   = $phpcsFile->addFixableError($error, $scopeEnd, 'BreakIndent', $data);
             }
         } else {
-            $expectedIndent = ($startColumn - 1);
+            $expectedIndent = max(0, ($startColumn - 1));
             if ($braceIndent !== $expectedIndent) {
                 $error = 'Closing brace indented incorrectly; expected %s spaces, found %s';
                 $data  = array(
@@ -177,7 +177,7 @@ class PEAR_Sniffs_WhiteSpace_ScopeClosingBraceSniff implements PHP_CodeSniffer_S
             }
         }//end if
 
-        if ($fix === true && $phpcsFile->fixer->enabled === true) {
+        if ($fix === true) {
             $spaces = str_repeat(' ', $expectedIndent);
             if ($braceIndent === 0) {
                 $phpcsFile->fixer->addContentBefore($lineStart, $spaces);

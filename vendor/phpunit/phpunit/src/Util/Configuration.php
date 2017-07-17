@@ -26,7 +26,6 @@
  *          convertNoticesToExceptions="true"
  *          convertWarningsToExceptions="true"
  *          forceCoversAnnotation="false"
- *          printerClass="PHPUnit_TextUI_ResultPrinter"
  *          processIsolation="false"
  *          stopOnError="false"
  *          stopOnFailure="false"
@@ -36,6 +35,8 @@
  *          stopOnSkipped="false"
  *          failOnWarning="false"
  *          failOnRisky="false"
+ *          extensionsDirectory="tools/phpunit.d"
+ *          printerClass="PHPUnit_TextUI_ResultPrinter"
  *          testSuiteLoaderClass="PHPUnit_Runner_StandardTestSuiteLoader"
  *          beStrictAboutChangesToGlobalState="false"
  *          beStrictAboutCoversAnnotation="false"
@@ -137,8 +138,6 @@
  *   </php>
  * </phpunit>
  * </code>
- *
- * @since Class available since Release 3.2.0
  */
 class PHPUnit_Util_Configuration
 {
@@ -160,9 +159,6 @@ class PHPUnit_Util_Configuration
         $this->xpath    = new DOMXPath($this->document);
     }
 
-    /**
-     * @since Method available since Release 3.4.0
-     */
     final private function __clone()
     {
     }
@@ -173,8 +169,6 @@ class PHPUnit_Util_Configuration
      * @param string $filename
      *
      * @return PHPUnit_Util_Configuration
-     *
-     * @since Method available since Release 3.4.0
      */
     public static function getInstance($filename)
     {
@@ -200,8 +194,6 @@ class PHPUnit_Util_Configuration
      * Returns the realpath to the configuration file.
      *
      * @return string
-     *
-     * @since Method available since Release 3.6.0
      */
     public function getFilename()
     {
@@ -212,8 +204,6 @@ class PHPUnit_Util_Configuration
      * Returns the configuration for SUT filtering.
      *
      * @return array
-     *
-     * @since Method available since Release 3.2.1
      */
     public function getFilterConfiguration()
     {
@@ -270,8 +260,6 @@ class PHPUnit_Util_Configuration
      * Returns the configuration for groups.
      *
      * @return array
-     *
-     * @since Method available since Release 3.2.1
      */
     public function getGroupConfiguration()
     {
@@ -282,8 +270,6 @@ class PHPUnit_Util_Configuration
      * Returns the configuration for testdox groups.
      *
      * @return array
-     *
-     * @since Method available since Release 5.4.0
      */
     public function getTestdoxGroupConfiguration()
     {
@@ -317,8 +303,6 @@ class PHPUnit_Util_Configuration
      * Returns the configuration for listeners.
      *
      * @return array
-     *
-     * @since Method available since Release 3.4.0
      */
     public function getListenerConfiguration()
     {
@@ -433,8 +417,6 @@ class PHPUnit_Util_Configuration
      * Returns the PHP configuration.
      *
      * @return array
-     *
-     * @since Method available since Release 3.2.1
      */
     public function getPHPConfiguration()
     {
@@ -487,8 +469,6 @@ class PHPUnit_Util_Configuration
 
     /**
      * Handles the PHP configuration.
-     *
-     * @since Method available since Release 3.2.20
      */
     public function handlePHPConfiguration()
     {
@@ -552,8 +532,6 @@ class PHPUnit_Util_Configuration
      * Returns the PHPUnit configuration.
      *
      * @return array
-     *
-     * @since Method available since Release 3.2.14
      */
     public function getPHPUnitConfiguration()
     {
@@ -837,6 +815,14 @@ class PHPUnit_Util_Configuration
             );
         }
 
+        if ($root->hasAttribute('extensionsDirectory')) {
+            $result['extensionsDirectory'] = $this->toAbsolutePath(
+                    (string) $root->getAttribute(
+                        'extensionsDirectory'
+                    )
+            );
+        }
+
         return $result;
     }
 
@@ -844,8 +830,6 @@ class PHPUnit_Util_Configuration
      * Returns the test suite configuration.
      *
      * @return PHPUnit_Framework_TestSuite
-     *
-     * @since Method available since Release 3.2.1
      */
     public function getTestSuiteConfiguration($testSuiteFilter = null)
     {
@@ -892,8 +876,6 @@ class PHPUnit_Util_Configuration
      * @param DOMElement $testSuiteNode
      *
      * @return PHPUnit_Framework_TestSuite
-     *
-     * @since Method available since Release 3.4.0
      */
     protected function getTestSuite(DOMElement $testSuiteNode, $testSuiteFilter = null)
     {
@@ -1013,8 +995,6 @@ class PHPUnit_Util_Configuration
      * @param bool   $default
      *
      * @return bool
-     *
-     * @since Method available since Release 3.2.3
      */
     protected function getBoolean($value, $default)
     {
@@ -1032,8 +1012,6 @@ class PHPUnit_Util_Configuration
      * @param bool   $default
      *
      * @return bool
-     *
-     * @since Method available since Release 3.6.0
      */
     protected function getInteger($value, $default)
     {
@@ -1048,8 +1026,6 @@ class PHPUnit_Util_Configuration
      * @param string $query
      *
      * @return array
-     *
-     * @since Method available since Release 3.2.3
      */
     protected function readFilterDirectories($query)
     {
@@ -1095,8 +1071,6 @@ class PHPUnit_Util_Configuration
      * @param string $query
      *
      * @return array
-     *
-     * @since Method available since Release 3.2.3
      */
     protected function readFilterFiles($query)
     {
@@ -1118,8 +1092,6 @@ class PHPUnit_Util_Configuration
      * @param bool   $useIncludePath
      *
      * @return string
-     *
-     * @since Method available since Release 3.5.0
      */
     protected function toAbsolutePath($path, $useIncludePath = false)
     {

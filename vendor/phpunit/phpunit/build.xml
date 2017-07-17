@@ -28,7 +28,6 @@
 
     <target name="validate-composer-json" unless="validate-composer-json.done" description="Validate composer.json">
         <exec executable="${basedir}/build/tools/composer" failonerror="true" taskname="composer">
-            <env key="COMPOSER_DISABLE_XDEBUG_WARN" value="1"/>
             <arg value="validate"/>
             <arg value="--no-check-lock"/>
             <arg value="--strict"/>
@@ -44,8 +43,13 @@
 
     <target name="install-dependencies" unless="dependencies-installed" depends="-dependencies-installed,validate-composer-json" description="Install dependencies with Composer">
         <exec executable="${basedir}/build/tools/composer" taskname="composer">
-            <env key="COMPOSER_DISABLE_XDEBUG_WARN" value="1"/>
-            <arg value="install"/>
+            <arg value="update"/>
+            <arg value="--no-interaction"/>
+            <arg value="--no-progress"/>
+            <arg value="--no-ansi"/>
+            <arg value="--no-suggest"/>
+            <arg value="--optimize-autoloader"/>
+            <arg value="--prefer-stable"/>
         </exec>
     </target>
 
@@ -82,12 +86,16 @@
 
     <target name="signed-phar" depends="phar" description="Create signed PHAR archive of PHPUnit and all its dependencies">
         <exec executable="gpg" failonerror="true">
+            <arg value="--local-user"/>
+            <arg value="sb@sebastian-bergmann.de"/>
             <arg value="--armor"/>
             <arg value="--detach-sign"/>
             <arg path="${basedir}/build/phpunit-library-${version}.phar"/>
         </exec>
 
         <exec executable="gpg" failonerror="true">
+            <arg value="--local-user"/>
+            <arg value="sb@sebastian-bergmann.de"/>
             <arg value="--armor"/>
             <arg value="--detach-sign"/>
             <arg path="${basedir}/build/phpunit-${version}.phar"/>
@@ -244,6 +252,7 @@
         <copy todir="${basedir}/build/phar/symfony">
             <fileset dir="${basedir}/vendor/symfony">
                 <include name="**/*.php" />
+                <exclude name="**/Command/*.php" />
                 <exclude name="**/Tests/**" />
             </fileset>
         </copy>
@@ -330,6 +339,9 @@
             <arg path="${basedir}/build/phar" />
         </exec>
 
+        <copy file="${basedir}/build/binary-phar-autoload.php.in" tofile="${basedir}/build/binary-phar-autoload.php"/>
+        <replace file="${basedir}/build/binary-phar-autoload.php" token="X.Y.Z" value="${_version}"/>
+
         <exec executable="${basedir}/build/tools/phpab" taskname="phpab">
             <arg value="--all" />
             <arg value="--nolower" />
@@ -340,18 +352,18 @@
             <arg value="--output" />
             <arg path="${basedir}/build/phpunit-${_version}.phar" />
             <arg value="--template" />
-            <arg path="${basedir}/build/binary-phar-autoload.php.in" />
+            <arg path="${basedir}/build/binary-phar-autoload.php" />
             <arg path="${basedir}/build/phar" />
         </exec>
 
         <chmod file="${basedir}/build/phpunit-${_version}.phar" perm="ugo+rx"/>
+
+        <delete dir="${basedir}/build/phar"/>
+        <delete file="${basedir}/build/binary-phar-autoload.php"/>
     </target>
 
     <target name="-phar-determine-version">
-        <exec executable="bash" outputproperty="version">
-            <arg value="-c"/>
-            <arg value="${basedir}/phpunit --version | awk 'BEGIN { ORS = &quot;&quot;; } {print $2}'"/>
-        </exec>
+        <exec executable="${basedir}/build/version.php" outputproperty="version" />
     </target>
 
     <target name="generate-project-documentation" depends="-phploc,-phpcs,-phpmd,-phpunit">
@@ -368,13 +380,21 @@
         </exec>
     </target>
 
+    <target name="phpcs">
+        <exec executable="${basedir}/build/tools/phpcs" taskname="phpcs">
+            <arg value="--standard=${basedir}/build/phpcs.xml"/>
+            <arg value="--extensions=php"/>
+            <arg value="--cache"/>
+        </exec>
+    </target>
+
     <target name="-phpcs" depends="prepare">
         <exec executable="${basedir}/build/tools/phpcs" output="/dev/null" taskname="phpcs">
+            <arg value="--standard=${basedir}/build/phpcs.xml"/>
+            <arg value="--extensions=php"/>
+            <arg value="--cache"/>
             <arg value="--report=checkstyle"/>
             <arg value="--report-file=${basedir}/build/logfiles/checkstyle.xml"/>
-            <arg value="--standard=PSR2"/>
-            <arg value="--extensions=php"/>
-            <arg path="${basedir}/src"/>
         </exec>
     </target>
 
@@ -390,8 +410,10 @@
 
     <target name="-phpunit" depends="setup">
         <exec executable="${basedir}/phpunit" taskname="phpunit">
-            <arg value="--configuration"/>
-            <arg path="${basedir}/build/phpunit.xml"/>
+            <arg value="--coverage-xml"/>
+            <arg path="${basedir}/build/logfiles/coverage"/>
+            <arg value="--log-junit"/>
+            <arg path="${basedir}/build/logfiles/junit.xml"/>
         </exec>
     </target>
 </project>

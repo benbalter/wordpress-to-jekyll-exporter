@@ -13,8 +13,6 @@
  * specified type.
  *
  * The expected value is passed in the constructor.
- *
- * @since Class available since Release 3.0.0
  */
 class PHPUnit_Framework_Constraint_IsType extends PHPUnit_Framework_Constraint
 {
@@ -94,7 +92,7 @@ class PHPUnit_Framework_Constraint_IsType extends PHPUnit_Framework_Constraint
 
             case 'integer':
             case 'int':
-                return is_integer($other);
+                return is_int($other);
 
             case 'double':
             case 'float':

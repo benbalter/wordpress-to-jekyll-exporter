@@ -12,7 +12,6 @@
 
 namespace Composer\Repository\Vcs;
 
-use Composer\Json\JsonFile;
 use Composer\Util\ProcessExecutor;
 use Composer\Util\Filesystem;
 use Composer\Util\Git as GitUtil;
@@ -120,38 +119,31 @@ class GitDriver extends VcsDriver
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
-    public function getComposerInformation($identifier)
+    public function getFileContent($file, $identifier)
     {
-        if (preg_match('{[a-f0-9]{40}}i', $identifier) && $res = $this->cache->read($identifier)) {
-            $this->infoCache[$identifier] = JsonFile::parseJson($res);
+        $resource = sprintf('%s:%s', ProcessExecutor::escape($identifier), ProcessExecutor::escape($file));
+        $this->process->execute(sprintf('git show %s', $resource), $content, $this->repoDir);
+
+        if (!trim($content)) {
+            return null;
         }
 
-        if (!isset($this->infoCache[$identifier])) {
-            $resource = sprintf('%s:composer.json', ProcessExecutor::escape($identifier));
-            $this->process->execute(sprintf('git show %s', $resource), $composer, $this->repoDir);
+        return $content;
+    }
 
-            if (!trim($composer)) {
-                return;
-            }
+    /**
+     * {@inheritdoc}
+     */
+    public function getChangeDate($identifier)
+    {
+        $this->process->execute(sprintf(
+            'git log -1 --format=%%at %s',
+            ProcessExecutor::escape($identifier)
+        ), $output, $this->repoDir);
 
-            $composer = JsonFile::parseJson($composer, $resource);
-
-            if (empty($composer['time'])) {
-                $this->process->execute(sprintf('git log -1 --format=%%at %s', ProcessExecutor::escape($identifier)), $output, $this->repoDir);
-                $date = new \DateTime('@'.trim($output), new \DateTimeZone('UTC'));
-                $composer['time'] = $date->format('Y-m-d H:i:s');
-            }
-
-            if (preg_match('{[a-f0-9]{40}}i', $identifier)) {
-                $this->cache->write($identifier, json_encode($composer));
-            }
-
-            $this->infoCache[$identifier] = $composer;
-        }
-
-        return $this->infoCache[$identifier];
+        return new \DateTime('@'.trim($output), new \DateTimeZone('UTC'));
     }
 
     /**
@@ -162,9 +154,9 @@ class GitDriver extends VcsDriver
         if (null === $this->tags) {
             $this->tags = array();
 
-            $this->process->execute('git show-ref --tags', $output, $this->repoDir);
+            $this->process->execute('git show-ref --tags --dereference', $output, $this->repoDir);
             foreach ($output = $this->process->splitLines($output) as $tag) {
-                if ($tag && preg_match('{^([a-f0-9]{40}) refs/tags/(\S+)$}', $tag, $match)) {
+                if ($tag && preg_match('{^([a-f0-9]{40}) refs/tags/(\S+?)(\^\{\})?$}', $tag, $match)) {
                     $this->tags[$match[2]] = $match[1];
                 }
             }

@@ -134,7 +134,7 @@ class Member implements MemberInterface
     {
         $this->adapter->extractMembers($this->resource, $this->location, $to, (bool) $overwrite);
 
-        return new \SplFileInfo(sprintf('%s%s', rtrim(null === $to ? getcwd() : $to, '/'), $this->location));
+        return new \SplFileInfo(sprintf('%s/%s', rtrim(null === $to ? getcwd() : $to, '/'), ltrim($this->location, '/')));
     }
 
     /**

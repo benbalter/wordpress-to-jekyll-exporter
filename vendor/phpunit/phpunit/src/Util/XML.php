@@ -10,8 +10,6 @@
 
 /**
  * XML helpers.
- *
- * @since Class available since Release 3.2.0
  */
 class PHPUnit_Util_XML
 {
@@ -36,8 +34,6 @@ class PHPUnit_Util_XML
      * @param bool               $strict
      *
      * @return DOMDocument
-     *
-     * @since Method available since Release 3.3.0
      */
     public static function load($actual, $isHtml = false, $filename = '', $xinclude = false, $strict = false)
     {
@@ -121,8 +117,6 @@ class PHPUnit_Util_XML
      * @param bool   $strict
      *
      * @return DOMDocument
-     *
-     * @since Method available since Release 3.3.0
      */
     public static function loadFile($filename, $isHtml = false, $xinclude = false, $strict = false)
     {
@@ -144,8 +138,6 @@ class PHPUnit_Util_XML
 
     /**
      * @param DOMNode $node
-     *
-     * @since Method available since Release 3.3.0
      */
     public static function removeCharacterDataNodes(DOMNode $node)
     {
@@ -167,8 +159,6 @@ class PHPUnit_Util_XML
      * @param string $string
      *
      * @return string
-     *
-     * @since Method available since Release 3.4.6
      */
     public static function prepareString($string)
     {
@@ -189,8 +179,6 @@ class PHPUnit_Util_XML
      * @param DOMElement $element
      *
      * @return mixed
-     *
-     * @since Method available since Release 3.4.0
      */
     public static function xmlToVariable(DOMElement $element)
     {
@@ -200,17 +188,20 @@ class PHPUnit_Util_XML
             case 'array':
                 $variable = [];
 
-                foreach ($element->getElementsByTagName('element') as $element) {
-                    $item = $element->childNodes->item(0);
+                foreach ($element->childNodes as $entry) {
+                    if (!$entry instanceof DOMElement || $entry->tagName !== 'element') {
+                        continue;
+                    }
+                    $item = $entry->childNodes->item(0);
 
                     if ($item instanceof DOMText) {
-                        $item = $element->childNodes->item(1);
+                        $item = $entry->childNodes->item(1);
                     }
 
                     $value = self::xmlToVariable($item);
 
-                    if ($element->hasAttribute('key')) {
-                        $variable[(string) $element->getAttribute('key')] = $value;
+                    if ($entry->hasAttribute('key')) {
+                        $variable[(string) $entry->getAttribute('key')] = $value;
                     } else {
                         $variable[] = $value;
                     }

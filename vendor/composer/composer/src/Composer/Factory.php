@@ -28,7 +28,9 @@ use Composer\Util\Silencer;
 use Composer\Plugin\PluginEvents;
 use Composer\EventDispatcher\Event;
 use Seld\JsonLint\DuplicateKeyException;
+use Symfony\Component\Console\Formatter\OutputFormatter;
 use Symfony\Component\Console\Formatter\OutputFormatterStyle;
+use Symfony\Component\Console\Output\ConsoleOutput;
 use Composer\EventDispatcher\EventDispatcher;
 use Composer\Autoload\AutoloadGenerator;
 use Composer\Package\Version\VersionParser;
@@ -226,6 +228,19 @@ class Factory
     }
 
     /**
+     * Creates a ConsoleOutput instance
+     *
+     * @return ConsoleOutput
+     */
+    public static function createOutput()
+    {
+        $styles = self::createAdditionalStyles();
+        $formatter = new OutputFormatter(null, $styles);
+
+        return new ConsoleOutput(ConsoleOutput::VERBOSITY_NORMAL, null, $formatter);
+    }
+
+    /**
      * @deprecated Use Composer\Repository\RepositoryFactory::defaultRepos instead
      */
     public static function createDefaultRepositories(IOInterface $io = null, Config $config = null, RepositoryManager $rm = null)
@@ -329,7 +344,7 @@ class Factory
         // load package
         $parser = new VersionParser;
         $guesser = new VersionGuesser($config, new ProcessExecutor($io), $parser);
-        $loader  = new Package\Loader\RootPackageLoader($rm, $config, $parser, $guesser);
+        $loader = new Package\Loader\RootPackageLoader($rm, $config, $parser, $guesser);
         $package = $loader->load($localConfig, 'Composer\Package\RootPackage', $cwd);
         $composer->setPackage($package);
 

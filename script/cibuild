@@ -4,8 +4,8 @@ set -e
 
 export PATH="$HOME/.composer/vendor/bin:./bin:$PATH"
 
-echo "Running Style checks..."
-phpcs --standard=phpcs.ruleset.xml -p --warning-severity=0 $(find . -name '*.php' -not -path "./vendor/*")
-
 echo "Running unit tests..."
-phpunit
+script/cibuild-phpunit
+
+echo "Running Style checks..."
+script/cibuild-phpcs

@@ -27,21 +27,35 @@ class Shell {
 	static public function columns() {
 		static $columns;
 
+		if ( getenv( 'PHP_CLI_TOOLS_TEST_SHELL_COLUMNS_RESET' ) ) {
+			$columns = null;
+		}
 		if ( null === $columns ) {
-			if (self::is_windows() ) {
-				$output = array();
-				exec('mode CON', $output);
-				foreach ($output as $line) {
-					if (preg_match('/Columns:( )*([0-9]+)/', $line, $matches)) {
-						$columns = (int)$matches[2];
-						break;
+			if ( function_exists( 'exec' ) ) {
+				if ( self::is_windows() ) {
+					// Cater for shells such as Cygwin and Git bash where `mode CON` returns an incorrect value for columns.
+					if ( ( $shell = getenv( 'SHELL' ) ) && preg_match( '/(?:bash|zsh)(?:\.exe)?$/', $shell ) && getenv( 'TERM' ) ) {
+						$columns = (int) exec( 'tput cols' );
+					}
+					if ( ! $columns ) {
+						$return_var = -1;
+						$output = array();
+						exec( 'mode CON', $output, $return_var );
+						if ( 0 === $return_var && $output ) {
+							// Look for second line ending in ": <number>" (searching for "Columns:" will fail on non-English locales).
+							if ( preg_match( '/:\s*[0-9]+\n[^:]+:\s*([0-9]+)\n/', implode( "\n", $output ), $matches ) ) {
+								$columns = (int) $matches[1];
+							}
+						}
+					}
+				} else {
+					if ( getenv( 'TERM' ) ) {
+						$columns = (int) exec( '/usr/bin/env tput cols' );
 					}
 				}
-			} else if (!preg_match('/(^|,)(\s*)?exec(\s*)?(,|$)/', ini_get('disable_functions'))) {
-				$columns = (int) exec('/usr/bin/env tput cols');
 			}
 
-			if ( !$columns ) {
+			if ( ! $columns ) {
 				$columns = 80; // default width of cmd window on Windows OS
 			}
 		}

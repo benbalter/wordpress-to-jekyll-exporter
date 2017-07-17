@@ -145,35 +145,34 @@
   </xsd:complexType>
 
   <xsd:complexType name="property" mixed="true">
-    <xsd:choice minOccurs="0" maxOccurs="1">
-      <xsd:element name="property" type="property" minOccurs="0" maxOccurs="unbounded" />
+    <xsd:choice minOccurs="0">
+      <xsd:element name="property" type="property" maxOccurs="unbounded" />
       <xsd:element name="service" type="service" />
     </xsd:choice>
     <xsd:attribute name="type" type="argument_type" />
     <xsd:attribute name="id" type="xsd:string" />
     <xsd:attribute name="key" type="xsd:string" />
     <xsd:attribute name="name" type="xsd:string" />
-    <xsd:attribute name="on-invalid" type="xsd:string" />
+    <xsd:attribute name="on-invalid" type="invalid_sequence" />
     <xsd:attribute name="strict" type="boolean" />
   </xsd:complexType>
 
   <xsd:complexType name="argument" mixed="true">
-    <xsd:choice maxOccurs="unbounded">
-      <xsd:element name="argument" type="argument" minOccurs="0" maxOccurs="unbounded" />
+    <xsd:choice minOccurs="0">
+      <xsd:element name="argument" type="argument" maxOccurs="unbounded" />
       <xsd:element name="service" type="service" />
     </xsd:choice>
     <xsd:attribute name="type" type="argument_type" />
     <xsd:attribute name="id" type="xsd:string" />
     <xsd:attribute name="key" type="xsd:string" />
     <xsd:attribute name="index" type="xsd:integer" />
-    <xsd:attribute name="on-invalid" type="xsd:string" />
+    <xsd:attribute name="on-invalid" type="invalid_sequence" />
     <xsd:attribute name="strict" type="boolean" />
   </xsd:complexType>
 
-  <xsd:complexType name="call" mixed="true">
-    <xsd:choice maxOccurs="unbounded">
-      <xsd:element name="argument" type="argument" minOccurs="0" maxOccurs="unbounded" />
-      <xsd:element name="service" type="service" />
+  <xsd:complexType name="call">
+    <xsd:choice minOccurs="0">
+      <xsd:element name="argument" type="argument" maxOccurs="unbounded" />
     </xsd:choice>
     <xsd:attribute name="method" type="xsd:string" />
   </xsd:complexType>

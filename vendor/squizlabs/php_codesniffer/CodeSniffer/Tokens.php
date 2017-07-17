@@ -22,6 +22,7 @@ define('T_CLOSE_SQUARE_BRACKET', 'PHPCS_T_CLOSE_SQUARE_BRACKET');
 define('T_OPEN_PARENTHESIS', 'PHPCS_T_OPEN_PARENTHESIS');
 define('T_CLOSE_PARENTHESIS', 'PHPCS_T_CLOSE_PARENTHESIS');
 define('T_COLON', 'PHPCS_T_COLON');
+define('T_NULLABLE', 'PHPCS_T_NULLABLE');
 define('T_STRING_CONCAT', 'PHPCS_T_STRING_CONCAT');
 define('T_INLINE_THEN', 'PHPCS_T_INLINE_THEN');
 define('T_INLINE_ELSE', 'PHPCS_T_INLINE_ELSE');
@@ -75,6 +76,8 @@ define('T_EMBEDDED_PHP', 'PHPCS_T_EMBEDDED_PHP');
 define('T_RETURN_TYPE', 'PHPCS_T_RETURN_TYPE');
 define('T_OPEN_USE_GROUP', 'PHPCS_T_OPEN_USE_GROUP');
 define('T_CLOSE_USE_GROUP', 'PHPCS_T_CLOSE_USE_GROUP');
+define('T_ZSR', 'PHPCS_T_ZSR');
+define('T_ZSR_EQUAL', 'PHPCS_T_ZSR_EQUAL');
 
 // Some PHP 5.3 tokens, replicated for lower versions.
 if (defined('T_NAMESPACE') === false) {
@@ -143,6 +146,14 @@ if (defined('T_SPACESHIP') === false) {
 
 if (defined('T_COALESCE') === false) {
     define('T_COALESCE', 'PHPCS_T_COALESCE');
+}
+
+if (defined('T_COALESCE_EQUAL') === false) {
+    define('T_COALESCE_EQUAL', 'PHPCS_T_COALESCE_EQUAL');
+}
+
+if (defined('T_YIELD_FROM') === false) {
+    define('T_YIELD_FROM', 'PHPCS_T_YIELD_FROM');
 }
 
 // Tokens used for parsing doc blocks.
@@ -220,6 +231,7 @@ final class PHP_CodeSniffer_Tokens
                                  T_POW                 => 5,
                                  T_SPACESHIP           => 5,
                                  T_COALESCE            => 5,
+                                 T_COALESCE_EQUAL      => 5,
 
                                  T_SL                  => 5,
                                  T_SR                  => 5,
@@ -365,6 +377,7 @@ final class PHP_CodeSniffer_Tokens
                                    T_OPEN_PARENTHESIS         => 1,
                                    T_CLOSE_PARENTHESIS        => 1,
                                    T_COLON                    => 1,
+                                   T_NULLABLE                 => 1,
                                    T_STRING_CONCAT            => 1,
                                    T_INLINE_THEN              => 1,
                                    T_INLINE_ELSE              => 1,
@@ -381,6 +394,7 @@ final class PHP_CodeSniffer_Tokens
                                    T_POW                      => 2,
                                    T_SPACESHIP                => 3,
                                    T_COALESCE                 => 2,
+                                   T_COALESCE_EQUAL           => 3,
                                    T_BITWISE_AND              => 1,
                                    T_BITWISE_OR               => 1,
                                    T_BITWISE_XOR              => 1,
@@ -408,20 +422,21 @@ final class PHP_CodeSniffer_Tokens
      * @var array(int)
      */
     public static $assignmentTokens = array(
-                                       T_EQUAL        => T_EQUAL,
-                                       T_AND_EQUAL    => T_AND_EQUAL,
-                                       T_OR_EQUAL     => T_OR_EQUAL,
-                                       T_CONCAT_EQUAL => T_CONCAT_EQUAL,
-                                       T_DIV_EQUAL    => T_DIV_EQUAL,
-                                       T_MINUS_EQUAL  => T_MINUS_EQUAL,
-                                       T_POW_EQUAL    => T_POW_EQUAL,
-                                       T_MOD_EQUAL    => T_MOD_EQUAL,
-                                       T_MUL_EQUAL    => T_MUL_EQUAL,
-                                       T_PLUS_EQUAL   => T_PLUS_EQUAL,
-                                       T_XOR_EQUAL    => T_XOR_EQUAL,
-                                       T_DOUBLE_ARROW => T_DOUBLE_ARROW,
-                                       T_SL_EQUAL     => T_SL_EQUAL,
-                                       T_SR_EQUAL     => T_SR_EQUAL,
+                                       T_EQUAL          => T_EQUAL,
+                                       T_AND_EQUAL      => T_AND_EQUAL,
+                                       T_OR_EQUAL       => T_OR_EQUAL,
+                                       T_CONCAT_EQUAL   => T_CONCAT_EQUAL,
+                                       T_DIV_EQUAL      => T_DIV_EQUAL,
+                                       T_MINUS_EQUAL    => T_MINUS_EQUAL,
+                                       T_POW_EQUAL      => T_POW_EQUAL,
+                                       T_MOD_EQUAL      => T_MOD_EQUAL,
+                                       T_MUL_EQUAL      => T_MUL_EQUAL,
+                                       T_PLUS_EQUAL     => T_PLUS_EQUAL,
+                                       T_XOR_EQUAL      => T_XOR_EQUAL,
+                                       T_DOUBLE_ARROW   => T_DOUBLE_ARROW,
+                                       T_SL_EQUAL       => T_SL_EQUAL,
+                                       T_SR_EQUAL       => T_SR_EQUAL,
+                                       T_COALESCE_EQUAL => T_COALESCE_EQUAL,
                                       );
 
     /**
@@ -452,6 +467,8 @@ final class PHP_CodeSniffer_Tokens
                                        T_GREATER_THAN        => T_GREATER_THAN,
                                        T_IS_SMALLER_OR_EQUAL => T_IS_SMALLER_OR_EQUAL,
                                        T_IS_GREATER_OR_EQUAL => T_IS_GREATER_OR_EQUAL,
+                                       T_SPACESHIP           => T_SPACESHIP,
+                                       T_COALESCE            => T_COALESCE,
                                       );
 
     /**
@@ -465,6 +482,7 @@ final class PHP_CodeSniffer_Tokens
                                        T_MULTIPLY => T_MULTIPLY,
                                        T_DIVIDE   => T_DIVIDE,
                                        T_MODULUS  => T_MODULUS,
+                                       T_POW      => T_POW,
                                       );
 
     /**
@@ -651,6 +669,19 @@ final class PHP_CodeSniffer_Tokens
                                   );
 
     /**
+     * Tokens that represent text strings.
+     *
+     * @var array(int)
+     */
+    public static $textStringTokens = array(
+                                       T_CONSTANT_ENCAPSED_STRING => T_CONSTANT_ENCAPSED_STRING,
+                                       T_DOUBLE_QUOTED_STRING     => T_DOUBLE_QUOTED_STRING,
+                                       T_INLINE_HTML              => T_INLINE_HTML,
+                                       T_HEREDOC                  => T_HEREDOC,
+                                       T_NOWDOC                   => T_NOWDOC,
+                                      );
+
+    /**
      * Tokens that represent brackets and parenthesis.
      *
      * @var array(int)
@@ -693,7 +724,7 @@ final class PHP_CodeSniffer_Tokens
     /**
      * Tokens that represent the names of called functions.
      *
-     * Mostly, these are just strings. But PHP tokeizes some language
+     * Mostly, these are just strings. But PHP tokenizes some language
      * constructs and functions using their own tokens.
      *
      * @var array(int)

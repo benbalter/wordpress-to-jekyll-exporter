@@ -183,6 +183,7 @@ class PluginManager
                 $path = $classLoader->findFile($class);
                 $code = file_get_contents($path);
                 $separatorPos = strrpos($class, '\\');
+                $className = $class;
                 if ($separatorPos) {
                     $className = substr($class, $separatorPos + 1);
                 }
@@ -222,12 +223,16 @@ class PluginManager
     /**
      * Adds a plugin, activates it and registers it with the event dispatcher
      *
+     * Ideally plugin packages should be registered via registerPackage, but if you use Composer
+     * programmatically and want to register a plugin class directly this is a valid way
+     * to do it.
+     *
      * @param PluginInterface $plugin plugin instance
      */
-    private function addPlugin(PluginInterface $plugin)
+    public function addPlugin(PluginInterface $plugin)
     {
         $this->io->writeError('Loading plugin '.get_class($plugin), true, IOInterface::DEBUG);
-        $this->plugins[] =  $plugin;
+        $this->plugins[] = $plugin;
         $plugin->activate($this->composer, $this->io);
 
         if ($plugin instanceof EventSubscriberInterface) {
@@ -378,10 +383,10 @@ class PluginManager
     }
 
     /**
-     * @param  string          $capabilityClassName The fully qualified name of the API interface which the plugin may provide
-     *                                              an implementation of.
-     * @param  array           $ctorArgs            Arguments passed to Capability's constructor.
-     *                                              Keeping it an array will allow future values to be passed w\o changing the signature.
+     * @param  string       $capabilityClassName The fully qualified name of the API interface which the plugin may provide
+     *                                           an implementation of.
+     * @param  array        $ctorArgs            Arguments passed to Capability's constructor.
+     *                                           Keeping it an array will allow future values to be passed w\o changing the signature.
      * @return Capability[]
      */
     public function getPluginCapabilities($capabilityClassName, array $ctorArgs = array())

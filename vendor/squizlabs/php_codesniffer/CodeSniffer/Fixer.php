@@ -243,8 +243,13 @@ class PHP_CodeSniffer_Fixer
             $filePath = $this->_currentFile->getFilename();
         }
 
-        $cwd      = getcwd().DIRECTORY_SEPARATOR;
-        $filename = str_replace($cwd, '', $filePath);
+        $cwd = getcwd().DIRECTORY_SEPARATOR;
+        if (strpos($filePath, $cwd) === 0) {
+            $filename = substr($filePath, strlen($cwd));
+        } else {
+            $filename = $filePath;
+        }
+
         $contents = $this->getContents();
 
         if (function_exists('sys_get_temp_dir') === true) {
@@ -261,7 +266,9 @@ class PHP_CodeSniffer_Fixer
 
         // We must use something like shell_exec() because whitespace at the end
         // of lines is critical to diff files.
-        $cmd  = "diff -u -L\"$filename\" -LPHP_CodeSniffer \"$filename\" \"$tempName\"";
+        $filename = escapeshellarg($filename);
+        $cmd      = "diff -u -L$filename -LPHP_CodeSniffer $filename \"$tempName\"";
+
         $diff = shell_exec($cmd);
 
         fclose($fixedFile);

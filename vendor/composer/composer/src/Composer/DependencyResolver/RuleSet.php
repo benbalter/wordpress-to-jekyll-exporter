@@ -58,6 +58,24 @@ class RuleSet implements \IteratorAggregate, \Countable
             throw new \OutOfBoundsException('Unknown rule type: ' . $type);
         }
 
+        $hash = $rule->getHash();
+
+        // Do not add if rule already exists
+        if (isset($this->rulesByHash[$hash])) {
+            $potentialDuplicates = $this->rulesByHash[$hash];
+            if (is_array($potentialDuplicates)) {
+                foreach ($potentialDuplicates as $potentialDuplicate) {
+                    if ($rule->equals($potentialDuplicate)) {
+                        return;
+                    }
+                }
+            } else {
+                if ($rule->equals($potentialDuplicates)) {
+                    return;
+                }
+            }
+        }
+
         if (!isset($this->rules[$type])) {
             $this->rules[$type] = array();
         }
@@ -68,11 +86,13 @@ class RuleSet implements \IteratorAggregate, \Countable
 
         $this->nextRuleId++;
 
-        $hash = $rule->getHash();
         if (!isset($this->rulesByHash[$hash])) {
-            $this->rulesByHash[$hash] = array($rule);
-        } else {
+            $this->rulesByHash[$hash] = $rule;
+        } elseif (is_array($this->rulesByHash[$hash])) {
             $this->rulesByHash[$hash][] = $rule;
+        } else {
+            $originalRule = $this->rulesByHash[$hash];
+            $this->rulesByHash[$hash] = array($originalRule, $rule);
         }
     }
 
@@ -133,20 +153,6 @@ class RuleSet implements \IteratorAggregate, \Countable
         unset($types[255]);
 
         return array_keys($types);
-    }
-
-    public function containsEqual($rule)
-    {
-        if (isset($this->rulesByHash[$rule->getHash()])) {
-            $potentialDuplicates = $this->rulesByHash[$rule->getHash()];
-            foreach ($potentialDuplicates as $potentialDuplicate) {
-                if ($rule->equals($potentialDuplicate)) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
     }
 
     public function getPrettyString(Pool $pool = null)
