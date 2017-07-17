@@ -1,5 +1,7 @@
 #!/bin/bash
 
-bin/install-wp-tests.sh wordpress_test root '' localhost $WP_VERSION
+set -e
+
+script/install-wp-tests wordpress_test root '' localhost $WP_VERSION
 composer global require wp-coding-standards/wpcs
 phpcs --config-set installed_paths $HOME/.composer/vendor/wp-coding-standards/wpcs

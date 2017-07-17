@@ -22,13 +22,13 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 	function setUp() {
 		parent::setUp();
 		$author = wp_insert_user(array(
-			'user_login'   => 'testuser',
-			'user_pass'    => 'testing',
+			'user_login'   => rand_str(),
+			'user_pass'    => rand_str(),
 			'display_name' => 'Tester',
 		));
 
 		$category_id = wp_insert_category( array(
-			'cat_name' => 'Testing',
+			'cat_name' => "Testing",
 		) );
 
 		wp_insert_post(array(
@@ -98,7 +98,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 	 */
 	function test_gets_post_ids() {
 		global $jekyll_export;
-		$this->assertEquals( 3, count( $jekyll_export->get_posts() ) );
+		$this->assertEquals( 9, count( $jekyll_export->get_posts() ) );
 	}
 
 	/**
@@ -116,7 +116,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 		'author'    => 'Tester',
 		'excerpt'   => '',
 		'layout'    => 'post',
-		'permalink' => '/?p=12',
+		'permalink' => '/?p=3',
 		'guid'      => $post->guid,
 		);
 		$this->assertEquals( $expected, $meta );
@@ -188,7 +188,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 		$this->assertEquals( 'Test Post', $yaml['title'] );
 		$this->assertEquals( 'Tester', $yaml['author'] );
 		$this->assertEquals( 'post', $yaml['layout'] );
-		$this->assertEquals( '/?p=24', $yaml['permalink'] );
+		$this->assertEquals( '/?p=3', $yaml['permalink'] );
 		$this->assertEquals( array(
 			0 => 'Testing',
 		), $yaml['categories'] );
