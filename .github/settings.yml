@@ -1,3 +1,5 @@
+# Repository settings set via https://github.com/probot/settings
+
 repository:
   has_issues: true
   has_wiki: false
@@ -8,7 +10,7 @@ labels:
   - name: help-wanted
   - name: more-information-needed
 
-# Not currently implemented by probot/settings
+# Not currently implemented by probot/settings, but manually implemented in script/deploy
 branch_protection:
   dismissal_restrictions: {}
   restrictions: {}
