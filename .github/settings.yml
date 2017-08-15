@@ -8,7 +8,13 @@ repository:
 
 labels:
   - name: help-wanted
+    color: fbca04
   - name: more-information-needed
+    color: d93f0b
+  - name: bug
+    color: b60205
+  - name: feature
+    color: 1d76db
 
 # Not currently implemented by probot/settings, but manually implemented in script/deploy
 branch_protection:
