@@ -1,0 +1,22 @@
+repository:
+  has_issues: true
+  has_wiki: false
+  has_projects: false
+  has_downloads: false
+
+labels:
+  - name: first-timers-only
+    oldname: Help Wanted
+  - name: more-information-needed
+
+# Not currently implemented by probot/settings
+branch_protection:
+  dismissal_restrictions: {}
+  restrictions: {}
+  enforce_admins: false
+  required_status_checks:
+    strict: true
+    contexts:
+      - continuous-integration/travis-ci
+  required_pull_request_reviews:
+    require_code_owner_reviews: true
