@@ -227,7 +227,7 @@ class Jekyll_Export {
 
 			if ( 'post_format' === $tax ) {
 				$output['format'] = get_post_format( $post );
-			} else {
+			} else if (is_array($terms)) {
 				$output[ $tax ] = wp_list_pluck( $terms, 'name' );
 			}
 		}
