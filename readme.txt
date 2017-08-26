@@ -3,7 +3,7 @@ Contributors: benbalter
 Tags: jekyll, github, github pages, yaml, export
 Requires at least: 4.4
 Tested up to: 4.6.0
-Stable tag: 2.2.0
+Stable tag: 2.2.1
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -27,11 +27,11 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
 See [the full documentation](https://ben.balter.com/wordpress-to-jekyll-exporter):
 
-* [changelog]()
+* [Changelog](changelog.md)
 * [Command-line-usage](Command-line-usage.md)
 * [Custom post types](custom-post-types.md)
 * [Developing locally](developing-locally.md)
-* [Minimum required PHP version](required-php-verison.md)
+* [Minimum required PHP version](required-php-version.md)
 
 
 == Changelog ==
