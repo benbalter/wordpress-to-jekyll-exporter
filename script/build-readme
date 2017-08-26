@@ -1,0 +1,23 @@
+#! /usr/bin/env ruby
+
+exclude = %w[readme header _config.yml]
+output = File.open("./docs/header.md").read
+
+# Remove title, badge, and description from README
+readme = File.open("./docs/README.md").read
+readme = "\n#" + readme.split("#")[2..-1].join("#")
+output << readme
+
+Dir["./docs/*"].each do |file|
+  next if exclude.include?(File.basename(file,".md"))
+  output << "\n\n"
+  output << File.open(file).read
+end
+
+output.gsub! /^### ?(.*?)$/im, "= \\1 ="
+output.gsub! /^## ?(.*?)$/im, "== \\1 =="
+output.gsub! /^# ?(.*?)$/im, "=== \\1 ==="
+
+File.open("readme.txt", "wb") do |file|
+  file << output
+end
