@@ -4,6 +4,8 @@ One-click WordPress plugin that converts all posts, pages, taxonomies, metadata,
 
 [![Build Status](https://travis-ci.org/benbalter/wordpress-to-jekyll-exporter.svg?branch=master)](https://travis-ci.org/benbalter/wordpress-to-jekyll-exporter)
 
+View plugin in [the WordPress plugin directory](https://wordpress.org/plugins/jekyll-exporter/).
+
 ## Features
 
 * Converts all posts, pages, and settings from WordPress for use in Jekyll
