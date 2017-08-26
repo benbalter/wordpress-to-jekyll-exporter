@@ -4,7 +4,6 @@
     "require": {
         "mustangostang/spyc": "~0.5",
         "pixel418/markdownify": "~2.1",
-        "alchemy/zippy": "~0.3"
     },
     "license": "GPLv3 or later",
     "authors": [

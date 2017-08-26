@@ -41,7 +41,6 @@ if ( version_compare( PHP_VERSION, '5.3.0', '<' ) ) {
 
 require_once dirname( __FILE__ ) . '/lib/cli.php';
 require_once dirname( __FILE__ ) . '/vendor/autoload.php';
-use Alchemy\Zippy\Zippy;
 
 /**
  * Class Jekyll_Export
@@ -320,11 +319,11 @@ class Jekyll_Export {
 
 		WP_Filesystem();
 
-		// when on Azure Web App use d:/home/temp/ to avoid weird default temp folder behavior
+		// when on Azure Web App use d:/home/temp/ to avoid weird default temp folder behavior.
 		$temp_dir = (getenv( 'WEBSITE_SITE_NAME' ) !== false) ? 'd:/home/temp/' : get_temp_dir();
 
-		$this->dir = $temp_dir . 'wp-jekyll-' . md5( time() ) . '/';
-		$this->zip = $temp_dir . 'wp-jekyll.zip';
+		$this->dir = realpath( $temp_dir ) . 'wp-jekyll-' . md5( time() ) . '/';
+		$this->zip = realpath( $temp_dir ) . 'wp-jekyll.zip';
 		$wp_filesystem->mkdir( $this->dir );
 		$wp_filesystem->mkdir( $this->dir . '_posts/' );
 		$wp_filesystem->mkdir( $this->dir . 'wp-content/' );
@@ -415,17 +414,47 @@ class Jekyll_Export {
 
 	}
 
+	/**
+	 * Creates a zip archive of the given folder
+	 *
+	 * @param String   $source the source directory to zip.
+	 * @param String   $destination the path to output the zip.
+	 * @param Constant $flags flags to pass to ZipArchive->open().
+	 */
+	function zip_folder( $source, $destination, $flags = ZipArchive::CREATE | ZIPARCHIVE::OVERWRITE ) {
+
+		if ( ! file_exists( $source ) ) {
+			die( 'file does not exist: ' . esc_html( $source ) );
+		}
+
+		$zip = new ZipArchive();
+		if ( ! $zip->open( $destination, $flags ) ) {
+			die( 'Cannot open zip archive: ' . esc_html( $destination ) );
+		}
+
+		$files = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $source ), RecursiveIteratorIterator::SELF_FIRST );
+
+		foreach ( $files as $file ) {
+			// Ignore "." and ".." folders.
+			if ( in_array( substr( $file, strrpos( $file, DIRECTORY_SEPARATOR ) + 1 ), array( '.', '..' ), true ) ) {
+				continue;
+			}
+
+			if ( is_dir( $file ) === true ) {
+				$zip->addEmptyDir( substr( realpath( $file ), strlen( $source ) ) );
+			} elseif ( is_file( $file ) === true ) {
+				$zip->addFile( $file, substr( realpath( $file ) , strlen( $source ) ) );
+			}
+		}
+
+		return $zip->close();
+	}
 
 	/**
 	 * Zip temp dir
 	 */
 	function zip() {
-		$zippy = Zippy::load();
-		$zippy->create(
-			$this->zip, array(
-				'./' => $this->dir,
-			), true
-		);
+		$this->zip_folder( $this->dir, $this->zip );
 	}
 
 	/**
