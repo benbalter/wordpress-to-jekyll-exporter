@@ -482,12 +482,12 @@ class Jekyll_Export {
 	 * Convert uploads to static files in the resulting site
 	 */
 	function convert_uploads() {
-
 		$upload_dir = wp_upload_dir();
 		$source = $upload_dir['basedir'];
-		$dest = $this->dir . str_replace( trailingslashit( get_site_url() ), '', $upload_dir['baseurl'] );
+		$site_url = trailingslashit( set_url_scheme( get_site_url(), 'http' ) );
+		$base_url = set_url_scheme( $upload_dir['baseurl'], 'http' );
+		$dest = $this->dir . str_replace( $site_url , '',  $base_url );
 		$this->copy_recursive( $source, $dest );
-
 	}
 
 	/**
