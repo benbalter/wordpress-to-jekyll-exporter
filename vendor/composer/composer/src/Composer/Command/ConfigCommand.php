@@ -63,7 +63,7 @@ class ConfigCommand extends BaseCommand
     {
         $this
             ->setName('config')
-            ->setDescription('Set config options.')
+            ->setDescription('Sets config options.')
             ->setDefinition(array(
                 new InputOption('global', 'g', InputOption::VALUE_NONE, 'Apply command to the global config file'),
                 new InputOption('editor', 'e', InputOption::VALUE_NONE, 'Open editor'),
@@ -146,10 +146,14 @@ EOT
         // passed in a file to use
         $configFile = $input->getOption('global')
             ? ($this->config->get('home') . '/config.json')
-            : ($input->getOption('file') ?: trim(getenv('COMPOSER')) ?: 'composer.json');
+            : ($input->getOption('file') ?: Factory::getComposerFile());
 
         // Create global composer.json if this was invoked using `composer global config`
-        if ($configFile === 'composer.json' && !file_exists($configFile) && realpath(getcwd()) === realpath($this->config->get('home'))) {
+        if (
+            ($configFile === 'composer.json' || $configFile === './composer.json')
+            && !file_exists($configFile)
+            && realpath(getcwd()) === realpath($this->config->get('home'))
+        ) {
             file_put_contents($configFile, "{\n}\n");
         }
 
@@ -402,6 +406,7 @@ EOT
                 },
             ),
             'github-expose-hostname' => array($booleanValidator, $booleanNormalizer),
+            'htaccess-protect' => array($booleanValidator, $booleanNormalizer),
         );
         $multiConfigValues = array(
             'github-protocols' => array(

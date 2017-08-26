@@ -126,6 +126,24 @@ class Application extends BaseApplication
             }
         }
 
+        // prompt user for dir change if no composer.json is present in current dir
+        if ($io->isInteractive() && !in_array($commandName, array('init', 'about', 'help', 'diagnose', 'self-update', 'global'), true) && !file_exists(Factory::getComposerFile())) {
+            $dir = dirname(getcwd());
+            $home = realpath(getenv('HOME') ?: getenv('USERPROFILE') ?: '/');
+
+            // abort when we reach the home dir or top of the filesystem
+            while (dirname($dir) !== $dir && $dir !== $home) {
+                if (file_exists($dir.'/'.Factory::getComposerFile())) {
+                    if ($io->askConfirmation('<info>No composer.json in current directory, do you want to use the one at '.$dir.'?</info> [<comment>Y,n</comment>]? ', true)) {
+                        $oldWorkingDir = getcwd();
+                        chdir($dir);
+                    }
+                    break;
+                }
+                $dir = dirname($dir);
+            }
+        }
+
         if (!$this->disablePluginsByDefault && !$this->hasPluginCommands && 'global' !== $commandName) {
             try {
                 foreach ($this->getPluginCommands() as $command) {
@@ -159,7 +177,7 @@ class Application extends BaseApplication
                 Composer::VERSION,
                 Composer::RELEASE_DATE,
                 defined('HHVM_VERSION') ? 'HHVM '.HHVM_VERSION : 'PHP '.PHP_VERSION,
-                php_uname('s') . ' / ' . php_uname('r')
+                function_exists('php_uname') ? php_uname('s') . ' / ' . php_uname('r') : 'Unknown OS'
             ), true, IOInterface::DEBUG);
 
             if (PHP_VERSION_ID < 50302) {

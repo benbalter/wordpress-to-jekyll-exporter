@@ -2,8 +2,8 @@
     "name": "benbalter/wordpress-to-jekyll-exporter",
     "description": "One-click WordPress plugin that converts all posts, pages, taxonomies, metadata, and settings to Markdown and YAML which can be dropped into Jekyll.",
     "require": {
-        "mustangostang/spyc": "~0.5",
-        "pixel418/markdownify": "~2.1",
+        "mustangostang/spyc": "~0.6",
+        "pixel418/markdownify": "~2.1"
     },
     "license": "GPLv3 or later",
     "authors": [

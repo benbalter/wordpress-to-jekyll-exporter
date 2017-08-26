@@ -49,8 +49,16 @@ class Shell {
 						}
 					}
 				} else {
-					if ( getenv( 'TERM' ) ) {
-						$columns = (int) exec( '/usr/bin/env tput cols' );
+					if ( ! ( $columns = (int) getenv( 'COLUMNS' ) ) ) {
+						$size = exec( '/usr/bin/env stty size 2>/dev/null' );
+						if ( '' !== $size && preg_match( '/[0-9]+ ([0-9]+)/', $size, $matches ) ) {
+							$columns = (int) $matches[1];
+						}
+						if ( ! $columns ) {
+							if ( getenv( 'TERM' ) ) {
+								$columns = (int) exec( '/usr/bin/env tput cols 2>/dev/null' );
+							}
+						}
 					}
 				}
 			}

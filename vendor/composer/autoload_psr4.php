@@ -32,5 +32,4 @@ return array(
     'Composer\\Semver\\' => array($vendorDir . '/composer/semver/src'),
     'Composer\\CaBundle\\' => array($vendorDir . '/composer/ca-bundle/src'),
     'Composer\\' => array($vendorDir . '/composer/composer/src/Composer'),
-    'Alchemy\\Zippy\\' => array($vendorDir . '/alchemy/zippy/src'),
 );

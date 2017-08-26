@@ -91,7 +91,7 @@ class Colors {
 
 		$colors = array();
 		foreach (array('color', 'style', 'background') as $type) {
-			$code = @$color[$type];
+			$code = $color[$type];
 			if (isset(self::$_colors[$type][$code])) {
 				$colors[] = self::$_colors[$type][$code];
 			}
@@ -115,16 +115,15 @@ class Colors {
 	static public function colorize($string, $colored = null) {
 		$passed = $string;
 
-		if (isset(self::$_string_cache[md5($passed)]['colorized'])) {
-			return self::$_string_cache[md5($passed)]['colorized'];
+		if (!self::shouldColorize($colored)) {
+			$return = self::decolorize( $passed, 2 /*keep_encodings*/ );
+			self::cacheString($passed, $return);
+			return $return;
 		}
 
-		if (!self::shouldColorize($colored)) {
-			$colors = self::getColors();
-			$search = array_keys( $colors );
-			$return = str_replace( $search, '', $string );
-			self::cacheString($passed, $return, $colored);
-			return $return;
+		$md5 = md5($passed);
+		if (isset(self::$_string_cache[$md5]['colorized'])) {
+			return self::$_string_cache[$md5]['colorized'];
 		}
 
 		$string = str_replace('%%', '%¾', $string);
@@ -134,7 +133,7 @@ class Colors {
 		}
 
 		$string = str_replace('%¾', '%', $string);
-		self::cacheString($passed, $string, $colored);
+		self::cacheString($passed, $string);
 
 		return $string;
 	}
@@ -143,15 +142,22 @@ class Colors {
 	 * Remove color information from a string.
 	 *
 	 * @param string $string A string with color information.
+	 * @param int    $keep   Optional. If the 1 bit is set, color tokens (eg "%n") won't be stripped. If the 2 bit is set, color encodings (ANSI escapes) won't be stripped. Default 0.
 	 * @return string A string with color information removed.
 	 */
-	static public function decolorize($string) {
-		// Get rid of color tokens if they exist
-		$string = str_replace(array_keys(self::getColors()), '', $string);
+	static public function decolorize( $string, $keep = 0 ) {
+		if ( ! ( $keep & 1 ) ) {
+			// Get rid of color tokens if they exist
+			$string = str_replace('%%', '%¾', $string);
+			$string = str_replace(array_keys(self::getColors()), '', $string);
+			$string = str_replace('%¾', '%', $string);
+		}
 
-		// Remove color encoding if it exists
-		foreach (self::getColors() as $key => $value) {
-			$string = str_replace(self::color($value), '', $string);
+		if ( ! ( $keep & 2 ) ) {
+			// Remove color encoding if it exists
+			foreach (self::getColors() as $key => $value) {
+				$string = str_replace(self::color($value), '', $string);
+			}
 		}
 
 		return $string;
@@ -162,13 +168,13 @@ class Colors {
 	 *
 	 * @param string $passed The original string before colorization.
 	 * @param string $colorized The string after running through self::colorize.
-	 * @param string $colored The string without any color information.
+	 * @param string $deprecated Optional. Not used. Default null.
 	 */
-	static public function cacheString($passed, $colorized, $colored) {
+	static public function cacheString( $passed, $colorized, $deprecated = null ) {
 		self::$_string_cache[md5($passed)] = array(
 			'passed'      => $passed,
 			'colorized'   => $colorized,
-			'decolorized' => self::decolorize($passed)
+			'decolorized' => self::decolorize($passed), // Not very useful but keep for BC.
 		);
 	}
 
@@ -176,27 +182,39 @@ class Colors {
 	 * Return the length of the string without color codes.
 	 *
 	 * @param string  $string  the string to measure
-     * @return string
+     * @return int
 	 */
 	static public function length($string) {
-		if (isset(self::$_string_cache[md5($string)]['decolorized'])) {
-			$test_string = self::$_string_cache[md5($string)]['decolorized'];
-		} else {
-			$test_string = self::decolorize($string);
-		}
+		return safe_strlen( self::decolorize( $string ) );
+	}
 
-		return safe_strlen($test_string);
+	/**
+	 * Return the width (length in characters) of the string without color codes if enabled.
+	 *
+	 * @param string      $string        The string to measure.
+	 * @param bool        $pre_colorized Optional. Set if the string is pre-colorized. Default false.
+	 * @param string|bool $encoding      Optional. The encoding of the string. Default false.
+     * @return int
+	 */
+	static public function width( $string, $pre_colorized = false, $encoding = false ) {
+		return strwidth( $pre_colorized || self::shouldColorize() ? self::decolorize( $string, $pre_colorized ? 1 /*keep_tokens*/ : 0 ) : $string, $encoding );
 	}
 
 	/**
 	 * Pad the string to a certain display length.
 	 *
-	 * @param string  $string  the string to pad
-	 * @param integer  $length  the display length
+	 * @param string      $string        The string to pad.
+	 * @param int         $length        The display length.
+	 * @param bool        $pre_colorized Optional. Set if the string is pre-colorized. Default false.
+	 * @param string|bool $encoding      Optional. The encoding of the string. Default false.
      * @return string
 	 */
-	static public function pad($string, $length) {
-		return safe_str_pad( $string, $length );
+	static public function pad( $string, $length, $pre_colorized = false, $encoding = false ) {
+		$real_length = self::width( $string, $pre_colorized, $encoding );
+		$diff = strlen( $string ) - $real_length;
+		$length += $diff;
+
+		return str_pad( $string, $length );
 	}
 
 	/**
@@ -213,7 +231,7 @@ class Colors {
 			'%p' => array('color' => 'magenta'),
 			'%m' => array('color' => 'magenta'),
 			'%c' => array('color' => 'cyan'),
-			'%w' => array('color' => 'grey'),
+			'%w' => array('color' => 'white'),
 			'%k' => array('color' => 'black'),
 			'%n' => array('color' => 'reset'),
 			'%Y' => array('color' => 'yellow', 'style' => 'bright'),
@@ -223,7 +241,7 @@ class Colors {
 			'%P' => array('color' => 'magenta', 'style' => 'bright'),
 			'%M' => array('color' => 'magenta', 'style' => 'bright'),
 			'%C' => array('color' => 'cyan', 'style' => 'bright'),
-			'%W' => array('color' => 'grey', 'style' => 'bright'),
+			'%W' => array('color' => 'white', 'style' => 'bright'),
 			'%K' => array('color' => 'black', 'style' => 'bright'),
 			'%N' => array('color' => 'reset', 'style' => 'bright'),
 			'%3' => array('background' => 'yellow'),
@@ -232,11 +250,11 @@ class Colors {
 			'%1' => array('background' => 'red'),
 			'%5' => array('background' => 'magenta'),
 			'%6' => array('background' => 'cyan'),
-			'%7' => array('background' => 'grey'),
+			'%7' => array('background' => 'white'),
 			'%0' => array('background' => 'black'),
 			'%F' => array('style' => 'blink'),
 			'%U' => array('style' => 'underline'),
-			'%8' => array('style' => 'inverse'),
+			'%8' => array('style' => 'reverse'),
 			'%9' => array('style' => 'bright'),
 			'%_' => array('style' => 'bright')
 		);

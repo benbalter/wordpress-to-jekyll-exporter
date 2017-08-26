@@ -58,7 +58,7 @@ class ShowCommand extends BaseCommand
         $this
             ->setName('show')
             ->setAliases(array('info'))
-            ->setDescription('Show information about packages.')
+            ->setDescription('Shows information about packages.')
             ->setDefinition(array(
                 new InputArgument('package', InputArgument::OPTIONAL, 'Package to inspect. Or a name including a wildcard (*) to filter lists of packages instead.'),
                 new InputArgument('version', InputArgument::OPTIONAL, 'Version or version constraint to inspect'),
@@ -353,7 +353,7 @@ EOT
                         }
                         if ($input->getOption('outdated') && $latestPackage && $latestPackage->getFullPrettyVersion() === $package->getFullPrettyVersion() && !$latestPackage->isAbandoned()) {
                             continue;
-                        } elseif ($input->getOption('outdated')) {
+                        } elseif ($input->getOption('outdated') || $input->getOption('strict')) {
                             $hasOutdatedPackages = true;
                         }
 

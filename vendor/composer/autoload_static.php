@@ -4,13 +4,13 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitf3a896456a2c29b2d298527963f263df
+class ComposerStaticInitbf7653284bb20431744dfed14e924c11
 {
     public static $files = array (
         '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
+        'be01b9b16925dcb22165c40b46681ac6' => __DIR__ . '/..' . '/wp-cli/php-cli-tools/lib/cli/cli.php',
         '8cd2fca4db21bffce1ad0612f7caeec4' => __DIR__ . '/..' . '/ramsey/array_column/src/array_column.php',
         '04c6c5c2f7095ccf6c481d3e53e1776f' => __DIR__ . '/..' . '/mustangostang/spyc/Spyc.php',
-        'be01b9b16925dcb22165c40b46681ac6' => __DIR__ . '/..' . '/wp-cli/php-cli-tools/lib/cli/cli.php',
     );
 
     public static $prefixLengthsPsr4 = array (
@@ -66,10 +66,6 @@ class ComposerStaticInitf3a896456a2c29b2d298527963f263df
             'Composer\\Semver\\' => 16,
             'Composer\\CaBundle\\' => 18,
             'Composer\\' => 9,
-        ),
-        'A' => 
-        array (
-            'Alchemy\\Zippy\\' => 14,
         ),
     );
 
@@ -180,10 +176,6 @@ class ComposerStaticInitf3a896456a2c29b2d298527963f263df
         array (
             0 => __DIR__ . '/..' . '/composer/composer/src/Composer',
         ),
-        'Alchemy\\Zippy\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/alchemy/zippy/src',
-        ),
     );
 
     public static $prefixesPsr0 = array (
@@ -227,13 +219,6 @@ class ComposerStaticInitf3a896456a2c29b2d298527963f263df
             'Mustache' => 
             array (
                 0 => __DIR__ . '/..' . '/mustache/mustache/src',
-            ),
-        ),
-        'D' => 
-        array (
-            'Doctrine\\Common\\Collections\\' => 
-            array (
-                0 => __DIR__ . '/..' . '/doctrine/collections/lib',
             ),
         ),
     );
@@ -974,10 +959,10 @@ class ComposerStaticInitf3a896456a2c29b2d298527963f263df
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitf3a896456a2c29b2d298527963f263df::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitf3a896456a2c29b2d298527963f263df::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInitf3a896456a2c29b2d298527963f263df::$prefixesPsr0;
-            $loader->classMap = ComposerStaticInitf3a896456a2c29b2d298527963f263df::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitbf7653284bb20431744dfed14e924c11::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitbf7653284bb20431744dfed14e924c11::$prefixDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInitbf7653284bb20431744dfed14e924c11::$prefixesPsr0;
+            $loader->classMap = ComposerStaticInitbf7653284bb20431744dfed14e924c11::$classMap;
 
         }, null, ClassLoader::class);
     }

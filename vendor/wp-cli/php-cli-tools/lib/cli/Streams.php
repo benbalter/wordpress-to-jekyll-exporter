@@ -31,14 +31,16 @@ class Streams {
 		$args = func_get_args();
 
 		// No string replacement is needed
-		if( count( $args ) == 1 ) {
-			return Colors::colorize( $msg );
+		if( count( $args ) == 1 || ( is_string( $args[1] ) && '' === $args[1] ) ) {
+			return Colors::shouldColorize() ? Colors::colorize( $msg ) : $msg;
 		}
 
 		// If the first argument is not an array just pass to sprintf
 		if( !is_array( $args[1] ) ) {
 			// Colorize the message first so sprintf doesn't bitch at us
-			$args[0] = Colors::colorize( $args[0] );
+			if ( Colors::shouldColorize() ) {
+				$args[0] = Colors::colorize( $args[0] );
+			}
 
 			// Escape percent characters for sprintf
 			$args[0] = preg_replace('/(%([^\w]|$))/', "%$1", $args[0]);
@@ -50,7 +52,7 @@ class Streams {
 		foreach( $args[1] as $key => $value ) {
 			$msg = str_replace( '{:' . $key . '}', $value, $msg );
 		}
-		return Colors::colorize( $msg );
+		return Colors::shouldColorize() ? Colors::colorize( $msg ) : $msg;
 	}
 
 	/**

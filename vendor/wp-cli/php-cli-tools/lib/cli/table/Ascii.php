@@ -27,6 +27,7 @@ class Ascii extends Renderer {
 	);
 	protected $_border = null;
 	protected $_constraintWidth = null;
+	protected $_pre_colorized = false;
 
 	/**
 	 * Set the widths of each column in the table.
@@ -39,8 +40,8 @@ class Ascii extends Renderer {
 			$this->_constraintWidth = (int) Shell::columns();
 		}
 		$col_count = count( $widths );
-		$col_borders_count = $col_count * strlen( $this->_characters['border'] );
-		$table_borders_count = strlen( $this->_characters['border'] ) * 1;
+		$col_borders_count = $col_count ? ( ( $col_count - 1 ) * strlen( $this->_characters['border'] ) ) : 0;
+		$table_borders_count = strlen( $this->_characters['border'] ) * 2;
 		$col_padding_count = $col_count * strlen( $this->_characters['padding'] ) * 2;
 		$max_width = $this->_constraintWidth - $col_borders_count - $table_borders_count - $col_padding_count;
 
@@ -62,11 +63,11 @@ class Ascii extends Renderer {
 				foreach( $widths as &$width ) {
 					if ( in_array( $width, $resize_widths ) ) {
 						$width = $avg + $avg_extra_width;
-						$extra_width = $extra_width - $avg_extra_width;
 						array_shift( $resize_widths );
 						// Last item gets the cake
 						if ( empty( $resize_widths ) ) {
-							$width = $width + $extra_width;
+							$width = 0; // Zero it so not in sum.
+							$width = $max_width - array_sum( $widths );
 						}
 					}
 				}
@@ -130,20 +131,21 @@ class Ascii extends Renderer {
 
 			foreach( $row as $col => $value ) {
 
-				$value = str_replace( PHP_EOL, ' ', $value );
+				$value = str_replace( array( "\r\n", "\n" ), ' ', $value );
 
 				$col_width = $this->_widths[ $col ];
-				$original_val_width = Colors::length( $value );
-				if ( $original_val_width > $col_width ) {
-					$row[ $col ] = \cli\safe_substr( $value, 0, $col_width );
-					$value = \cli\safe_substr( $value, $col_width, $original_val_width );
+				$encoding = function_exists( 'mb_detect_encoding' ) ? mb_detect_encoding( $value, null, true /*strict*/ ) : false;
+				$original_val_width = Colors::width( $value, self::isPreColorized( $col ), $encoding );
+				if ( $col_width && $original_val_width > $col_width ) {
+					$row[ $col ] = \cli\safe_substr( $value, 0, $col_width, true /*is_width*/, $encoding );
+					$value = \cli\safe_substr( $value, \cli\safe_strlen( $row[ $col ], $encoding ), null /*length*/, false /*is_width*/, $encoding );
 					$i = 0;
 					do {
-						$extra_value = \cli\safe_substr( $value, 0, $col_width );
-						$val_width = \cli\safe_strlen( $extra_value );
+						$extra_value = \cli\safe_substr( $value, 0, $col_width, true /*is_width*/, $encoding );
+						$val_width = Colors::width( $extra_value, self::isPreColorized( $col ), $encoding );
 						if ( $val_width ) {
 							$extra_rows[ $col ][] = $extra_value;
-							$value = \cli\safe_substr( $value, $col_width, $original_val_width );
+							$value = \cli\safe_substr( $value, \cli\safe_strlen( $extra_value, $encoding ), null /*length*/, false /*is_width*/, $encoding );
 							$i++;
 							if ( $i > $extra_row_count ) {
 								$extra_row_count = $i;
@@ -188,6 +190,31 @@ class Ascii extends Renderer {
 	}
 
 	private function padColumn($content, $column) {
-		return $this->_characters['padding'] . Colors::pad($content, $this->_widths[$column]) . $this->_characters['padding'];
+		return $this->_characters['padding'] . Colors::pad( $content, $this->_widths[ $column ], $this->isPreColorized( $column ) ) . $this->_characters['padding'];
+	}
+
+	/**
+	 * Set whether items are pre-colorized.
+	 *
+	 * @param bool|array $colorized A boolean to set all columns in the table as pre-colorized, or an array of booleans keyed by column index (number) to set individual columns as pre-colorized.
+	 */
+	public function setPreColorized( $pre_colorized ) {
+		$this->_pre_colorized = $pre_colorized;
+	}
+
+	/**
+	 * Is a column pre-colorized?
+	 *
+	 * @param int $column Column index to check.
+	 * @return bool True if whole table is marked as pre-colorized, or if the individual column is pre-colorized; else false.
+	 */
+	public function isPreColorized( $column ) {
+		if ( is_bool( $this->_pre_colorized ) ) {
+			return $this->_pre_colorized;
+		}
+		if ( is_array( $this->_pre_colorized ) && isset( $this->_pre_colorized[ $column ] ) ) {
+			return $this->_pre_colorized[ $column ];
+		}
+		return false;
 	}
 }

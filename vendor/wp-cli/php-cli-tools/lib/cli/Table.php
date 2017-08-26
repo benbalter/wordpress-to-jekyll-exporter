@@ -102,7 +102,7 @@ class Table {
 	 */
 	protected function checkRow(array $row) {
 		foreach ($row as $column => $str) {
-			$width = Colors::length($str);
+			$width = Colors::width( $str, $this->isAsciiPreColorized( $column ) );
 			if (!isset($this->_width[$column]) || $width > $this->_width[$column]) {
 				$this->_width[$column] = $width;
 			}
@@ -227,5 +227,31 @@ class Table {
 
 	public function countRows() {
 		return count($this->_rows);
+	}
+
+	/**
+	 * Set whether items in an Ascii table are pre-colorized.
+	 *
+	 * @param bool|array $precolorized A boolean to set all columns in the table as pre-colorized, or an array of booleans keyed by column index (number) to set individual columns as pre-colorized.
+	 * @see cli\Ascii::setPreColorized()
+	 */
+	public function setAsciiPreColorized( $pre_colorized ) {
+		if ( $this->_renderer instanceof Ascii ) {
+			$this->_renderer->setPreColorized( $pre_colorized );
+		}
+	}
+
+	/**
+	 * Is a column in an Ascii table pre-colorized?
+	 *
+	 * @param int $column Column index to check.
+	 * @return bool True if whole Ascii table is marked as pre-colorized, or if the individual column is pre-colorized; else false.
+	 * @see cli\Ascii::isPreColorized()
+	 */
+	private function isAsciiPreColorized( $column ) {
+		if ( $this->_renderer instanceof Ascii ) {
+			return $this->_renderer->isPreColorized( $column );
+		}
+		return false;
 	}
 }

@@ -5,8 +5,14 @@ php:
     - 5.4
     - 5.5
     - 5.6
+    - 7.0
+    - 7.1
 
-script: phpunit
+before_script:
+  - php -m
+  - php --info | grep -i 'intl\|icu\|pcre'
+
+script: phpunit --debug
 
 notifications:
     email:
