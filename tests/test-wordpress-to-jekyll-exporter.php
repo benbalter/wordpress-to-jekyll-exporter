@@ -21,45 +21,55 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 	 */
 	function setUp() {
 		parent::setUp();
-		$author = wp_insert_user(array(
-			'user_login'   => rand_str(),
-			'user_pass'    => rand_str(),
-			'display_name' => 'Tester',
-		));
+		$author = wp_insert_user(
+			array(
+				'user_login'   => rand_str(),
+				'user_pass'    => rand_str(),
+				'display_name' => 'Tester',
+			)
+		);
 
-		$category_id = wp_insert_category( array(
-			'cat_name' => 'Testing',
-		) );
+		$category_id = wp_insert_category(
+			array(
+				'cat_name' => 'Testing',
+			)
+		);
 
-		wp_insert_post(array(
-			'post_name'     => 'test-post',
-			'post_title'    => 'Test Post',
-			'post_content'  => 'This is a test <strong>post</strong>.',
-			'post_status'   => 'publish',
-			'post_author'   => $author,
-			'post_category' => array( $category_id ),
-			'tags_input'    => array( 'tag1', 'tag2' ),
-			'post_date'     => '2014-01-01',
-		));
+		wp_insert_post(
+			array(
+				'post_name'     => 'test-post',
+				'post_title'    => 'Test Post',
+				'post_content'  => 'This is a test <strong>post</strong>.',
+				'post_status'   => 'publish',
+				'post_author'   => $author,
+				'post_category' => array( $category_id ),
+				'tags_input'    => array( 'tag1', 'tag2' ),
+				'post_date'     => '2014-01-01',
+			)
+		);
 
-		$page_id = wp_insert_post(array(
-			'post_name'    => 'test-page',
-			'post_title'   => 'Test Page',
-			'post_content' => 'This is a test <strong>page</strong>.',
-			'post_status'  => 'publish',
-			'post_type'    => 'page',
-			'post_author'  => $author,
-		));
+		$page_id = wp_insert_post(
+			array(
+				'post_name'    => 'test-page',
+				'post_title'   => 'Test Page',
+				'post_content' => 'This is a test <strong>page</strong>.',
+				'post_status'  => 'publish',
+				'post_type'    => 'page',
+				'post_author'  => $author,
+			)
+		);
 
-		wp_insert_post(array(
-			'post_name'    => 'sub-page',
-			'post_title'   => 'Sub Page',
-			'post_content' => 'This is a test <strong>sub</strong> page.',
-			'post_status'  => 'publish',
-			'post_type'    => 'page',
-			'post_parent'  => $page_id,
-			'post_author'  => $author,
-		));
+		wp_insert_post(
+			array(
+				'post_name'    => 'sub-page',
+				'post_title'   => 'Sub Page',
+				'post_content' => 'This is a test <strong>sub</strong> page.',
+				'post_status'  => 'publish',
+				'post_type'    => 'page',
+				'post_parent'  => $page_id,
+				'post_author'  => $author,
+			)
+		);
 
 		global $jekyll_export;
 		$jekyll_export->init_temp_dir();
@@ -110,14 +120,14 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 		$post = get_post( $posts[0] );
 		$meta = $jekyll_export->convert_meta( $post );
 		$expected = array(
-		'id'        => $post->ID,
-		'title'     => 'Test Post',
-		'date'      => '2014-01-01T00:00:00+00:00',
-		'author'    => 'Tester',
-		'excerpt'   => '',
-		'layout'    => 'post',
-		'permalink' => '/?p=3',
-		'guid'      => $post->guid,
+			'id'        => $post->ID,
+			'title'     => 'Test Post',
+			'date'      => '2014-01-01T00:00:00+00:00',
+			'author'    => 'Tester',
+			'excerpt'   => '',
+			'layout'    => 'post',
+			'permalink' => '/?p=3',
+			'guid'      => $post->guid,
 		);
 		$this->assertEquals( $expected, $meta );
 	}
@@ -130,13 +140,17 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 		$posts = $jekyll_export->get_posts();
 		$post = get_post( $posts[0] );
 		$terms = $jekyll_export->convert_terms( $post->ID );
-		$this->assertEquals( array(
-			0 => 'Testing',
-		), $terms['categories'] );
-		$this->assertEquals( array(
-			0 => 'tag1',
-			1 => 'tag2',
-		), $terms['tags'] );
+		$this->assertEquals(
+			array(
+				0 => 'Testing',
+			), $terms['categories']
+		);
+		$this->assertEquals(
+			array(
+				0 => 'tag1',
+				1 => 'tag2',
+			), $terms['tags']
+		);
 	}
 
 	/**
@@ -189,13 +203,17 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 		$this->assertEquals( 'Tester', $yaml['author'] );
 		$this->assertEquals( 'post', $yaml['layout'] );
 		$this->assertEquals( '/?p=3', $yaml['permalink'] );
-		$this->assertEquals( array(
-			0 => 'Testing',
-		), $yaml['categories'] );
-		$this->assertEquals( array(
-			0 => 'tag1',
-			1 => 'tag2',
-		), $yaml['tags'] );
+		$this->assertEquals(
+			array(
+				0 => 'Testing',
+			), $yaml['categories']
+		);
+		$this->assertEquals(
+			array(
+				0 => 'tag1',
+				1 => 'tag2',
+			), $yaml['tags']
+		);
 
 		// writes the post body.
 		$this->assertEquals( "\nThis is a test **post**.", $parts[2] );

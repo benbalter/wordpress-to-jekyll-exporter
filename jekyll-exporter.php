@@ -98,7 +98,7 @@ class Jekyll_Export {
 			return;
 		}
 
-		if ( ! isset( $_GET['type'] ) ||'jekyll' !== $_GET['type'] ) {
+		if ( ! isset( $_GET['type'] ) || 'jekyll' !== $_GET['type'] ) {
 			return;
 		}
 
@@ -209,9 +209,11 @@ class Jekyll_Export {
 	function convert_terms( $post ) {
 
 		$output = array();
-		foreach ( get_taxonomies( array(
-			'object_type' => array( get_post_type( $post ) ),
-		) ) as $tax ) {
+		foreach ( get_taxonomies(
+			array(
+				'object_type' => array( get_post_type( $post ) ),
+			)
+		) as $tax ) {
 
 			$terms = get_the_terms( $post, $tax );
 
@@ -219,15 +221,15 @@ class Jekyll_Export {
 			switch ( $tax ) {
 				case 'post_tag':
 					$tax = 'tags';
-				break;
+					break;
 				case 'category':
 					$tax = 'categories';
-				break;
+					break;
 			}
 
 			if ( 'post_format' === $tax ) {
 				$output['format'] = get_post_format( $post );
-			} else if (is_array($terms)) {
+			} elseif ( is_array( $terms ) ) {
 				$output[ $tax ] = wp_list_pluck( $terms, 'name' );
 			}
 		}
@@ -417,9 +419,11 @@ class Jekyll_Export {
 	 */
 	function zip() {
 		$zippy = Zippy::load();
-		$zippy->create( $this->zip, array(
-			'./' => $this->dir,
-		), true );
+		$zippy->create(
+			$this->zip, array(
+				'./' => $this->dir,
+			), true
+		);
 	}
 
 	/**
@@ -519,7 +523,7 @@ class Jekyll_Export {
 		$dir = dir( $source );
 		while ( $entry = $dir->read() ) {
 			// Skip pointers.
-			if ( '.' === $entry  || '..' === $entry ) {
+			if ( '.' === $entry || '..' === $entry ) {
 				continue;
 			}
 
