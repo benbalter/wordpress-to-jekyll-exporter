@@ -1,6 +1,6 @@
 #! /usr/bin/env ruby
 
-exclude = %w[readme header _config.yml]
+exclude = %w[README header _config.yml]
 output = File.open("./docs/header.md").read
 
 # Remove title, badge, and description from README
