@@ -421,11 +421,10 @@ class Jekyll_Export {
 	/**
 	 * Creates a zip archive of the given folder
 	 *
-	 * @param String   $source the source directory to zip.
-	 * @param String   $destination the path to output the zip.
-	 * @param Constant $flags flags to pass to ZipArchive->open().
+	 * @param String $source the source directory to zip.
+	 * @param String $destination the path to output the zip.
 	 */
-	function zip_folder( $source, $destination, $flags = ZipArchive::CREATE | ZIPARCHIVE::OVERWRITE ) {
+	function zip_folder( $source, $destination ) {
 
 		if ( ! file_exists( $source ) ) {
 			die( 'file does not exist: ' . esc_html( $source ) );
@@ -434,7 +433,7 @@ class Jekyll_Export {
 		$source = realpath( $source );
 
 		$zip = new ZipArchive();
-		if ( ! $zip->open( $destination, $flags ) ) {
+		if ( ! $zip->open( $destination, ZipArchive::CREATE | ZIPARCHIVE::OVERWRITE ) ) {
 			die( 'Cannot open zip archive: ' . esc_html( $destination ) );
 		}
 
