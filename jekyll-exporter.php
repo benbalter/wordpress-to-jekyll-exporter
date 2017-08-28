@@ -319,8 +319,10 @@ class Jekyll_Export {
 
 		WP_Filesystem();
 
-		// when on Azure Web App use d:/home/temp/ to avoid weird default temp folder behavior.
-		$temp_dir = (getenv( 'WEBSITE_SITE_NAME' ) !== false) ? 'd:/home/temp' : get_temp_dir();
+		// When on Azure Web App use %HOME%\temp\ to avoid weird default temp folder behavior.
+		// For more information see https://github.com/projectkudu/kudu/wiki/Understanding-the-Azure-App-Service-file-system.
+		$temp_dir = (getenv( 'WEBSITE_SITE_NAME' ) !== false) ? (getenv( 'HOME' ) . DIRECTORY_SEPARATOR . 'temp') : get_temp_dir();
+		$wp_filesystem->mkdir( $temp_dir );
 		$temp_dir = realpath( $temp_dir ) . DIRECTORY_SEPARATOR;
 
 		$this->dir = $temp_dir . 'wp-jekyll-' . md5( time() ) . DIRECTORY_SEPARATOR;
