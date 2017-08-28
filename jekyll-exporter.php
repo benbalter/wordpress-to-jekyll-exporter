@@ -431,6 +431,8 @@ class Jekyll_Export {
 			die( 'file does not exist: ' . esc_html( $source ) );
 		}
 
+		$source = realpath( $source );
+
 		$zip = new ZipArchive();
 		if ( ! $zip->open( $destination, $flags ) ) {
 			die( 'Cannot open zip archive: ' . esc_html( $destination ) );
