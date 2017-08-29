@@ -13,6 +13,6 @@ msgstr ""
 "X-Poedit-SourceCharset: UTF-8\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: jekyll-exporter.php:119, jekyll-exporter.php:119
+#: jekyll-exporter.php:112, jekyll-exporter.php:112
 msgid "Export to Jekyll"
 msgstr ""

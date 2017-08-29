@@ -3,7 +3,7 @@ Contributors: benbalter
 Tags: jekyll, github, github pages, yaml, export
 Requires at least: 4.4
 Tested up to: 4.6.0
-Stable tag: 2.2.2
+Stable tag: 2.2.3
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -77,6 +77,8 @@ The custom post type will be exported as a Jekyll collection. You'll need to ini
 1. `sudo apt-get update`
 1. `sudo apt install composer`
 1. `sudo apt install php7.0-xml`
+1. `sudo apt install php7.0-mysql`
+1. `sudo apt install php7.0-zip`
 1. `sudo apt install php-mbstring`
 1. `sudo apt install subversion`
 1. `sudo apt install mysql-server`
