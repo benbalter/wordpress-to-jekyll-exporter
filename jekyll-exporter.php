@@ -54,13 +54,6 @@ require_once dirname( __FILE__ ) . '/vendor/autoload.php';
 class Jekyll_Export {
 
 	/**
-	 * Folder zip file extracts to
-	 *
-	 * @var $zip_folder
-	 */
-	private $zip_folder = 'jekyll-export/';
-
-	/**
 	 * Strings to strip from option keys on export
 	 *
 	 * @var $rename_options
@@ -446,9 +439,9 @@ class Jekyll_Export {
 			}
 
 			if ( is_dir( $file ) === true ) {
-				$zip->addEmptyDir( substr( realpath( $file ), strlen( $source ) ) );
+				$zip->addEmptyDir( substr( realpath( $file ), strlen( $source ) + 1 ) );
 			} elseif ( is_file( $file ) === true ) {
-				$zip->addFile( $file, substr( realpath( $file ) , strlen( $source ) ) );
+				$zip->addFile( $file, substr( realpath( $file ) , strlen( $source ) + 1 ) );
 			}
 		}
 
