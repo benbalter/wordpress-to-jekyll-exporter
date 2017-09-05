@@ -400,17 +400,17 @@ class Jekyll_Export {
 	function write( $output, $post ) {
 
 		global $wp_filesystem;
-	
-		if (get_post_status($post) !== 'publish') {
-			$filename = '_drafts/' . sanitize_file_name(get_page_uri( $post->id ) . '-' . (get_the_title($post->id)) . '.md');
+
+		if ( get_post_status( $post ) !== 'publish' ) {
+			$filename = '_drafts/' . sanitize_file_name( get_page_uri( $post->id ) . '-' . ( get_the_title( $post->id ) ) . '.md' );
 		}
-		else if ( get_post_type( $post ) === 'page' ) {
+		elseif ( get_post_type( $post ) === 'page' ) {
 			$filename = get_page_uri( $post->id ) . '.md';
 		} else {
-			$filename = '_' . get_post_type( $post ) . 's/' . date( 'Y-m-d', strtotime( $post->post_date ) ) . '-' . sanitize_file_name($post->post_name) . '.md';
+			$filename = '_' . get_post_type( $post ) . 's/' . date( 'Y-m-d', strtotime( $post->post_date ) ) . '-' . sanitize_file_name( $post->post_name ) . '.md';
 		}
 
-		$wp_filesystem->mkdir( $this->dir . dirname($filename) );
+		$wp_filesystem->mkdir( $this->dir . dirname( $filename ) );
 		$wp_filesystem->put_contents( $this->dir . $filename, $output );
 	}
 
