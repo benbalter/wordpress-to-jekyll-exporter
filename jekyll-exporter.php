@@ -403,8 +403,7 @@ class Jekyll_Export {
 
 		if ( get_post_status( $post ) !== 'publish' ) {
 			$filename = '_drafts/' . sanitize_file_name( get_page_uri( $post->id ) . '-' . ( get_the_title( $post->id ) ) . '.md' );
-		}
-		elseif ( get_post_type( $post ) === 'page' ) {
+		} elseif ( get_post_type( $post ) === 'page' ) {
 			$filename = get_page_uri( $post->id ) . '.md';
 		} else {
 			$filename = '_' . get_post_type( $post ) . 's/' . date( 'Y-m-d', strtotime( $post->post_date ) ) . '-' . sanitize_file_name( $post->post_name ) . '.md';
