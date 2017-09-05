@@ -127,7 +127,7 @@ class Jekyll_Export {
 		}
 
 		$posts = array();
-		$post_types = apply_filters( 'jekyll_export_post_types', array( 'post', 'page' ) );
+		$post_types = apply_filters( 'jekyll_export_post_types', array( 'post', 'page', 'revision' ) );
 
 		/**
 		 * WordPress style rules don't let us interpolate a string before passing it to
@@ -135,7 +135,7 @@ class Jekyll_Export {
 		 * So query each post_type individually and merge the IDs
 		 */
 		foreach ( $post_types as $post_type ) {
-			$ids = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_status = 'publish' AND post_type = %s", $post_type ) );
+			$ids = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_type = %s", $post_type ) );
 			$posts = array_merge( $posts, $ids );
 		}
 
@@ -323,6 +323,7 @@ class Jekyll_Export {
 
 		$wp_filesystem->mkdir( $this->dir );
 		$wp_filesystem->mkdir( $this->dir . '_posts/' );
+		$wp_filesystem->mkdir( $this->dir . '_drafts/' );
 		$wp_filesystem->mkdir( $this->dir . 'wp-content/' );
 	}
 
@@ -399,16 +400,18 @@ class Jekyll_Export {
 	function write( $output, $post ) {
 
 		global $wp_filesystem;
-
-		if ( get_post_type( $post ) === 'page' ) {
-			$wp_filesystem->mkdir( $this->dir . get_page_uri( $post->id ) );
+	
+		if (get_post_status($post) !== 'publish') {
+			$filename = '_drafts/' . sanitize_file_name(get_page_uri( $post->id ) . '-' . (get_the_title($post->id)) . '.md');
+		}
+		else if ( get_post_type( $post ) === 'page' ) {
 			$filename = get_page_uri( $post->id ) . '.md';
 		} else {
-			$filename = '_' . get_post_type( $post ) . 's/' . date( 'Y-m-d', strtotime( $post->post_date ) ) . '-' . $post->post_name . '.md';
+			$filename = '_' . get_post_type( $post ) . 's/' . date( 'Y-m-d', strtotime( $post->post_date ) ) . '-' . sanitize_file_name($post->post_name) . '.md';
 		}
 
+		$wp_filesystem->mkdir( $this->dir . dirname($filename) );
 		$wp_filesystem->put_contents( $this->dir . $filename, $output );
-
 	}
 
 	/**
