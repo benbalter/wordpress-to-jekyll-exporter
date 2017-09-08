@@ -9,8 +9,6 @@
  * @link       https://github.com/benbalter/wordpress-to-jekyll-exporter/
  */
 
-use Alchemy\Zippy\Zippy;
-
 /**
  * Test suite for JekyllExport
  */
@@ -35,41 +33,44 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 			)
 		);
 
-		wp_insert_post(
-			array(
-				'post_name'     => 'test-post',
-				'post_title'    => 'Test Post',
-				'post_content'  => 'This is a test <strong>post</strong>.',
-				'post_status'   => 'publish',
-				'post_author'   => $author,
-				'post_category' => array( $category_id ),
-				'tags_input'    => array( 'tag1', 'tag2' ),
-				'post_date'     => '2014-01-01',
-			)
-		);
+		if ( count( get_posts() ) === 0 ) {
 
-		$page_id = wp_insert_post(
-			array(
-				'post_name'    => 'test-page',
-				'post_title'   => 'Test Page',
-				'post_content' => 'This is a test <strong>page</strong>.',
-				'post_status'  => 'publish',
-				'post_type'    => 'page',
-				'post_author'  => $author,
-			)
-		);
+			wp_insert_post(
+				array(
+					'post_name'     => 'test-post',
+					'post_title'    => 'Test Post',
+					'post_content'  => 'This is a test <strong>post</strong>.',
+					'post_status'   => 'publish',
+					'post_author'   => $author,
+					'post_category' => array( $category_id ),
+					'tags_input'    => array( 'tag1', 'tag2' ),
+					'post_date'     => '2014-01-01',
+				)
+			);
 
-		wp_insert_post(
-			array(
-				'post_name'    => 'sub-page',
-				'post_title'   => 'Sub Page',
-				'post_content' => 'This is a test <strong>sub</strong> page.',
-				'post_status'  => 'publish',
-				'post_type'    => 'page',
-				'post_parent'  => $page_id,
-				'post_author'  => $author,
-			)
-		);
+			$page_id = wp_insert_post(
+				array(
+					'post_name'    => 'test-page',
+					'post_title'   => 'Test Page',
+					'post_content' => 'This is a test <strong>page</strong>.',
+					'post_status'  => 'publish',
+					'post_type'    => 'page',
+					'post_author'  => $author,
+				)
+			);
+
+			wp_insert_post(
+				array(
+					'post_name'    => 'sub-page',
+					'post_title'   => 'Sub Page',
+					'post_content' => 'This is a test <strong>sub</strong> page.',
+					'post_status'  => 'publish',
+					'post_type'    => 'page',
+					'post_parent'  => $page_id,
+					'post_author'  => $author,
+				)
+			);
+		}
 
 		global $jekyll_export;
 		$jekyll_export->init_temp_dir();
@@ -108,7 +109,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 	 */
 	function test_gets_post_ids() {
 		global $jekyll_export;
-		$this->assertEquals( 9, count( $jekyll_export->get_posts() ) );
+		$this->assertEquals( 3, count( $jekyll_export->get_posts() ) );
 	}
 
 	/**
