@@ -223,14 +223,18 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 	function test_convert_posts() {
 		global $jekyll_export;
 		$jekyll_export->convert_posts();
+
 		$post = $jekyll_export->dir . '/_posts/2014-01-01-test-post.md';
 
-		// write the file to the temp dir.
+		// write the post file to the temp dir.
 		$this->assertFileExists( $post );
 
 		// Handles pages.
 		$this->assertFileExists( $jekyll_export->dir . 'test-page.md' );
 		$this->assertFileExists( $jekyll_export->dir . 'test-page/sub-page.md' );
+
+		// Handles drafts.
+		$this->assertFileExists( $jekyll_export->dir . '/_drafts/test-draft-Test-Draft.md' );
 
 		// writes the file contents.
 		$contents = file_get_contents( $post );
