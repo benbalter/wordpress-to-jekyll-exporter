@@ -9,18 +9,45 @@
  * @link       https://github.com/benbalter/wordpress-to-jekyll-exporter/
  */
 
-use Alchemy\Zippy\Zippy;
-
-/**
- * Test suite for JekyllExport
- */
+ /**
+  * Test suite for JekyllExport
+  */
 class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 
 	/**
-	 * Setup the test suite
+	 * ID of sample post
+	 *
+	 * @var int
 	 */
-	function setUp() {
-		parent::setUp();
+	private static $post_id = 0;
+
+	/**
+	 * ID of sample draft
+	 *
+	 * @var int
+	 */
+	private static $draft_id = 0;
+
+	/**
+	 * ID of sample page
+	 *
+	 * @var int
+	 */
+	private static $page_id = 0;
+
+	/**
+	 * ID of sample sub-page
+	 *
+	 * @var int
+	 */
+	private static $sub_page_id = 0;
+
+	/**
+	 * Setup the test class
+	 */
+	static function setUpBeforeClass() {
+		parent::setUpBeforeClass();
+
 		$author = wp_insert_user(
 			array(
 				'user_login'   => rand_str(),
@@ -35,7 +62,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 			)
 		);
 
-		wp_insert_post(
+		self::$post_id = wp_insert_post(
 			array(
 				'post_name'     => 'test-post',
 				'post_title'    => 'Test Post',
@@ -48,7 +75,20 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 			)
 		);
 
-		$page_id = wp_insert_post(
+		self::$draft_id = wp_insert_post(
+			array(
+				'post_name'     => 'test-draft',
+				'post_title'    => 'Test Draft',
+				'post_content'  => 'This is a test <strong>draft</strong>.',
+				'post_status'   => 'draft',
+				'post_author'   => $author,
+				'post_category' => array( $category_id ),
+				'tags_input'    => array( 'tag1', 'tag2' ),
+				'post_date'     => '2014-01-01',
+			)
+		);
+
+		self::$page_id = wp_insert_post(
 			array(
 				'post_name'    => 'test-page',
 				'post_title'   => 'Test Page',
@@ -59,21 +99,27 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 			)
 		);
 
-		wp_insert_post(
+		self::$sub_page_id = wp_insert_post(
 			array(
 				'post_name'    => 'sub-page',
 				'post_title'   => 'Sub Page',
 				'post_content' => 'This is a test <strong>sub</strong> page.',
 				'post_status'  => 'publish',
 				'post_type'    => 'page',
-				'post_parent'  => $page_id,
+				'post_parent'  => self::$page_id,
 				'post_author'  => $author,
 			)
 		);
+	}
+
+	/**
+	 * Setup the test suite
+	 */
+	function setUp() {
+		parent::setUp();
 
 		global $jekyll_export;
 		$jekyll_export->init_temp_dir();
-
 	}
 
 	/**
@@ -108,7 +154,9 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 	 */
 	function test_gets_post_ids() {
 		global $jekyll_export;
-		$this->assertEquals( 9, count( $jekyll_export->get_posts() ) );
+		$expected = array( self::$post_id, self::$draft_id, self::$page_id, self::$sub_page_id );
+		$actual = $jekyll_export->get_posts();
+		$this->assertTrue( ! array_diff( $expected, $actual ) && ! array_diff( $actual, $expected ) );
 	}
 
 	/**
@@ -116,8 +164,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 	 */
 	function test_convert_meta() {
 		global $jekyll_export;
-		$posts = $jekyll_export->get_posts();
-		$post = get_post( $posts[0] );
+		$post = get_post( self::$post_id );
 		$meta = $jekyll_export->convert_meta( $post );
 		$expected = array(
 			'id'        => $post->ID,
@@ -137,9 +184,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 	 */
 	function test_convert_terms() {
 		global $jekyll_export;
-		$posts = $jekyll_export->get_posts();
-		$post = get_post( $posts[0] );
-		$terms = $jekyll_export->convert_terms( $post->ID );
+		$terms = $jekyll_export->convert_terms( self::$post_id );
 		$this->assertEquals(
 			array(
 				0 => 'Testing',
@@ -158,8 +203,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 	 */
 	function test_convert_content() {
 		global $jekyll_export;
-		$posts = $jekyll_export->get_posts();
-		$post = get_post( $posts[0] );
+		$post = get_post( self::$post_id );
 		$content = $jekyll_export->convert_content( $post );
 		$this->assertEquals( 'This is a test **post**.', $content );
 	}
@@ -178,25 +222,29 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 	 */
 	function test_convert_posts() {
 		global $jekyll_export;
-		$posts = $jekyll_export->convert_posts();
+		$jekyll_export->convert_posts();
+
 		$post = $jekyll_export->dir . '/_posts/2014-01-01-test-post.md';
 
-		// write the file to the temp dir.
-		$this->assertTrue( file_exists( $post ) );
+		// write the post file to the temp dir.
+		$this->assertFileExists( $post );
 
 		// Handles pages.
-		$this->assertTrue( file_exists( $jekyll_export->dir . 'test-page.md' ) );
-		$this->assertTrue( file_exists( $jekyll_export->dir . 'test-page/sub-page.md' ) );
+		$this->assertFileExists( $jekyll_export->dir . 'test-page.md' );
+		$this->assertFileExists( $jekyll_export->dir . 'test-page/sub-page.md' );
+
+		// Handles drafts.
+		$this->assertFileExists( $jekyll_export->dir . '/_drafts/test-draft-Test-Draft.md' );
 
 		// writes the file contents.
 		$contents = file_get_contents( $post );
-		$this->assertContains( 'title: Test Post', $contents );
+		$this->assertContains( 'title: Test Post', $contents, 'file contents' );
 
 		// writes valid YAML.
 		$parts = explode( '---', $contents );
-		$this->assertEquals( 3,count( $parts ) );
+		$this->assertEquals( 3, count( $parts ), 'Invalid YAML Front Matter' );
 		$yaml = spyc_load( $parts[1] );
-		$this->assertNotEmpty( $yaml );
+		$this->assertNotEmpty( $yaml, 'Empty YAML' );
 
 		// writes the front matter.
 		$this->assertEquals( 'Test Post', $yaml['title'] );
@@ -246,8 +294,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 	 */
 	function test_write() {
 		global $jekyll_export;
-		$posts = $jekyll_export->get_posts();
-		$post = get_post( $posts[0] );
+		$post = get_post( self::$post_id );
 		$jekyll_export->write( 'Foo', $post );
 		$post = $jekyll_export->dir . '/_posts/2014-01-01-test-post.md';
 		$this->assertTrue( file_exists( $post ) );
