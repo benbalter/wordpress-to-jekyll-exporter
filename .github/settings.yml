@@ -17,7 +17,7 @@ labels:
   - name: feature
     color: 1d76db
   - name: good first issue
-    color: 5319e7
+    color: "5319e7"
 
 # Not currently implemented by probot/settings, but manually implemented in script/deploy
 branch_protection:
