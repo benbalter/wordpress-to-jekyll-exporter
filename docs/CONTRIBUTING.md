@@ -30,7 +30,7 @@ Feature requests are welcome. But take a moment to find out whether your idea fi
 
 [Open an issue](https://github.com/benbalter/wordpress-to-jekyll-exporter/issues/new) which describes the feature you would like to see, why you want it, how it should work, etc.
 
-## Troubleshooting
+## Minimum PHP version
 
 Many shared hosts may use an outdated version of PHP by default. WordPress to Jekyll Export requires PHP 5.6 or greater.
 
