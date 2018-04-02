@@ -27,7 +27,7 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
 See [the full documentation](https://ben.balter.com/wordpress-to-jekyll-exporter):
 
-* [Changelog](changelog.md)
+* [Changelog](https://github.com/benbalter/wordpress-to-jekyll-exporter/releases)
 * [Command-line-usage](command-line-usage.md)
 * [Custom post types](custom-post-types.md)
 * [Developing locally](developing-locally.md)
