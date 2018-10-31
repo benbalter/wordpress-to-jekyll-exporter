@@ -109,6 +109,9 @@ class Converter
             'href' => 'required',
             'title' => 'optional',
         ),
+        'iframe' => array(
+            'src' => 'required'
+        ),
         'strong' => array(),
         'b' => array(),
         'em' => array(),
@@ -150,7 +153,6 @@ class Converter
         'area',
         'object',
         'param',
-        'iframe',
     );
 
     /**
@@ -312,7 +314,7 @@ class Converter
      * @return void
      */
     protected function parse()
-    {
+    { 
         $this->output = '';
         // drop tags
         $this->parser->html = preg_replace('#<(' . implode('|', $this->drop) . ')[^>]*>.*</\\1>#sU', '', $this->parser->html);
@@ -371,6 +373,7 @@ class Converter
                             }
                         }
                         $func = 'handleTag_' . $this->parser->tagName;
+
                         $this->$func();
                         if ($this->linkPosition == self::LINK_AFTER_PARAGRAPH && $this->parser->isBlockElement && !$this->parser->isStartTag && empty($this->parser->openTags)) {
                             $this->flushFootnotes();
@@ -821,6 +824,96 @@ class Converter
         }
 
         return '[' . $buffer . '][' . $tag['linkID'] . ']';
+    }
+	
+	/**
+     * handle <iframe> tags
+     *
+     * @param void
+     * @return void
+     */
+    protected function handleTag_iframe()
+    {
+        if ($this->parser->isStartTag) {
+            $this->buffer();
+            $this->handleTag_iframe_parser();
+            $this->stack();
+        } else {
+        	$tag = $this->unstack();
+        	$buffer = $this->unbuffer();
+        	$this->handleTag_iframe_converter($tag, $buffer);
+        	$this->out($this->handleTag_iframe_converter($tag, $buffer), true);
+        }
+    }
+	
+	/**
+     * handle <iframe> tags parsing them if possible as video template for hugo
+     *
+     * @param void
+     * @return void
+     */
+    protected function handleTag_iframe_parser()
+    {
+
+        $iframeLink = $this->decode(trim($this->parser->tagAttributes['src']));
+        $sourceType = null;
+        
+        if (strpos($iframeLink, 'youtube') !== false) {
+        	$sourceType = "youtube";
+        }
+        
+        if (strpos($iframeLink, 'vimeo') !== false) {
+        	$sourceType = "vimeo";
+        }
+
+        $replaceArray = array("https://www.youtube.com/embed/","http://www.youtube.com/embed/","?feature=oembed");
+        $transformedLink = str_replace($replaceArray,"", $iframeLink);
+		
+		if (strpos($transformedLink, 'vimeo.com') !== false) {
+			$transformedLink = trim(substr($transformedLink, strrpos($transformedLink, '/') + 1));
+		}
+        
+        if (strpos($transformedLink, 'http') === false) {
+        	$transformedLink = "{{< $sourceType $transformedLink >}}";
+        }
+		
+        $this->parser->tagAttributes['src'] = $this->decode(trim($this->parser->tagAttributes['src']));
+    }
+
+    /**
+     * handle <iframe> tags conversion
+     * The Hugo Generator should handle video links, by transforming them into iframes again
+	 *
+     * @param array $tag
+     * @param string $buffer
+     * @return string The markdownified link from the iframe
+     */
+    protected function handleTag_iframe_converter($tag, $buffer)
+    { 
+		$sourceType = null;
+        
+		$link = $tag['src'];
+		
+        if (strpos($link, 'youtube') !== false) {
+        	$sourceType = "youtube";
+        }
+        
+        if (strpos($link, 'vimeo') !== false) {
+        	$sourceType = "vimeo";
+        }
+
+        $replaceArray = array("https://www.youtube.com/embed/","http://www.youtube.com/embed/","?feature=oembed");
+        $transformedLink = str_replace($replaceArray,"", $link);
+		
+		if (strpos($transformedLink, 'vimeo.com') !== false) {
+			$transformedLink = trim(substr($transformedLink, strrpos($transformedLink, '/') + 1));
+		}
+
+        if (strpos($transformedLink, 'http') === false) {
+        	return $transformedLink = "{{< $sourceType $transformedLink >}}";
+        } else {
+			return "[$transformedLink]";
+		}
     }
 
     /**
