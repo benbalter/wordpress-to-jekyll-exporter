@@ -29,6 +29,16 @@ class ConverterExtra extends Converter
     protected $row = 0;
 
     /**
+     * @var string
+     */
+    protected $tableLookaheadBody;
+
+    /**
+     * @var string
+     */
+    protected $tableLookaheadHeader;
+
+    /**
      * constructor, see Markdownify::Markdownify() for more information
      */
     public function __construct($linksAfterEachParagraph = self::LINK_AFTER_CONTENT, $bodyWidth = MDFY_BODYWIDTH, $keepHTML = MDFY_KEEPHTML)
@@ -68,6 +78,12 @@ class ConverterExtra extends Converter
         // link class
         $this->isMarkdownable['a']['id'] = 'optional';
         $this->isMarkdownable['a']['class'] = 'optional';
+        // iframe optionals
+        $this->isMarkdownable['iframe']['width'] = 'optional';
+        $this->isMarkdownable['iframe']['height'] = 'optional';
+        $this->isMarkdownable['iframe']['allow'] = 'optional';
+        $this->isMarkdownable['iframe']['allowfullscreen'] = 'optional';
+        $this->isMarkdownable['iframe']['frameborder'] = 'optional';
         // footnotes
         $this->isMarkdownable['fnref'] = array(
             'target' => 'required',
@@ -150,6 +166,36 @@ class ConverterExtra extends Converter
     protected function handleTag_a_converter($tag, $buffer)
     {
         $output = parent::handleTag_a_converter($tag, $buffer);
+        if (!empty($tag['cssSelector'])) {
+            // [This link][id]{#id.class}
+            $output .= '{' . $tag['cssSelector'] . '}';
+        }
+
+        return $output;
+    }
+	
+	/**
+     * handle <iframe> tags parsing
+     *
+     * @param void
+     * @return void
+     */
+    protected function handleTag_iframe_parser()
+    {
+        parent::handleTag_iframe_parser();
+        $this->parser->tagAttributes['cssSelector'] = $this->getCurrentCssSelector();
+    }
+
+    /**
+     * handle <iframe> tags conversion
+     *
+     * @param array $tag
+     * @param string $buffer
+     * @return string The markdownified link
+     */
+    protected function handleTag_iframe_converter($tag, $buffer)
+    {
+        $output = parent::handleTag_iframe_converter($tag, $buffer);
         if (!empty($tag['cssSelector'])) {
             // [This link][id]{#id.class}
             $output .= '{' . $tag['cssSelector'] . '}';
@@ -553,9 +599,6 @@ class ConverterExtra extends Converter
 
     /**
      * handle <a> tags parsing
-     *
-     * @param void
-     * @return void
      */
     protected function getCurrentCssSelector()
     {
@@ -568,6 +611,7 @@ class ConverterExtra extends Converter
             $classes = array_filter($classes);
             $cssSelector .= '.' . join('.', $classes);
         }
+
         return $cssSelector;
     }
 }
