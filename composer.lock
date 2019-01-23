@@ -1,7 +1,7 @@
 {
     "_readme": [
         "This file locks the dependencies of your project to a known state",
-        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
     "content-hash": "4785a36bfbc5c8ab7feaf2cce2aff8dc",
@@ -58,20 +58,20 @@
         },
         {
             "name": "pixel418/markdownify",
-            "version": "v2.2.1",
+            "version": "v2.3.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Elephant418/Markdownify.git",
-                "reference": "0160677f04c784550dd10fd72fdf3994967db848"
+                "reference": "891be2176858712c6c4581da410e96fc2019e3f0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Elephant418/Markdownify/zipball/0160677f04c784550dd10fd72fdf3994967db848",
-                "reference": "0160677f04c784550dd10fd72fdf3994967db848",
+                "url": "https://api.github.com/repos/Elephant418/Markdownify/zipball/891be2176858712c6c4581da410e96fc2019e3f0",
+                "reference": "891be2176858712c6c4581da410e96fc2019e3f0",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.3.0"
+                "php": ">=5.4.0"
             },
             "require-dev": {
                 "phpunit/phpunit": "^4.8"
@@ -85,14 +85,9 @@
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
-                "LGPL"
+                "MIT"
             ],
             "authors": [
-                {
-                    "name": "Peter Kruithof",
-                    "email": "pkruithof@gmail.com",
-                    "homepage": "http://pkruithof.tumblr.com/"
-                },
                 {
                     "name": "Milian Wolff",
                     "email": "mail@milianw.de",
@@ -101,16 +96,18 @@
                 {
                     "name": "Thomas Zilliox",
                     "email": "hello@tzi.fr",
-                    "homepage": "http://tzi.fr"
+                    "homepage": "https://tzi.fr"
                 }
             ],
             "description": "The HTML to Markdown converter for PHP ",
             "homepage": "https://github.com/elephant418/Markdownify",
             "keywords": [
+                "converter",
+                "html",
                 "markdown",
                 "markdownify"
             ],
-            "time": "2016-09-21T13:01:43+00:00"
+            "time": "2019-01-22T16:33:43+00:00"
         }
     ],
     "packages-dev": [
@@ -1312,6 +1309,7 @@
                 "array_column",
                 "column"
             ],
+            "abandoned": true,
             "time": "2015-03-20T22:07:39+00:00"
         },
         {
