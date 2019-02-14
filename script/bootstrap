@@ -11,3 +11,5 @@ composer global require "squizlabs/php_codesniffer=*"
 composer global require wp-coding-standards/wpcs
 
 phpcs --config-set installed_paths "$HOME/.composer/vendor/wp-coding-standards/wpcs"
+
+npm install --global wp-pot-cli

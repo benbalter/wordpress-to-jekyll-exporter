@@ -27,37 +27,11 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
 See [the full documentation](https://ben.balter.com/wordpress-to-jekyll-exporter):
 
-* [Changelog](https://github.com/benbalter/wordpress-to-jekyll-exporter/releases)
-* [Command-line-usage](command-line-usage.md)
-* [Custom post types](custom-post-types.md)
-* [Developing locally](developing-locally.md)
-* [Minimum required PHP version](required-php-version.md)
-
-
-== Changelog ==
-
-[View Past Releases](https://github.com/benbalter/wordpress-to-jekyll-exporter/releases)
-
-
-== Command-line Usage ==
-
-If you're having trouble with your web server timing out before the export is complete, or if you just like terminal better, you may enjoy the command-line tool.
-
-It works just like the plugin, but produces the zipfile on STDOUT:
-
-```
-php jekyll-export-cli.php > jekyll-export.zip
-```
-
-If using this method, you must run first `cd` into the wordpress-to-jekyll-exporter directory.
-
-Alternatively, if you have [WP-CLI](http://wp-cli.org) installed, you can run:
-
-```
-wp jekyll-export > export.zip
-```
-
-The WP-CLI version will provide greater compatibility for alternate WordPress environments, such as when `wp-content` isn't in the usual location.
+* [Changelog](http://ben.balter.com/wordpress-to-jekyll-exporter/changelog/)
+* [Command-line-usage](http://ben.balter.com/wordpress-to-jekyll-exporter/command-line-usage/)
+* [Custom post types](http://ben.balter.com/wordpress-to-jekyll-exporter/custom-post-types/)
+* [Developing locally](http://ben.balter.com/wordpress-to-jekyll-exporter/developing-locally/)
+* [Minimum required PHP version](http://ben.balter.com/wordpress-to-jekyll-exporter/required-php-version/)
 
 
 == Custom post types ==
@@ -69,6 +43,11 @@ add_filter( 'jekyll_export_post_types', array('posts', 'pages', 'you-custom-post
 ```
 
 The custom post type will be exported as a Jekyll collection. You'll need to initialize it in the resulting Jekyll site's `_config.yml`.
+
+
+== Changelog ==
+
+[View Past Releases](https://github.com/benbalter/wordpress-to-jekyll-exporter/releases)
 
 
 == Developing locally ==
@@ -95,6 +74,27 @@ The custom post type will be exported as a Jekyll collection. You'll need to ini
 `script/cibuild`
 
 
+== Command-line Usage ==
+
+If you're having trouble with your web server timing out before the export is complete, or if you just like terminal better, you may enjoy the command-line tool.
+
+It works just like the plugin, but produces the zipfile on STDOUT:
+
+```
+php jekyll-export-cli.php > jekyll-export.zip
+```
+
+If using this method, you must run first `cd` into the wordpress-to-jekyll-exporter directory.
+
+Alternatively, if you have [WP-CLI](http://wp-cli.org) installed, you can run:
+
+```
+wp jekyll-export > export.zip
+```
+
+The WP-CLI version will provide greater compatibility for alternate WordPress environments, such as when `wp-content` isn't in the usual location.
+
+
 == Minimum required PHP version ==
 
 Many shared hosts may use an outdated version of PHP by default. **WordPress to Jekyll Export requires PHP 5.6 or greater.**
@@ -102,3 +102,12 @@ Many shared hosts may use an outdated version of PHP by default. **WordPress to 
 If you get an error message that looks like `unexpected T_STRING`, `unexpected '['` or `expecting T_CONSTANT_ENCAPSED_STRING`, you need to update your PHP version. In a shared hosting environment, you should be able to change the version of PHP used by simply toggling the setting in the host's control panel.
 
 PHP 5.4 lost support from the PHP project itself in 2015. You'll need to be running at least PHP 5.5 which adds namespace support (the reason it's breaking), but I'd recommend at least 5.6 (or the latest your host supports) as it's the oldest supported version: <https://en.wikipedia.org/wiki/PHP#Release_history>
+
+= How to determine which version of PHP you're running =
+
+* Try [this plugin](https://wordpress.org/plugins/display-php-version/)
+* Follow [WordPress's tutorial](https://codex.wordpress.org/Finding_Server_Info) or [this wikihow](https://www.wikihow.com/Check-PHP-Version)
+
+= How to upgrade your version of PHP =
+
+If you are using a shared hosting environment, upgrading to a newer version of PHP should be a matter of changing a setting in your host's control panel. You'll have to follow your host specific documentation to determine how to access it or where the setting lives. Check out [this list of common hosts](https://kb.yoast.com/kb/how-to-update-your-php-version/) for more details.
