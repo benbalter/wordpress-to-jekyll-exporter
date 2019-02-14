@@ -1,7 +1,0 @@
-config.yml
-PHAR_BUILD_VERSION
-/cache
-/packages
-/vendor
-/*.phar
-/phpunit.xml.dist

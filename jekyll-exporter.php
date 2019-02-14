@@ -126,7 +126,7 @@ class Jekyll_Export {
 			return $posts;
 		}
 
-		$posts = array();
+		$posts      = array();
 		$post_types = apply_filters( 'jekyll_export_post_types', array( 'post', 'page', 'revision' ) );
 
 		/**
@@ -135,7 +135,7 @@ class Jekyll_Export {
 		 * So query each post_type individually and merge the IDs
 		 */
 		foreach ( $post_types as $post_type ) {
-			$ids = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_type = %s", $post_type ) );
+			$ids   = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_type = %s", $post_type ) );
 			$posts = array_merge( $posts, $ids );
 		}
 
@@ -238,7 +238,7 @@ class Jekyll_Export {
 	 */
 	function convert_content( $post ) {
 
-		 // check if jetpack markdown is available.
+		// check if jetpack markdown is available.
 		if ( class_exists( 'WPCom_Markdown' ) ) {
 			$wpcom_markdown_instance = WPCom_Markdown::get_instance();
 
@@ -250,9 +250,9 @@ class Jekyll_Export {
 			}
 		}
 
-		$content = apply_filters( 'the_content', $post->post_content );
+		$content   = apply_filters( 'the_content', $post->post_content );
 		$converter = new Markdownify\ConverterExtra( Markdownify\Converter::LINK_IN_PARAGRAPH );
-		$markdown = $converter->parseString( $content );
+		$markdown  = $converter->parseString( $content );
 
 		if ( strpos( $markdown, '[]: ' ) !== false ) {
 			// faulty links; return plain HTML.
@@ -314,7 +314,7 @@ class Jekyll_Export {
 
 		// When on Azure Web App use %HOME%\temp\ to avoid weird default temp folder behavior.
 		// For more information see https://github.com/projectkudu/kudu/wiki/Understanding-the-Azure-App-Service-file-system.
-		$temp_dir = (getenv( 'WEBSITE_SITE_NAME' ) !== false) ? (getenv( 'HOME' ) . DIRECTORY_SEPARATOR . 'temp') : get_temp_dir();
+		$temp_dir = ( getenv( 'WEBSITE_SITE_NAME' ) !== false ) ? ( getenv( 'HOME' ) . DIRECTORY_SEPARATOR . 'temp' ) : get_temp_dir();
 		$wp_filesystem->mkdir( $temp_dir );
 		$temp_dir = realpath( $temp_dir ) . DIRECTORY_SEPARATOR;
 
@@ -443,7 +443,7 @@ class Jekyll_Export {
 			if ( is_dir( $file ) === true ) {
 				$zip->addEmptyDir( substr( realpath( $file ), strlen( $source ) + 1 ) );
 			} elseif ( is_file( $file ) === true ) {
-				$zip->addFile( $file, substr( realpath( $file ) , strlen( $source ) + 1 ) );
+				$zip->addFile( $file, substr( realpath( $file ), strlen( $source ) + 1 ) );
 			}
 		}
 
@@ -497,7 +497,7 @@ class Jekyll_Export {
 	 */
 	function rename_key( &$array, $from, $to ) {
 
-		$keys = array_keys( $array );
+		$keys  = array_keys( $array );
 		$index = array_search( $from, $keys, true );
 
 		if ( false === $index ) {
@@ -505,7 +505,7 @@ class Jekyll_Export {
 		}
 
 		$keys[ $index ] = $to;
-		$array = array_combine( $keys, $array );
+		$array          = array_combine( $keys, $array );
 
 	}
 
@@ -514,10 +514,10 @@ class Jekyll_Export {
 	 */
 	function convert_uploads() {
 		$upload_dir = wp_upload_dir();
-		$source = $upload_dir['basedir'];
-		$site_url = trailingslashit( set_url_scheme( get_site_url(), 'http' ) );
-		$base_url = set_url_scheme( $upload_dir['baseurl'], 'http' );
-		$dest = $this->dir . str_replace( $site_url , '',  $base_url );
+		$source     = $upload_dir['basedir'];
+		$site_url   = trailingslashit( set_url_scheme( get_site_url(), 'http' ) );
+		$base_url   = set_url_scheme( $upload_dir['baseurl'], 'http' );
+		$dest       = $this->dir . str_replace( $site_url, '', $base_url );
 		$this->copy_recursive( $source, $dest );
 	}
 

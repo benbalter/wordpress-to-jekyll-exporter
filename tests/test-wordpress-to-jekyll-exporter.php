@@ -9,9 +9,9 @@
  * @link       https://github.com/benbalter/wordpress-to-jekyll-exporter/
  */
 
- /**
-  * Test suite for JekyllExport
-  */
+/**
+ * Test suite for JekyllExport
+ */
 class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 
 	/**
@@ -155,7 +155,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 	function test_gets_post_ids() {
 		global $jekyll_export;
 		$expected = array( self::$post_id, self::$draft_id, self::$page_id, self::$sub_page_id );
-		$actual = $jekyll_export->get_posts();
+		$actual   = $jekyll_export->get_posts();
 		$this->assertTrue( ! array_diff( $expected, $actual ) && ! array_diff( $actual, $expected ) );
 	}
 
@@ -164,8 +164,8 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 	 */
 	function test_convert_meta() {
 		global $jekyll_export;
-		$post = get_post( self::$post_id );
-		$meta = $jekyll_export->convert_meta( $post );
+		$post     = get_post( self::$post_id );
+		$meta     = $jekyll_export->convert_meta( $post );
 		$expected = array(
 			'id'        => $post->ID,
 			'title'     => 'Test Post',
@@ -173,7 +173,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 			'author'    => 'Tester',
 			'excerpt'   => '',
 			'layout'    => 'post',
-			'permalink' => '/?p=3',
+			'permalink' => '/?p=4',
 			'guid'      => $post->guid,
 		);
 		$this->assertEquals( $expected, $meta );
@@ -188,13 +188,15 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 		$this->assertEquals(
 			array(
 				0 => 'Testing',
-			), $terms['categories']
+			),
+			$terms['categories']
 		);
 		$this->assertEquals(
 			array(
 				0 => 'tag1',
 				1 => 'tag2',
-			), $terms['tags']
+			),
+			$terms['tags']
 		);
 	}
 
@@ -203,7 +205,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 	 */
 	function test_convert_content() {
 		global $jekyll_export;
-		$post = get_post( self::$post_id );
+		$post    = get_post( self::$post_id );
 		$content = $jekyll_export->convert_content( $post );
 		$this->assertEquals( 'This is a test **post**.', $content );
 	}
@@ -250,17 +252,19 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 		$this->assertEquals( 'Test Post', $yaml['title'] );
 		$this->assertEquals( 'Tester', $yaml['author'] );
 		$this->assertEquals( 'post', $yaml['layout'] );
-		$this->assertEquals( '/?p=3', $yaml['permalink'] );
+		$this->assertEquals( '/?p=4', $yaml['permalink'] );
 		$this->assertEquals(
 			array(
 				0 => 'Testing',
-			), $yaml['categories']
+			),
+			$yaml['categories']
 		);
 		$this->assertEquals(
 			array(
 				0 => 'tag1',
 				1 => 'tag2',
-			), $yaml['tags']
+			),
+			$yaml['tags']
 		);
 
 		// writes the post body.
@@ -298,7 +302,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 		$jekyll_export->write( 'Foo', $post );
 		$post = $jekyll_export->dir . '/_posts/2014-01-01-test-post.md';
 		$this->assertTrue( file_exists( $post ) );
-		$this->assertEquals( 'Foo',file_get_contents( $post ) );
+		$this->assertEquals( 'Foo', file_get_contents( $post ) );
 	}
 
 	/**
@@ -343,12 +347,12 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 	function test_rename_key() {
 		global $jekyll_export;
 		$array = array(
-			'foo' => 'bar',
+			'foo'  => 'bar',
 			'foo2' => 'bar2',
 		);
 		$jekyll_export->rename_key( $array, 'foo', 'baz' );
 		$expected = array(
-			'baz' => 'bar',
+			'baz'  => 'bar',
 			'foo2' => 'bar2',
 		);
 		$this->assertEquals( $expected, $array );

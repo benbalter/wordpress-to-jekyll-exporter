@@ -1,4 +1,6 @@
 #composer bloat
+vendor/*
+!vendor/mustangostang/spyc/*
 vendor/**/docs
 vendor/**/test
 vendor/**/tests
@@ -6,3 +8,4 @@ vendor/**/features
 vendor/**/*.md
 vendor/**/*.js
 vendor/**/*.css
+bin/

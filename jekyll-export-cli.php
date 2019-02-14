@@ -16,8 +16,8 @@
  *
  * Must be run in the wordpress-to-jekyll-exporter/ directory.
  */
-include '../../../wp-load.php';
-include '../../../wp-admin/includes/file.php';
+require '../../../wp-load.php';
+require '../../../wp-admin/includes/file.php';
 require_once 'jekyll-exporter.php'; // Ensure plugin is "activated".
 
 if ( php_sapi_name() !== 'cli' ) {
