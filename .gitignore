@@ -2,6 +2,8 @@
 vendor/*
 !vendor/mustangostang/spyc/*
 !vendor/pixel418/markdownify
+!vendor/autoload.php
+!vendor/composer
 vendor/**/docs
 vendor/**/test
 vendor/**/tests
