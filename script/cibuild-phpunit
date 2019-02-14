@@ -4,5 +4,4 @@ set -e
 
 export PATH="$HOME/.composer/vendor/bin:./bin:$PATH"
 
-bin/phpunit
-WP_MULTISITE=1 bin/phpunit
+phpunit
