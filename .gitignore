@@ -1,6 +1,7 @@
 #composer bloat
 vendor/*
 !vendor/mustangostang/spyc/*
+!vendor/pixel418/markdownify
 vendor/**/docs
 vendor/**/test
 vendor/**/tests

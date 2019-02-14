@@ -3,7 +3,7 @@
     "description": "One-click WordPress plugin that converts all posts, pages, taxonomies, metadata, and settings to Markdown and YAML which can be dropped into Jekyll.",
     "require": {
         "mustangostang/spyc": "~0.6",
-        "pixel418/markdownify": "~2.1"
+        "pixel418/markdownify": "^2.3"
     },
     "license": "GPLv3 or later",
     "authors": [
