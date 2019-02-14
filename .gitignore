@@ -4,6 +4,7 @@ vendor/*
 vendor/**/docs
 vendor/**/test
 vendor/**/tests
+vendor/**/examples
 vendor/**/features
 vendor/**/*.md
 vendor/**/*.js
