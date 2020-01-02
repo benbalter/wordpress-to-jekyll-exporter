@@ -38,9 +38,11 @@ See [the full documentation](https://ben.balter.com/wordpress-to-jekyll-exporter
 
 To export custom post types, you'll need to add a filter to do the following:
 
-```php
-add_filter( 'jekyll_export_post_types', array('posts', 'pages', 'you-custom-post-type') );
-```
+`
+add_filter( 'jekyll_export_post_types', function() {
+	return array('posts', 'pages', 'you-custom-post-type');
+} );
+`
 
 The custom post type will be exported as a Jekyll collection. You'll need to initialize it in the resulting Jekyll site's `_config.yml`.
 
@@ -54,14 +56,14 @@ The custom post type will be exported as a Jekyll collection. You'll need to ini
 
 = Prerequisites =
 1. `sudo apt-get update`
-1. `sudo apt install composer`
-1. `sudo apt install php7.0-xml`
-1. `sudo apt install php7.0-mysql`
-1. `sudo apt install php7.0-zip`
-1. `sudo apt install php-mbstring`
-1. `sudo apt install subversion`
-1. `sudo apt install mysql-server`
-1. `sudo apt install php-pear`
+1. `sudo apt-get install composer`
+1. `sudo apt-get install php7.3-xml`
+1. `sudo apt-get install php7.3-mysql`
+1. `sudo apt-get install php7.3-zip`
+1. `sudo apt-get install php-mbstring`
+1. `sudo apt-get install subversion`
+1. `sudo apt-get install mysql-server`
+1. `sudo apt-get install php-pear`
 1. `sudo pear install PHP_CodeSniffer`
 
 = Bootstrap & Setup =
@@ -80,17 +82,17 @@ If you're having trouble with your web server timing out before the export is co
 
 It works just like the plugin, but produces the zipfile on STDOUT:
 
-```
+`
 php jekyll-export-cli.php > jekyll-export.zip
-```
+`
 
 If using this method, you must run first `cd` into the wordpress-to-jekyll-exporter directory.
 
 Alternatively, if you have [WP-CLI](http://wp-cli.org) installed, you can run:
 
-```
+`
 wp jekyll-export > export.zip
-```
+`
 
 The WP-CLI version will provide greater compatibility for alternate WordPress environments, such as when `wp-content` isn't in the usual location.
 
@@ -101,7 +103,7 @@ Many shared hosts may use an outdated version of PHP by default. **WordPress to 
 
 If you get an error message that looks like `unexpected T_STRING`, `unexpected '['` or `expecting T_CONSTANT_ENCAPSED_STRING`, you need to update your PHP version. In a shared hosting environment, you should be able to change the version of PHP used by simply toggling the setting in the host's control panel.
 
-PHP 5.4 lost support from the PHP project itself in 2015. You'll need to be running at least PHP 5.5 which adds namespace support (the reason it's breaking), but I'd recommend at least 5.6 (or the latest your host supports) as it's the oldest supported version: <https://en.wikipedia.org/wiki/PHP#Release_history>
+PHP 5.4 lost support from the PHP project itself in 2015. You'll need to be running at least PHP 5.5 which adds namespace support (the reason it's breaking), but I'd recommend at least 7.3 (or the latest your host supports) as it's the oldest [supported PHP version](https://www.php.net/supported-versions.php).
 
 = How to determine which version of PHP you're running =
 
