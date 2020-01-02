@@ -27,53 +27,11 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
 See [the full documentation](https://ben.balter.com/wordpress-to-jekyll-exporter):
 
-* [Changelog](http://ben.balter.com/wordpress-to-jekyll-exporter/changelog/)
-* [Command-line-usage](http://ben.balter.com/wordpress-to-jekyll-exporter/command-line-usage/)
-* [Custom post types](http://ben.balter.com/wordpress-to-jekyll-exporter/custom-post-types/)
-* [Developing locally](http://ben.balter.com/wordpress-to-jekyll-exporter/developing-locally/)
-* [Minimum required PHP version](http://ben.balter.com/wordpress-to-jekyll-exporter/required-php-version/)
-
-
-== Custom post types ==
-
-To export custom post types, you'll need to add a filter to do the following:
-
-`
-add_filter( 'jekyll_export_post_types', function() {
-	return array('posts', 'pages', 'you-custom-post-type');
-} );
-`
-
-The custom post type will be exported as a Jekyll collection. You'll need to initialize it in the resulting Jekyll site's `_config.yml`.
-
-
-== Changelog ==
-
-[View Past Releases](https://github.com/benbalter/wordpress-to-jekyll-exporter/releases)
-
-
-== Developing locally ==
-
-= Prerequisites =
-1. `sudo apt-get update`
-1. `sudo apt-get install composer`
-1. `sudo apt-get install php7.3-xml`
-1. `sudo apt-get install php7.3-mysql`
-1. `sudo apt-get install php7.3-zip`
-1. `sudo apt-get install php-mbstring`
-1. `sudo apt-get install subversion`
-1. `sudo apt-get install mysql-server`
-1. `sudo apt-get install php-pear`
-1. `sudo pear install PHP_CodeSniffer`
-
-= Bootstrap & Setup =
-1. `git clone https://github.com/benbalter/wordpress-to-jekyll-exporter`
-2. `cd wordpress-to-jekyll-exporter`
-3. `script/bootstrap`
-4. `script/setup`
-
-= Running tests =
-`script/cibuild`
+* [Changelog](http://ben.balter.com/wordpress-to-jekyll-exporter//docs/changelog/)
+* [Command-line-usage](http://ben.balter.com/wordpress-to-jekyll-exporter//docs/command-line-usage/)
+* [Custom post types](http://ben.balter.com/wordpress-to-jekyll-exporter//docs/custom-post-types/)
+* [Developing locally](http://ben.balter.com/wordpress-to-jekyll-exporter//docs/developing-locally/)
+* [Minimum required PHP version](http://ben.balter.com/wordpress-to-jekyll-exporter//docs/required-php-version/)
 
 
 == Command-line Usage ==
@@ -103,7 +61,7 @@ Many shared hosts may use an outdated version of PHP by default. **WordPress to 
 
 If you get an error message that looks like `unexpected T_STRING`, `unexpected '['` or `expecting T_CONSTANT_ENCAPSED_STRING`, you need to update your PHP version. In a shared hosting environment, you should be able to change the version of PHP used by simply toggling the setting in the host's control panel.
 
-PHP 5.4 lost support from the PHP project itself in 2015. You'll need to be running at least PHP 5.5 which adds namespace support (the reason it's breaking), but I'd recommend at least 7.3 (or the latest your host supports) as it's the oldest [supported PHP version](https://www.php.net/supported-versions.php).
+PHP 5.4 lost support from the PHP project itself in 2015. You'll need to be running at least PHP 5.5 which adds namespace support (the reason it's breaking), but I'd recommend at least 7.3 (or the latest your host supports) as it's the [oldest supported version](https://www.php.net/supported-versions.php).
 
 = How to determine which version of PHP you're running =
 
@@ -113,3 +71,73 @@ PHP 5.4 lost support from the PHP project itself in 2015. You'll need to be runn
 = How to upgrade your version of PHP =
 
 If you are using a shared hosting environment, upgrading to a newer version of PHP should be a matter of changing a setting in your host's control panel. You'll have to follow your host specific documentation to determine how to access it or where the setting lives. Check out [this list of common hosts](https://kb.yoast.com/kb/how-to-update-your-php-version/) for more details.
+
+
+== Changelog ==
+
+[View Past Releases](https://github.com/benbalter/wordpress-to-jekyll-exporter/releases)
+
+
+== Where to get help or report an issue ==
+
+* For getting started and general documentation, please browse, and feel free to contribute to [the project documentation](http://ben.balter.com/wordpress-to-jekyll-exporter/).
+* For support questions ("How do I", "I can't seem to", etc.) please search and if not already answered, open a thread in the [Support Forums](http://wordpress.org/support/plugin/jekyll-exporter).
+* For technical issues (e.g., to submit a bug or feature request) please search and if not already filed, [open an issue on GitHub](https://github.com/benbalter//wordpress-to-jekyll-exporter/issues).
+
+== Things to check before reporting an issue ==
+
+* Are you using the latest version of WordPress?
+* Are you using the latest version of the plugin?
+* Does the problem occur even when you deactivate all plugins and use the default theme?
+* Have you tried deactivating and reactivating the plugin?
+* Has your issue [already been reported](https://github.com/benbalter/wordpress-to-jekyll-exporter/issues)?
+
+== What to include in an issue ==
+
+* What steps can another user take to recreate the issue?
+* What is the expected outcome of that action?
+* What is the actual outcome of that action?
+* Are there any screenshots or screencasts that may be helpful to include?
+* Only include one bug per issue. If you have discovered two bugs, please file two issues.
+
+
+== Developing locally ==
+
+= Prerequisites =
+1. `sudo apt-get update`
+1. `sudo apt-get install composer`
+1. `sudo apt-get install php7.3-xml`
+1. `sudo apt-get install php7.3-mysql`
+1. `sudo apt-get install php7.3-zip`
+1. `sudo apt-get install php-mbstring`
+1. `sudo apt-get install subversion`
+1. `sudo apt-get install mysql-server`
+1. `sudo apt-get install php-pear`
+1. `sudo pear install PHP_CodeSniffer`
+
+= Bootstrap & Setup =
+1. `git clone https://github.com/benbalter/wordpress-to-jekyll-exporter`
+2. `cd wordpress-to-jekyll-exporter`
+3. `script/bootstrap`
+4. `script/setup`
+
+= Running tests =
+`script/cibuild`
+
+
+== Custom post types ==
+
+To export custom post types, you'll need to add a filter to do the following:
+
+`
+add_filter( 'jekyll_export_post_types', function() {
+	return array('posts', 'pages', 'you-custom-post-type')
+});
+`
+
+The custom post type will be exported as a Jekyll collection. You'll need to initialize it in the resulting Jekyll site's `_config.yml`.
+
+
+=== Security Policy ===
+
+To report a security vulnerability, please email [ben@balter.com](mailto:ben@balter.com).

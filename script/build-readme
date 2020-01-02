@@ -20,6 +20,7 @@ output.gsub! /^### ?(.*?)$/im, "= \\1 ="
 output.gsub! /^## ?(.*?)$/im, "== \\1 =="
 output.gsub! /^# ?(.*?)$/im, "=== \\1 ==="
 output.gsub! /\]\((.*?)\.md/, "](#{docs_url}\\1/"
+output.gsub! /```(php|js|html)?/im, "`"
 
 File.open("readme.txt", "wb") do |file|
   file << output
