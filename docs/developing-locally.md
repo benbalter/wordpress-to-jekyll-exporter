@@ -2,14 +2,14 @@
 
 ### Prerequisites
 1. `sudo apt-get update`
-1. `sudo apt install composer`
-1. `sudo apt install php7.0-xml`
-1. `sudo apt install php7.0-mysql`
-1. `sudo apt install php7.0-zip`
-1. `sudo apt install php-mbstring`
-1. `sudo apt install subversion`
-1. `sudo apt install mysql-server`
-1. `sudo apt install php-pear`
+1. `sudo apt-get install composer`
+1. `sudo apt-get install php7.3-xml`
+1. `sudo apt-get install php7.3-mysql`
+1. `sudo apt-get install php7.3-zip`
+1. `sudo apt-get install php-mbstring`
+1. `sudo apt-get install subversion`
+1. `sudo apt-get install mysql-server`
+1. `sudo apt-get install php-pear`
 1. `sudo pear install PHP_CodeSniffer`
 
 ### Bootstrap & Setup

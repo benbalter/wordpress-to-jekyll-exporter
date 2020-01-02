@@ -4,7 +4,7 @@ To export custom post types, you'll need to add a filter to do the following:
 
 ```php
 add_filter( 'jekyll_export_post_types', function() {
-	return array('posts', 'pages', 'you-custom-post-type')
+	return array('posts', 'pages', 'you-custom-post-type');
 });
 ```
 
