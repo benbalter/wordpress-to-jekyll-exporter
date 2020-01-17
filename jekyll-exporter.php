@@ -545,6 +545,11 @@ class Jekyll_Export {
 			return $wp_filesystem->copy( $source, $dest );
 		}
 
+		// Avoid copying the output of this plugin and causing infinite recursion.
+		if ( strpos( $source, '/wp-jekyll-' ) != false ) {
+			return true;
+		}
+
 		// Make destination directory.
 		if ( ! is_dir( $dest ) ) {
 			$wp_filesystem->mkdir( $dest );
