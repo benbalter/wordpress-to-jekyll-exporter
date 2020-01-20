@@ -1,8 +1,8 @@
-# Copyright (C) 2019 WP Document Revisions 2.2.3
-# This file is distributed under the same license as the WP Document Revisions 2.2.3 package.
+# Copyright (C) 2020 WP Document Revisions 2.3.1
+# This file is distributed under the same license as the WP Document Revisions 2.3.1 package.
 msgid ""
 msgstr ""
-"Project-Id-Version: WP Document Revisions 2.2.3\n"
+"Project-Id-Version: WP Document Revisions 2.3.1\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -13,6 +13,6 @@ msgstr ""
 "X-Poedit-SourceCharset: UTF-8\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: jekyll-exporter.php:112, jekyll-exporter.php:112
+#: jekyll-exporter.php:110, jekyll-exporter.php:110
 msgid "Export to Jekyll"
 msgstr ""
