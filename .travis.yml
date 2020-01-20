@@ -17,12 +17,6 @@ matrix:
     - php: 7.2
       env: WP_VERSION=latest WP_MULTISITE=1
     - php: 7.1
-      env: WP_VERSION=5.2
-    - php: 7.0
-      env: WP_VERSION=latest
-    - php: 5.6
-      env: WP_VERSION=latest
-    - php: 7.1
       env: WP_TRAVISCI=phpcs
 
 before_script:
