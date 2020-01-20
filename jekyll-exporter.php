@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Exports WordPress posts, pages, and options as YAML files parsable by Jekyll
  *
@@ -53,6 +52,7 @@ require_once dirname( __FILE__ ) . '/vendor/autoload.php';
  * @link       https://github.com/benbalter/wordpress-to-jekyll-exporter/
  */
 class Jekyll_Export {
+
 
 
 
@@ -325,7 +325,7 @@ class Jekyll_Export {
 	 * Main function, bootstraps, converts, and cleans up
 	 */
 	function export() {
-		 do_action( 'jekyll_export' );
+		do_action( 'jekyll_export' );
 		ob_start();
 		$this->init_temp_dir();
 		$this->convert_options();
@@ -531,7 +531,7 @@ class Jekyll_Export {
 		}
 
 		// Avoid copying the output of this plugin and causing infinite recursion.
-		if ( strpos( $source, '/wp-jekyll-' ) != false ) {
+		if ( strpos( $source, '/wp-jekyll-' ) !== false ) {
 			return true;
 		}
 
