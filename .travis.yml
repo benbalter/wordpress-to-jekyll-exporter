@@ -1,4 +1,4 @@
-sudo: false
+sudo: true
 
 language: php
 
@@ -7,6 +7,9 @@ cache:
     - vendor
     - $HOME/.composer/cache
 
+services:
+  - mysql
+
 matrix:
   include:
     - php: 7.3
@@ -14,21 +17,40 @@ matrix:
     - php: 7.2
       env: WP_VERSION=latest WP_MULTISITE=1
     - php: 7.1
+      env: WP_VERSION=4.9
+    - php: 7.0
+      env: WP_VERSION=latest
+    - php: 5.6
       env: WP_VERSION=latest
     - php: 7.1
       env: WP_TRAVISCI=phpcs
 
-install: composer update
-
 before_script:
+  - mkdir -p build/logs
   - export PATH="$HOME/.composer/vendor/bin:$PATH"
   - script/setup
   - |
     if [[ ! -z "$WP_VERSION" ]] ; then
       if [[ ${TRAVIS_PHP_VERSION:0:2} == "5." ]]; then
-        composer global require "phpunit/phpunit=4.8.*"
-      else
         composer global require "phpunit/phpunit=5.7.*"
+      fi
+      if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.0" ]]; then
+          composer global require "phpunit/phpunit=6.4.*"
+      fi
+      if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.1" ]]; then
+          if [[ ${WP_VERSION:0:3} == "4.9" ]]; then
+          	composer global require "phpunit/phpunit=5.7.*"
+          else
+          	composer global require "phpunit/phpunit=7.5.*"
+        fi
+      fi
+      if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.2" ]]; then
+          # composer global require "phpunit/phpunit=8.2.*" except WP barfs - #46149 to fix
+          composer global require "phpunit/phpunit=7.5.*"
+      fi
+      if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.3" ]]; then
+          # composer global require "phpunit/phpunit=8.2.*" except WP barfs - #46149 to fix
+          composer global require "phpunit/phpunit=7.5.*"
       fi
     fi
 
@@ -41,3 +63,6 @@ script:
     if [[ "$WP_TRAVISCI" == "phpcs" ]] ; then
       script/cibuild-phpcs
     fi
+
+after_success:
+  - script/coveralls
