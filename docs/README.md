@@ -26,8 +26,8 @@ View plugin in [the WordPress plugin directory](https://wordpress.org/plugins/je
 
 See [the full documentation](https://ben.balter.com/wordpress-to-jekyll-exporter):
 
-* [Changelog](/docs/changelog.md)
-* [Command-line-usage](/docs/command-line-usage.md)
-* [Custom post types](/docs/custom-post-types.md)
-* [Developing locally](/docs/developing-locally.md)
-* [Minimum required PHP version](/docs/required-php-version.md)
+* [Changelog](docs/changelog.md)
+* [Command-line-usage](docs/command-line-usage.md)
+* [Custom post types](docs/custom-post-types.md)
+* [Developing locally](docs/developing-locally.md)
+* [Minimum required PHP version](docs/required-php-version.md)

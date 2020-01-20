@@ -2,7 +2,7 @@
 Contributors: benbalter
 Tags: jekyll, github, github pages, yaml, export
 Requires at least: 4.4
-Tested up to: 5.0.3
+Tested up to: 5.2
 Stable tag: 2.3.0
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -27,11 +27,11 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
 See [the full documentation](https://ben.balter.com/wordpress-to-jekyll-exporter):
 
-* [Changelog](http://ben.balter.com/wordpress-to-jekyll-exporter//docs/changelog/)
-* [Command-line-usage](http://ben.balter.com/wordpress-to-jekyll-exporter//docs/command-line-usage/)
-* [Custom post types](http://ben.balter.com/wordpress-to-jekyll-exporter//docs/custom-post-types/)
-* [Developing locally](http://ben.balter.com/wordpress-to-jekyll-exporter//docs/developing-locally/)
-* [Minimum required PHP version](http://ben.balter.com/wordpress-to-jekyll-exporter//docs/required-php-version/)
+* [Changelog](http://ben.balter.com/wordpress-to-jekyll-exporter/docs/changelog/)
+* [Command-line-usage](http://ben.balter.com/wordpress-to-jekyll-exporter/docs/command-line-usage/)
+* [Custom post types](http://ben.balter.com/wordpress-to-jekyll-exporter/docs/custom-post-types/)
+* [Developing locally](http://ben.balter.com/wordpress-to-jekyll-exporter/docs/developing-locally/)
+* [Minimum required PHP version](http://ben.balter.com/wordpress-to-jekyll-exporter/docs/required-php-version/)
 
 
 == Custom post types ==
