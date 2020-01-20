@@ -2,11 +2,11 @@
 
 set -e
 
-composer install
+composer install --dev --no-interaction
 
 export PATH="$HOME/.composer/vendor/bin:./bin:$PATH"
 
-composer global require "phpunit/phpunit=6.*"
+composer global require "phpunit/phpunit=5.7.*"
 composer global require "squizlabs/php_codesniffer=*"
 composer global require wp-coding-standards/wpcs
 
