@@ -27,7 +27,7 @@ matrix:
 
 before_script:
   - mkdir -p build/logs
-  - export PATH="$HOME/.composer/vendor/bin:$PATH"
+  - script/bootstrap
   - script/setup
   - |
     if [[ ! -z "$WP_VERSION" ]] ; then
