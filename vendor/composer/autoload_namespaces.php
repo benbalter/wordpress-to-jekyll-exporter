@@ -9,6 +9,5 @@ return array(
     'cli' => array($vendorDir . '/wp-cli/php-cli-tools/lib'),
     'WP_CLI' => array($vendorDir . '/wp-cli/wp-cli/php'),
     'Requests' => array($vendorDir . '/rmccue/requests/library'),
-    'Prophecy\\' => array($vendorDir . '/phpspec/prophecy/src'),
     'Mustache' => array($vendorDir . '/mustache/mustache/src'),
 );
