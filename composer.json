@@ -14,7 +14,7 @@
     "phpunit/phpunit": "~8.4",
     "wp-cli/wp-cli": "~2.4",
     "wp-coding-standards/wpcs": "~2.2",
-    "dealerdirect/phpcodesniffer-composer-installer": "^0.5.0",
+    "dealerdirect/phpcodesniffer-composer-installer": "^0.6.2",
     "php-coveralls/php-coveralls": "*",
     "squizlabs/php_codesniffer": "~3.5"
   },
