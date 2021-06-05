@@ -20,8 +20,6 @@ jobs:
         include:
           - php_version: 7.4
             wp_multisite: 1
-          - php_version: 7.4
-            wp_version: "5.0"
 
     services:
       mysql:
