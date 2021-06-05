@@ -2,7 +2,7 @@
 
 set -e
 
-export PATH="$HOME/.composer/vendor/bin:./bin:$PATH"
+export PATH="$TRAVIS_BUILD_DIR/vendor/squizlabs/php_codesniffer/bin:$PATH"
 
-phpcs --config-set installed_paths $HOME/.composer/vendor/wp-coding-standards/wpcs
-phpcs --standard=phpcs.ruleset.xml -p -s --colors *.php */**.php
+phpcs --config-set installed_paths $TRAVIS_BUILD_DIR/vendor/wp-coding-standards/wpcs
+phpcs --standard=phpcs.ruleset.xml -p -s --colors *.php */**.php -v

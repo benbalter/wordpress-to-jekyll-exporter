@@ -1,6 +1,3 @@
 #!/bin/bash
 
-script/install-wp-tests wordpress_test root '' localhost $WP_VERSION
-composer global require wp-coding-standards/wpcs
-composer global require php-coveralls/php-coveralls
-phpcs --config-set installed_paths $HOME/.composer/vendor/wp-coding-standards/wpcs
+bash script/install-wp-tests wordpress_test root root 127.0.0.1 $WP_VERSION

@@ -1,51 +1,63 @@
 <?php
 /**
- * PHPUnit bootstrap file
+ * Bootstrap the local test environment
  *
- * @package jekyll-exporter
+ * @package WP_Document_Revisions
  */
+
+// Save error reporting level (for reversion after file delete).
+// phpcs:ignore
+$err_level = error_reporting();
 
 $_tests_dir = getenv( 'WP_TESTS_DIR' );
 if ( ! $_tests_dir ) {
 	$_tests_dir = '/tmp/wordpress-tests-lib';
 }
 
-// Give access to tests_add_filter() function.
 require_once $_tests_dir . '/includes/functions.php';
 
 /**
- * Manually load the plugin being tested.
+ * Output message to log.
+ *
+ * @param string $text text to output.
+ */
+function console_log( $text ) {
+	// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fwrite
+	fwrite( STDERR, "\n" . $text . ' : ' );
+}
+
+/**
+ * Require the WP Document Revisions Plugin on load
  */
 function _manually_load_plugin() {
-	require dirname( dirname( __FILE__ ) ) . '/jekyll-exporter.php';
+	require __DIR__ . '/../jekyll-exporter.php';
 }
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
 
-// Start up the WP testing environment.
-require $_tests_dir . '/includes/bootstrap.php';
+/**
+ * Several tests will try to serve a file twice, this would fail, so suppress headers from being written.
+ *
+ * Tests also require buffers opened to be closed (and so send headers).
+ *
+ * @param array  $headers any headers for the file being served.
+ * @param string $file    file name of file being served.
+ */
+function _remove_headers( $headers, $file ) {
+	return array();
+}
 
 /**
- * Recursively remove a directory
+ * Extends the test framework's native wp_die_handler filter to filter
+ * wp_die() calls for XML requests in addition to HTML requests
  *
- * See https://stackoverflow.com/a/3349792.
- *
- * @param String $dir_path the path to the directory.
- * @throws InvalidArgumentException Thrown if not a directory.
+ * @param string $handler the default callback.
+ * @return string the filtered callback.
  */
-function delete_dir( $dir_path ) {
-	if ( ! is_dir( $dir_path ) ) {
-		throw new InvalidArgumentException( "$dir_path must be a directory" );
-	}
-	if ( substr( $dir_path, strlen( $dir_path ) - 1, 1 ) !== '/' ) {
-		$dir_path .= '/';
-	}
-	$files = glob( $dir_path . '*', GLOB_MARK );
-	foreach ( $files as $file ) {
-		if ( is_dir( $file ) ) {
-			delete_dir( $file );
-		} else {
-			unlink( $file );
-		}
-	}
-	rmdir( $dir_path );
+function _wpdr_die_handler_filter( $handler ) {
+	return apply_filters( 'wp_die_handler', $handler );
 }
+
+tests_add_filter( 'document_revisions_serve_file_headers', '_remove_headers', 10, 2 );
+tests_add_filter( 'wp_die_xml_handler', '_wpdr_die_handler_filter' );
+
+require $_tests_dir . '/includes/bootstrap.php';

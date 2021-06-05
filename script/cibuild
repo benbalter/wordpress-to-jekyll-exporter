@@ -2,10 +2,7 @@
 
 set -e
 
-echo "Verifying mysql is up..."
-pgrep mysql > /dev/null || sudo service mysql start 
-
-export PATH="$HOME/.composer/vendor/bin:./bin:$PATH"
+export PATH="$TRAVIS_BUILD_DIR/vendor/bin:./bin:$PATH"
 
 echo "Running unit tests..."
 script/cibuild-phpunit

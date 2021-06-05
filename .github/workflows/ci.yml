@@ -1,0 +1,106 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  phpunit:
+
+    runs-on: ubuntu-latest
+    env:
+      TRAVIS_BUILD_DIR: ${{ github.workspace }}
+    strategy: 
+      matrix:
+        php_version: [7.4, 7.3, 7.2, 7.1, 7.0]
+        wp_version: [latest]
+        wp_multisite: [0]
+        include:
+          - php_version: 7.4
+            wp_multisite: 1
+          - php_version: 7.0
+            wp_version: "5.0"
+
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ROOT_PASSWORD: 'root'
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+        
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php_version }}
+        extensions: mysqli
+        coverage: xdebug
+
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v2
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ matrix.php_version }}-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-${{ matrix.php_version }}-
+
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress --no-suggest
+      
+    - name: Setup WP
+      run: script/setup
+      env:
+        WP_VERSION: ${{ matrix.wp_version }}
+        WP_MULTISITE: ${{ matrix.wp_multisite }}
+        
+    - name: PHPUnit
+      run: script/cibuild-phpunit
+      env:
+        WP_MULTISITE: ${{ matrix.wp_multisite }}
+
+    - name: Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: coverage.xml
+        directory: ${{ github.workspace }}
+        verbose: true
+        flags: php-${{ matrix.php_version }}, wp-${{ matrix.wp_version }}, multisite-${{ matrix.wp_multisite }}
+
+  phpcs:
+    runs-on: ubuntu-latest
+    env:
+      TRAVIS_BUILD_DIR: ${{ github.workspace }}
+    strategy: 
+      matrix:
+        php_version: [7.4]
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php_version }}
+          extensions: mysqli
+
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v2
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ matrix.php_version }}-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-${{ matrix.php_version }}-
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-suggest
+      
+      - name: phpcs
+        run: script/cibuild-phpcs
