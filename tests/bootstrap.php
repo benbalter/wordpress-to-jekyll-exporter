@@ -2,7 +2,7 @@
 /**
  * Bootstrap the local test environment
  *
- * @package WP_Document_Revisions
+ * @package Jekyll_Exporter
  */
 
 // Save error reporting level (for reversion after file delete).
@@ -27,7 +27,7 @@ function console_log( $text ) {
 }
 
 /**
- * Require the WP Document Revisions Plugin on load
+ * Require the Jekyll Export Plugin on load
  */
 function _manually_load_plugin() {
 	require __DIR__ . '/../jekyll-exporter.php';
@@ -57,7 +57,6 @@ function _wpdr_die_handler_filter( $handler ) {
 	return apply_filters( 'wp_die_handler', $handler );
 }
 
-tests_add_filter( 'document_revisions_serve_file_headers', '_remove_headers', 10, 2 );
 tests_add_filter( 'wp_die_xml_handler', '_wpdr_die_handler_filter' );
 
 require $_tests_dir . '/includes/bootstrap.php';
