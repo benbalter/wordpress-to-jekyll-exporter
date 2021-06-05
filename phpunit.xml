@@ -7,7 +7,7 @@
 	convertWarningsToExceptions="true"
 	>
 	<testsuites>
-		<testsuite name="WPDR Tests">
+		<testsuite name="WPJE Tests">
 			<directory prefix="class-test-" suffix=".php">./tests/</directory>
 		</testsuite>
 	</testsuites>

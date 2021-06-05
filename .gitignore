@@ -13,3 +13,4 @@ vendor/**/*.md
 vendor/**/*.js
 vendor/**/*.css
 bin/
+coverage.xml
