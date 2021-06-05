@@ -1,8 +1,8 @@
-# Copyright (C) 2020 WordPress Jekyll Export 2.3.1
-# This file is distributed under the same license as the WordPress Jekyll Export 2.3.1 package.
+# Copyright (C) 2021 WordPress Jekyll Export 2.3.2
+# This file is distributed under the same license as the WordPress Jekyll Export 2.3.2 package.
 msgid ""
 msgstr ""
-"Project-Id-Version: WordPress Jekyll Export 2.3.1\n"
+"Project-Id-Version: WordPress Jekyll Export 2.3.2\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
