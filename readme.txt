@@ -27,11 +27,11 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
 See [the full documentation](https://ben.balter.com/wordpress-to-jekyll-exporter):
 
-* [Changelog](http://ben.balter.com/wordpress-to-jekyll-exporter/docs/changelog/)
-* [Command-line-usage](http://ben.balter.com/wordpress-to-jekyll-exporter/docs/command-line-usage/)
-* [Custom post types](http://ben.balter.com/wordpress-to-jekyll-exporter/docs/custom-post-types/)
-* [Developing locally](http://ben.balter.com/wordpress-to-jekyll-exporter/docs/developing-locally/)
-* [Minimum required PHP version](http://ben.balter.com/wordpress-to-jekyll-exporter/docs/required-php-version/)
+* [Changelog](https://ben.balter.com/wordpress-to-jekyll-exporter/changelog/)
+* [Command-line-usage](https://ben.balter.com/wordpress-to-jekyll-exporter/command-line-usage/)
+* [Custom post types](https://ben.balter.com/wordpress-to-jekyll-exporter/custom-post-types/)
+* [Developing locally](https://ben.balter.com/wordpress-to-jekyll-exporter/developing-locally/)
+* [Minimum required PHP version](https://ben.balter.com/wordpress-to-jekyll-exporter/required-php-version/)
 
 
 === Security Policy ===
@@ -73,17 +73,17 @@ If you're having trouble with your web server timing out before the export is co
 
 It works just like the plugin, but produces the zipfile on STDOUT:
 
-`
+```
 php jekyll-export-cli.php > jekyll-export.zip
-`
+```
 
 If using this method, you must run first `cd` into the wordpress-to-jekyll-exporter directory.
 
 Alternatively, if you have [WP-CLI](http://wp-cli.org) installed, you can run:
 
-`
+```
 wp jekyll-export > export.zip
-`
+```
 
 The WP-CLI version will provide greater compatibility for alternate WordPress environments, such as when `wp-content` isn't in the usual location.
 
@@ -92,11 +92,11 @@ The WP-CLI version will provide greater compatibility for alternate WordPress en
 
 To export custom post types, you'll need to add a filter to do the following:
 
-`
+```php
 add_filter( 'jekyll_export_post_types', function() {
 	return array('posts', 'pages', 'you-custom-post-type');
 });
-`
+```
 
 The custom post type will be exported as a Jekyll collection. You'll need to initialize it in the resulting Jekyll site's `_config.yml`.
 

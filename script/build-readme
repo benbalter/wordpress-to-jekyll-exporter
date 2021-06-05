@@ -1,7 +1,7 @@
 #! /usr/bin/env ruby
 
 exclude = %w[README header _config.yml CODE_OF_CONDUCT CONTRIBUTING]
-docs_url = "http://ben.balter.com/wordpress-to-jekyll-exporter/"
+docs_url = "https://ben.balter.com/wordpress-to-jekyll-exporter/"
 output = File.open("./docs/header.md").read
 
 # Remove title, badge, and description from README
@@ -10,6 +10,7 @@ readme = "\n#" + readme.split("#")[2..-1].join("#")
 output << readme
 
 docs = Dir["./docs/*"]
+
 docs.each do |file|
   next if exclude.include?(File.basename(file,".md"))
   output << "\n\n"
@@ -19,8 +20,7 @@ end
 output.gsub! /^### ?(.*?)$/im, "= \\1 ="
 output.gsub! /^## ?(.*?)$/im, "== \\1 =="
 output.gsub! /^# ?(.*?)$/im, "=== \\1 ==="
-output.gsub! /\]\((.*?)\.md/, "](#{docs_url}\\1/"
-output.gsub! /```(php|js|html)?/im, "`"
+output.gsub! /\]\(\.?\/?(.*?)\.md/, "](#{docs_url}\\1/"
 
 File.open("readme.txt", "wb") do |file|
   file << output
