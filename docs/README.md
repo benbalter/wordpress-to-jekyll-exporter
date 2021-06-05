@@ -1,4 +1,4 @@
-![WordPress to Jekyll Exporter logo header](https://user-images.githubusercontent.com/282759/120906698-8dce5300-c629-11eb-9db8-b196d687a11b.png)
+![WordPress to Jekyll Exporter logo header](https://user-images.githubusercontent.com/282759/120906741-fae1e880-c629-11eb-81df-201a3a749d75.png)
   
 # WordPress to Jekyll Exporter
 
