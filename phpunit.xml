@@ -8,7 +8,7 @@
 	>
 	<testsuites>
 		<testsuite name="WPJE Tests">
-			<directory prefix="class-test-" suffix=".php">./tests/</directory>
+			<directory prefix="test-" suffix=".php">./tests/</directory>
 		</testsuite>
 	</testsuites>
 	<logging>
