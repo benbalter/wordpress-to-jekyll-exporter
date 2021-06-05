@@ -14,7 +14,7 @@ jobs:
       TRAVIS_BUILD_DIR: ${{ github.workspace }}
     strategy: 
       matrix:
-        php_version: [7.4, 7.3, 7.2, 7.1, 7.0]
+        php_version: 7.4
         wp_version: [latest]
         wp_multisite: [0]
         include:
