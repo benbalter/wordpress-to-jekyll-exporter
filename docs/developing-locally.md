@@ -1,6 +1,7 @@
 ## Developing locally
 
 ### Prerequisites
+
 1. `sudo apt-get update`
 1. `sudo apt-get install composer`
 1. `sudo apt-get install php7.3-xml`
@@ -13,10 +14,18 @@
 1. `sudo pear install PHP_CodeSniffer`
 
 ### Bootstrap & Setup
+
 1. `git clone https://github.com/benbalter/wordpress-to-jekyll-exporter`
 2. `cd wordpress-to-jekyll-exporter`
 3. `script/bootstrap`
 4. `script/setup`
 
 ### Running tests
+
 `script/cibuild`
+
+## Testing locally via Docker
+
+1. `git clone https://github.com/benbalter/wordpress-to-jekyll-exporter`
+2. `docker-compose up`
+3. `open localhost:8088`
