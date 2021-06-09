@@ -14,7 +14,7 @@ services:
       WORDPRESS_DB_NAME: exampledb
     volumes:
       - wordpress:/var/www/html
-      - $PWD:/var/www/html/wp-content/plugins/jekyll-admin
+      - $PWD:/var/www/html/wp-content/plugins/jekyll-exporter
 
   db:
     image: mysql:5.7
@@ -41,4 +41,3 @@ services:
 volumes:
   wordpress:
   db:
-  jekyll-export: 
