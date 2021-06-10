@@ -3,7 +3,7 @@ Contributors: benbalter
 Tags: jekyll, github, github pages, yaml, export
 Requires at least: 4.4
 Tested up to: 5.7
-Stable tag: 2.3.1
+Stable tag: 2.3.2
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -104,6 +104,7 @@ The custom post type will be exported as a Jekyll collection. You'll need to ini
 == Developing locally ==
 
 = Prerequisites =
+
 1. `sudo apt-get update`
 1. `sudo apt-get install composer`
 1. `sudo apt-get install php7.3-xml`
@@ -116,14 +117,21 @@ The custom post type will be exported as a Jekyll collection. You'll need to ini
 1. `sudo pear install PHP_CodeSniffer`
 
 = Bootstrap & Setup =
+
 1. `git clone https://github.com/benbalter/wordpress-to-jekyll-exporter`
 2. `cd wordpress-to-jekyll-exporter`
 3. `script/bootstrap`
 4. `script/setup`
 
 = Running tests =
+
 `script/cibuild`
 
+== Testing locally via Docker ==
+
+1. `git clone https://github.com/benbalter/wordpress-to-jekyll-exporter`
+2. `docker-compose up`
+3. `open localhost:8088`
 
 == Minimum required PHP version ==
 
