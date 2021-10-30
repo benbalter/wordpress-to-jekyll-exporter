@@ -1,3 +1,0 @@
-#!/bin/bash
-
-bash script/install-wp-tests wordpress_test root root 127.0.0.1 $WP_VERSION
