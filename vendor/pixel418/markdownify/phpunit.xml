@@ -1,5 +1,0 @@
-<phpunit colors="true">
-    <testsuite name="Markdownify">
-        <directory>./test/</directory>
-    </testsuite>
-</phpunit>
