@@ -1,4 +1,4 @@
-# Copyright (C) 2021 WordPress Jekyll Export 2.3.2
+# Copyright (C) 2022 WordPress Jekyll Export 2.3.2
 # This file is distributed under the same license as the WordPress Jekyll Export 2.3.2 package.
 msgid ""
 msgstr ""
@@ -13,6 +13,6 @@ msgstr ""
 "X-Poedit-SourceCharset: UTF-8\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: jekyll-exporter.php:110, jekyll-exporter.php:110
+#: jekyll-exporter.php:111, jekyll-exporter.php:111
 msgid "Export to Jekyll"
 msgstr ""
