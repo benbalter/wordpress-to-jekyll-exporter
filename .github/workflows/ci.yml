@@ -39,6 +39,7 @@ jobs:
         php-version: ${{ matrix.php_version }}
         extensions: mysqli
         coverage: xdebug
+        tools: phpunit-polyfills
 
     - name: Cache Composer packages
       id: composer-cache
