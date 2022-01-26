@@ -244,7 +244,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 
 		// writes valid YAML.
 		$parts = explode( '---', $contents );
-		$this->assertEquals( 3, count( $parts ), 'Invalid YAML Front Matter' );
+		$this->assertEquals( 3, count( $parts ), "Invalid YAML Front Matter: $contents" );
 		$yaml = Yaml::parse( $parts[1] );
 		$this->assertNotEmpty( $yaml, 'Empty YAML' );
 
