@@ -240,7 +240,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 
 		// writes the file contents.
 		$contents = file_get_contents( $post );
-		$this->assertStringContainsString( 'title: Test Post', $contents, 'file contents' );
+		$this->assertStringContainsString( 'title: \'Test Post\'', $contents, 'file contents' );
 
 		// writes valid YAML.
 		$parts = explode( '---', $contents );
@@ -284,7 +284,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 
 		// writes the file content.
 		$contents = file_get_contents( $config );
-		$this->assertStringContainsString( 'description: Just another WordPress site', $contents );
+		$this->assertStringContainsString( 'description: \'Just another WordPress site\'', $contents );
 
 		// writes valid YAML.
 		$yaml = Yaml::parse( $contents );
