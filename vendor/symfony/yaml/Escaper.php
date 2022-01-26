@@ -49,6 +49,8 @@ class Escaper
      * Determines if a PHP value would require double quoting in YAML.
      *
      * @param string $value A PHP value
+     *
+     * @return bool True if the value would require double quotes
      */
     public static function requiresDoubleQuoting(string $value): bool
     {
@@ -59,6 +61,8 @@ class Escaper
      * Escapes and surrounds a PHP value with double quotes.
      *
      * @param string $value A PHP value
+     *
+     * @return string The quoted, escaped string
      */
     public static function escapeWithDoubleQuotes(string $value): string
     {
@@ -69,6 +73,8 @@ class Escaper
      * Determines if a PHP value would require single quoting in YAML.
      *
      * @param string $value A PHP value
+     *
+     * @return bool True if the value would require single quotes
      */
     public static function requiresSingleQuoting(string $value): bool
     {
@@ -87,6 +93,8 @@ class Escaper
      * Escapes and surrounds a PHP value with single quotes.
      *
      * @param string $value A PHP value
+     *
+     * @return string The quoted, escaped string
      */
     public static function escapeWithSingleQuotes(string $value): string
     {

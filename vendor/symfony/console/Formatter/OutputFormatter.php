@@ -36,7 +36,7 @@ class OutputFormatter implements WrappableOutputFormatterInterface
     /**
      * Escapes "<" special char in given text.
      *
-     * @return string
+     * @return string Escaped text
      */
     public static function escape(string $text)
     {
@@ -52,7 +52,7 @@ class OutputFormatter implements WrappableOutputFormatterInterface
      */
     public static function escapeTrailingBackslash(string $text): string
     {
-        if (str_ends_with($text, '\\')) {
+        if ('\\' === substr($text, -1)) {
             $len = \strlen($text);
             $text = rtrim($text, '\\');
             $text = str_replace("\0", '', $text);
@@ -161,7 +161,7 @@ class OutputFormatter implements WrappableOutputFormatterInterface
             if ($open = '/' != $text[1]) {
                 $tag = $matches[1][$i][0];
             } else {
-                $tag = $matches[3][$i][0] ?? '';
+                $tag = isset($matches[3][$i][0]) ? $matches[3][$i][0] : '';
             }
 
             if (!$open && !$tag) {
@@ -178,7 +178,7 @@ class OutputFormatter implements WrappableOutputFormatterInterface
 
         $output .= $this->applyCurrentStyle(substr($message, $offset), $output, $width, $currentLineLength);
 
-        if (str_contains($output, "\0")) {
+        if (false !== strpos($output, "\0")) {
             return strtr($output, ["\0" => '\\', '\\<' => '<']);
         }
 

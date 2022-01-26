@@ -92,7 +92,7 @@ class ConsoleSectionOutput extends StreamOutput
     /**
      * {@inheritdoc}
      */
-    protected function doWrite(string $message, bool $newline)
+    protected function doWrite($message, $newline)
     {
         if (!$this->isDecorated()) {
             parent::doWrite($message, $newline);
@@ -136,8 +136,8 @@ class ConsoleSectionOutput extends StreamOutput
         return implode('', array_reverse($erasedContent));
     }
 
-    private function getDisplayLength(string $text): int
+    private function getDisplayLength(string $text): string
     {
-        return Helper::width(Helper::removeDecoration($this->getFormatter(), str_replace("\t", '        ', $text)));
+        return Helper::strlenWithoutDecoration($this->getFormatter(), str_replace("\t", '        ', $text));
     }
 }

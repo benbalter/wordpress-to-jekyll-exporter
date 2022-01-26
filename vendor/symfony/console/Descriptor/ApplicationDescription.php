@@ -22,7 +22,7 @@ use Symfony\Component\Console\Exception\CommandNotFoundException;
  */
 class ApplicationDescription
 {
-    public const GLOBAL_NAMESPACE = '_global';
+    const GLOBAL_NAMESPACE = '_global';
 
     private $application;
     private $namespace;
@@ -34,12 +34,12 @@ class ApplicationDescription
     private $namespaces;
 
     /**
-     * @var array<string, Command>
+     * @var Command[]
      */
     private $commands;
 
     /**
-     * @var array<string, Command>
+     * @var Command[]
      */
     private $aliases;
 
@@ -80,7 +80,7 @@ class ApplicationDescription
             throw new CommandNotFoundException(sprintf('Command "%s" does not exist.', $name));
         }
 
-        return $this->commands[$name] ?? $this->aliases[$name];
+        return isset($this->commands[$name]) ? $this->commands[$name] : $this->aliases[$name];
     }
 
     private function inspectApplication()

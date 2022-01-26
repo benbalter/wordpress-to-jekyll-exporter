@@ -57,7 +57,7 @@ class StreamOutput extends Output
     /**
      * Gets the stream attached to this StreamOutput instance.
      *
-     * @return resource
+     * @return resource A stream resource
      */
     public function getStream()
     {

@@ -57,8 +57,10 @@ class Terminal
 
     /**
      * @internal
+     *
+     * @return bool
      */
-    public static function hasSttyAvailable(): bool
+    public static function hasSttyAvailable()
     {
         if (null !== self::$stty) {
             return self::$stty;

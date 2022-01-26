@@ -5,7 +5,7 @@
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => '9d1d327ee913ba98e4f9b850796972d606289da7',
+        'reference' => '786289e6d33fea894755e2c86e578fad0debb7d1',
         'name' => 'benbalter/wordpress-to-jekyll-exporter',
         'dev' => true,
     ),
@@ -16,7 +16,7 @@
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => '9d1d327ee913ba98e4f9b850796972d606289da7',
+            'reference' => '786289e6d33fea894755e2c86e578fad0debb7d1',
             'dev_requirement' => false,
         ),
         'dealerdirect/phpcodesniffer-composer-installer' => array(
@@ -283,7 +283,7 @@
         'psr/log-implementation' => array(
             'dev_requirement' => true,
             'provided' => array(
-                0 => '1.0|2.0',
+                0 => '1.0',
             ),
         ),
         'ralouphie/getallheaders' => array(
@@ -467,12 +467,12 @@
             'dev_requirement' => true,
         ),
         'symfony/console' => array(
-            'pretty_version' => 'v5.4.2',
-            'version' => '5.4.2.0',
+            'pretty_version' => 'v5.2.0',
+            'version' => '5.2.0.0',
             'type' => 'library',
             'install_path' => __DIR__ . '/../symfony/console',
             'aliases' => array(),
-            'reference' => 'a2c6b7ced2eb7799a35375fb9022519282b5405e',
+            'reference' => '3e0564fb08d44a98bd5f1960204c958e57bd586b',
             'dev_requirement' => true,
         ),
         'symfony/deprecation-contracts' => array(
@@ -593,12 +593,12 @@
             'dev_requirement' => true,
         ),
         'symfony/yaml' => array(
-            'pretty_version' => 'v5.4.2',
-            'version' => '5.4.2.0',
+            'pretty_version' => 'v5.3.13',
+            'version' => '5.3.13.0',
             'type' => 'library',
             'install_path' => __DIR__ . '/../symfony/yaml',
             'aliases' => array(),
-            'reference' => 'b9eb163846a61bb32dfc147f7859e274fab38b58',
+            'reference' => 'dc07a318dae6e1af2be51d85f161263e0b6ca03d',
             'dev_requirement' => false,
         ),
         'theseer/tokenizer' => array(

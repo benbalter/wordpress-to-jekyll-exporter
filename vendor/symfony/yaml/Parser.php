@@ -45,7 +45,7 @@ class Parser
      * @param string $filename The path to the YAML file to be parsed
      * @param int    $flags    A bit field of PARSE_* constants to customize the YAML parser behavior
      *
-     * @return mixed
+     * @return mixed The YAML converted to a PHP value
      *
      * @throws ParseException If the file could not be read or the YAML is not valid
      */
@@ -74,7 +74,7 @@ class Parser
      * @param string $value A YAML string
      * @param int    $flags A bit field of PARSE_* constants to customize the YAML parser behavior
      *
-     * @return mixed
+     * @return mixed A PHP value
      *
      * @throws ParseException If the YAML is not valid
      */
@@ -539,6 +539,8 @@ class Parser
      * Returns the current line number (takes the offset into account).
      *
      * @internal
+     *
+     * @return int The current line number
      */
     public function getRealCurrentLineNb(): int
     {
@@ -557,6 +559,8 @@ class Parser
 
     /**
      * Returns the current line indentation.
+     *
+     * @return int The current line indentation
      */
     private function getCurrentLineIndentation(): int
     {
@@ -572,6 +576,8 @@ class Parser
      *
      * @param int|null $indentation The indent level at which the block is to be read, or null for default
      * @param bool     $inSequence  True if the enclosing data structure is a sequence
+     *
+     * @return string A YAML string
      *
      * @throws ParseException When indentation problem are detected
      */
@@ -712,7 +718,7 @@ class Parser
      * @param int    $flags   A bit field of PARSE_* constants to customize the YAML parser behavior
      * @param string $context The parser context (either sequence or mapping)
      *
-     * @return mixed
+     * @return mixed A PHP value
      *
      * @throws ParseException When reference does not exist
      */
@@ -932,6 +938,8 @@ class Parser
 
     /**
      * Returns true if the next line is indented.
+     *
+     * @return bool Returns true if the next line is indented, false otherwise
      */
     private function isNextLineIndented(): bool
     {
@@ -961,6 +969,8 @@ class Parser
 
     /**
      * Returns true if the current line is blank or if it is a comment line.
+     *
+     * @return bool Returns true if the current line is empty or if it is a comment line, false otherwise
      */
     private function isCurrentLineEmpty(): bool
     {
@@ -969,6 +979,8 @@ class Parser
 
     /**
      * Returns true if the current line is blank.
+     *
+     * @return bool Returns true if the current line is blank, false otherwise
      */
     private function isCurrentLineBlank(): bool
     {
@@ -977,6 +989,8 @@ class Parser
 
     /**
      * Returns true if the current line is a comment line.
+     *
+     * @return bool Returns true if the current line is a comment line, false otherwise
      */
     private function isCurrentLineComment(): bool
     {
@@ -995,6 +1009,8 @@ class Parser
      * Cleanups a YAML string to be parsed.
      *
      * @param string $value The input YAML string
+     *
+     * @return string A cleaned up YAML string
      */
     private function cleanup(string $value): string
     {
@@ -1029,6 +1045,8 @@ class Parser
 
     /**
      * Returns true if the next line starts unindented collection.
+     *
+     * @return bool Returns true if the next line starts unindented collection, false otherwise
      */
     private function isNextLineUnIndentedCollection(): bool
     {
@@ -1058,6 +1076,8 @@ class Parser
 
     /**
      * Returns true if the string is un-indented collection item.
+     *
+     * @return bool Returns true if the string is un-indented collection item, false otherwise
      */
     private function isStringUnIndentedCollectionItem(): bool
     {

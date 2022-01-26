@@ -87,8 +87,6 @@ class TableStyle
      * ║ 80-902734-1-6 │ And Then There Were None │ Agatha Christie  ║
      * ╚═══════════════╧══════════════════════════╧══════════════════╝
      * </code>
-     *
-     * @return $this
      */
     public function setHorizontalBorderChars(string $outside, string $inside = null): self
     {
@@ -112,8 +110,6 @@ class TableStyle
      * ║ 80-902734-1-6 │ And Then There Were None │ Agatha Christie  ║
      * ╚═══════════════╧══════════════════════════╧══════════════════╝
      * </code>
-     *
-     * @return $this
      */
     public function setVerticalBorderChars(string $outside, string $inside = null): self
     {
@@ -166,8 +162,6 @@ class TableStyle
      * @param string|null $topLeftBottom  Top left bottom char (see #8' of example), equals to $midLeft if null
      * @param string|null $topMidBottom   Top mid bottom char (see #0' of example), equals to $cross if null
      * @param string|null $topRightBottom Top right bottom char (see #4' of example), equals to $midRight if null
-     *
-     * @return $this
      */
     public function setCrossingChars(string $cross, string $topLeft, string $topMid, string $topRight, string $midRight, string $bottomRight, string $bottomMid, string $bottomLeft, string $midLeft, string $topLeftBottom = null, string $topMidBottom = null, string $topRightBottom = null): self
     {
@@ -349,9 +343,6 @@ class TableStyle
         return $this->headerTitleFormat;
     }
 
-    /**
-     * @return $this
-     */
     public function setHeaderTitleFormat(string $format): self
     {
         $this->headerTitleFormat = $format;
@@ -364,9 +355,6 @@ class TableStyle
         return $this->footerTitleFormat;
     }
 
-    /**
-     * @return $this
-     */
     public function setFooterTitleFormat(string $format): self
     {
         $this->footerTitleFormat = $format;

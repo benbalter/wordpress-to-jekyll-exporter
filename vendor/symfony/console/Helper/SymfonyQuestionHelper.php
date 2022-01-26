@@ -62,7 +62,7 @@ class SymfonyQuestionHelper extends QuestionHelper
 
             case $question instanceof ChoiceQuestion:
                 $choices = $question->getChoices();
-                $text = sprintf(' <info>%s</info> [<comment>%s</comment>]:', $text, OutputFormatter::escape($choices[$default] ?? $default));
+                $text = sprintf(' <info>%s</info> [<comment>%s</comment>]:', $text, OutputFormatter::escape(isset($choices[$default]) ? $choices[$default] : $default));
 
                 break;
 
@@ -100,7 +100,7 @@ class SymfonyQuestionHelper extends QuestionHelper
 
     private function getEofShortcut(): string
     {
-        if ('Windows' === \PHP_OS_FAMILY) {
+        if (false !== strpos(\PHP_OS, 'WIN')) {
             return '<comment>Ctrl+Z</comment> then <comment>Enter</comment>';
         }
 
