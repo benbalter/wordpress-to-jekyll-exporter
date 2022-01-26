@@ -1,0 +1,3 @@
+files:
+  - source: /languages/jekyll-export.pot
+    translation: /languages/jekyll-export-%locale_with_underscore%.po
