@@ -4,6 +4,43 @@ Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) princip
 
 ## [Unreleased][unreleased]
 
+## [5.0.2] - 2021-11-06
+
+### Fixed
+
+ - Fixed missplaced comment nodes appearing at the start of the HTML input (#212)
+
+## [5.0.1] - 2021-09-17
+
+### Fixed
+
+ - Fixed lists not using the correct amount of indentation (#211)
+
+## [5.0.0] - 2021-03-28
+
+### Added
+
+ - Added support for tables (#203)
+    - This feature is disable by default - see README for how to enable it
+ - Added new `strip_placeholder_links` option to strip `<a>` tags without `href` attributes (#196)
+ - Added new methods to `ElementInterface`:
+    - `hasParent()`
+    - `getNextSibling()`
+    - `getPreviousSibling()`
+    - `getListItemLevel()`
+ - Added several parameter and return types across all classes
+ - Added new `PreConverterInterface` to allow converters to perform any necessary pre-parsing
+
+### Changed
+
+ - Supported PHP versions increased to PHP 7.2 - 8.0
+ - `HtmlConverter::convert()` may now throw a `\RuntimeException` when unexpected `DOMDocument`-related errors occur
+
+### Fixed
+
+ - Fixed complex nested lists containing heading and paragraphs (#198)
+ - Fixed consecutive emphasis producing incorrect markdown (#202)
+
 ## [4.10.0] - 2020-06-30
 ### Added
 
@@ -268,7 +305,10 @@ not ideally set, so this releases fixes that. Moving forwards this should reduce
 ### Added
  - Initial release
 
-[unreleased]: https://github.com/thephpleague/html-to-markdown/compare/4.10.0...master
+[unreleased]: https://github.com/thephpleague/html-to-markdown/compare/5.0.2...master
+[5.0.2]: https://github.com/thephpleague/html-to-markdown/compare/5.0.1...5.0.2
+[5.0.1]: https://github.com/thephpleague/html-to-markdown/compare/5.0.0...5.0.1
+[5.0.0]: https://github.com/thephpleague/html-to-markdown/compare/4.10.0...5.0.0
 [4.10.0]: https://github.com/thephpleague/html-to-markdown/compare/4.9.1...4.10.0
 [4.9.1]: https://github.com/thephpleague/html-to-markdown/compare/4.9.0...4.9.1
 [4.9.0]: https://github.com/thephpleague/html-to-markdown/compare/4.8.3...4.9.0

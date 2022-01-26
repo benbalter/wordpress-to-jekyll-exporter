@@ -1,80 +1,50 @@
 <?php
 
+declare(strict_types=1);
+
 namespace League\HTMLToMarkdown;
 
 interface ElementInterface
 {
-    /**
-     * @return bool
-     */
-    public function isBlock();
+    public function isBlock(): bool;
 
-    /**
-     * @return bool
-     */
-    public function isText();
+    public function isText(): bool;
 
-    /**
-     * @return bool
-     */
-    public function isWhitespace();
+    public function isWhitespace(): bool;
 
-    /**
-     * @return string
-     */
-    public function getTagName();
+    public function getTagName(): string;
 
-    /**
-     * @return string
-     */
-    public function getValue();
+    public function getValue(): string;
 
-    /**
-     * @return ElementInterface|null
-     */
-    public function getParent();
+    public function hasParent(): bool;
+
+    public function getParent(): ?ElementInterface;
+
+    public function getNextSibling(): ?ElementInterface;
+
+    public function getPreviousSibling(): ?ElementInterface;
 
     /**
      * @param string|string[] $tagNames
-     *
-     * @return bool
      */
-    public function isDescendantOf($tagNames);
+    public function isDescendantOf($tagNames): bool;
 
-    /**
-     * @return bool
-     */
-    public function hasChildren();
+    public function hasChildren(): bool;
 
     /**
      * @return ElementInterface[]
      */
-    public function getChildren();
+    public function getChildren(): array;
 
-    /**
-     * @return ElementInterface|null
-     */
-    public function getNext();
+    public function getNext(): ?ElementInterface;
 
-    /**
-     * @return int
-     */
-    public function getSiblingPosition();
+    public function getSiblingPosition(): int;
 
-    /**
-     * @return string
-     */
-    public function getChildrenAsString();
+    public function getChildrenAsString(): string;
 
-    /**
-     * @param string $markdown
-     */
-    public function setFinalMarkdown($markdown);
+    public function setFinalMarkdown(string $markdown): void;
 
-    /**
-     * @param string $name
-     *
-     * @return string
-     */
-    public function getAttribute($name);
+    public function getListItemLevel(): int;
+
+    public function getAttribute(string $name): string;
 }

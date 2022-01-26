@@ -35,7 +35,7 @@ abstract class BaseNode implements NodeInterface
     protected $finalValidationClosures = [];
     protected $allowOverwrite = true;
     protected $required = false;
-    protected $deprecationMessage = null;
+    protected $deprecation = [];
     protected $equivalentValues = [];
     protected $attributes = [];
     protected $pathSeparator;
@@ -97,30 +97,23 @@ abstract class BaseNode implements NodeInterface
         self::$placeholders = [];
     }
 
-    /**
-     * @param string $key
-     */
-    public function setAttribute($key, $value)
+    public function setAttribute(string $key, $value)
     {
         $this->attributes[$key] = $value;
     }
 
     /**
-     * @param string $key
-     *
      * @return mixed
      */
-    public function getAttribute($key, $default = null)
+    public function getAttribute(string $key, $default = null)
     {
         return $this->attributes[$key] ?? $default;
     }
 
     /**
-     * @param string $key
-     *
      * @return bool
      */
-    public function hasAttribute($key)
+    public function hasAttribute(string $key)
     {
         return isset($this->attributes[$key]);
     }
@@ -138,20 +131,15 @@ abstract class BaseNode implements NodeInterface
         $this->attributes = $attributes;
     }
 
-    /**
-     * @param string $key
-     */
-    public function removeAttribute($key)
+    public function removeAttribute(string $key)
     {
         unset($this->attributes[$key]);
     }
 
     /**
      * Sets an info message.
-     *
-     * @param string $info
      */
-    public function setInfo($info)
+    public function setInfo(string $info)
     {
         $this->setAttribute('info', $info);
     }
@@ -159,7 +147,7 @@ abstract class BaseNode implements NodeInterface
     /**
      * Returns info message.
      *
-     * @return string|null The info text
+     * @return string|null
      */
     public function getInfo()
     {
@@ -179,7 +167,7 @@ abstract class BaseNode implements NodeInterface
     /**
      * Retrieves the example configuration for this node.
      *
-     * @return string|array|null The example
+     * @return string|array|null
      */
     public function getExample()
     {
@@ -199,35 +187,58 @@ abstract class BaseNode implements NodeInterface
 
     /**
      * Set this node as required.
-     *
-     * @param bool $boolean Required node
      */
-    public function setRequired($boolean)
+    public function setRequired(bool $boolean)
     {
-        $this->required = (bool) $boolean;
+        $this->required = $boolean;
     }
 
     /**
      * Sets this node as deprecated.
      *
-     * You can use %node% and %path% placeholders in your message to display,
-     * respectively, the node name and its complete path.
+     * @param string $package The name of the composer package that is triggering the deprecation
+     * @param string $version The version of the package that introduced the deprecation
+     * @param string $message the deprecation message to use
      *
-     * @param string|null $message Deprecated message
+     * You can use %node% and %path% placeholders in your message to display,
+     * respectively, the node name and its complete path
      */
-    public function setDeprecated($message)
+    public function setDeprecated(?string $package/*, string $version, string $message = 'The child node "%node%" at path "%path%" is deprecated.' */)
     {
-        $this->deprecationMessage = $message;
+        $args = \func_get_args();
+
+        if (\func_num_args() < 2) {
+            trigger_deprecation('symfony/config', '5.1', 'The signature of method "%s()" requires 3 arguments: "string $package, string $version, string $message", not defining them is deprecated.', __METHOD__);
+
+            if (!isset($args[0])) {
+                trigger_deprecation('symfony/config', '5.1', 'Passing a null message to un-deprecate a node is deprecated.');
+
+                $this->deprecation = [];
+
+                return;
+            }
+
+            $message = (string) $args[0];
+            $package = $version = '';
+        } else {
+            $package = (string) $args[0];
+            $version = (string) $args[1];
+            $message = (string) ($args[2] ?? 'The child node "%node%" at path "%path%" is deprecated.');
+        }
+
+        $this->deprecation = [
+            'package' => $package,
+            'version' => $version,
+            'message' => $message,
+        ];
     }
 
     /**
      * Sets if this node can be overridden.
-     *
-     * @param bool $allow
      */
-    public function setAllowOverwrite($allow)
+    public function setAllowOverwrite(bool $allow)
     {
-        $this->allowOverwrite = (bool) $allow;
+        $this->allowOverwrite = $allow;
     }
 
     /**
@@ -265,7 +276,7 @@ abstract class BaseNode implements NodeInterface
      */
     public function isDeprecated()
     {
-        return null !== $this->deprecationMessage;
+        return (bool) $this->deprecation;
     }
 
     /**
@@ -275,10 +286,27 @@ abstract class BaseNode implements NodeInterface
      * @param string $path the path of the node
      *
      * @return string
+     *
+     * @deprecated since Symfony 5.1, use "getDeprecation()" instead.
      */
-    public function getDeprecationMessage($node, $path)
+    public function getDeprecationMessage(string $node, string $path)
     {
-        return strtr($this->deprecationMessage, ['%node%' => $node, '%path%' => $path]);
+        trigger_deprecation('symfony/config', '5.1', 'The "%s()" method is deprecated, use "getDeprecation()" instead.', __METHOD__);
+
+        return $this->getDeprecation($node, $path)['message'];
+    }
+
+    /**
+     * @param string $node The configuration node name
+     * @param string $path The path of the node
+     */
+    public function getDeprecation(string $node, string $path): array
+    {
+        return [
+            'package' => $this->deprecation['package'] ?? '',
+            'version' => $this->deprecation['version'] ?? '',
+            'message' => strtr($this->deprecation['message'] ?? '', ['%node%' => $node, '%path%' => $path]),
+        ];
     }
 
     /**
@@ -387,7 +415,7 @@ abstract class BaseNode implements NodeInterface
      *
      * @param mixed $value
      *
-     * @return mixed The normalized array value
+     * @return mixed
      */
     protected function preNormalize($value)
     {
@@ -459,7 +487,7 @@ abstract class BaseNode implements NodeInterface
      *
      * @param mixed $value The value to normalize
      *
-     * @return mixed The normalized value
+     * @return mixed
      */
     abstract protected function normalizeValue($value);
 
@@ -469,7 +497,7 @@ abstract class BaseNode implements NodeInterface
      * @param mixed $leftSide
      * @param mixed $rightSide
      *
-     * @return mixed The merged value
+     * @return mixed
      */
     abstract protected function mergeValues($leftSide, $rightSide);
 
@@ -478,7 +506,7 @@ abstract class BaseNode implements NodeInterface
      *
      * @param mixed $value The value to finalize
      *
-     * @return mixed The finalized value
+     * @return mixed
      */
     abstract protected function finalizeValue($value);
 

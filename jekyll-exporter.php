@@ -43,6 +43,7 @@ require_once dirname( __FILE__ ) . '/lib/cli.php';
 require_once dirname( __FILE__ ) . '/vendor/autoload.php';
 
 use League\HTMLToMarkdown\HtmlConverter;
+use League\HTMLToMarkdown\Converter\TableConverter;
 use Symfony\Component\Yaml\Yaml;
 
 /**
@@ -248,7 +249,9 @@ class Jekyll_Export {
 		$content           = apply_filters( 'the_content', $post->post_content );
 		$converter_options = apply_filters( 'jekyll_export_markdown_converter_options', array( 'header_style' => 'atx' ) );
 		$converter         = new HtmlConverter( $converter_options );
-		$markdown          = $converter->convert( $content );
+		$converter->getEnvironment()->addConverter( new TableConverter() );
+
+		$markdown = $converter->convert( $content );
 
 		if ( strpos( $markdown, '[]: ' ) !== false ) {
 			// faulty links; return plain HTML.

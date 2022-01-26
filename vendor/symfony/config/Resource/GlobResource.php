@@ -21,7 +21,9 @@ use Symfony\Component\Finder\Glob;
  *
  * @author Nicolas Grekas <p@tchwork.com>
  *
- * @final since Symfony 4.3
+ * @final
+ *
+ * @implements \IteratorAggregate<string, \SplFileInfo>
  */
 class GlobResource implements \IteratorAggregate, SelfCheckingResourceInterface
 {
@@ -55,12 +57,12 @@ class GlobResource implements \IteratorAggregate, SelfCheckingResourceInterface
         }
     }
 
-    public function getPrefix()
+    public function getPrefix(): string
     {
         return $this->prefix;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return 'glob.'.$this->prefix.(int) $this->recursive.$this->pattern.(int) $this->forExclusion.implode("\0", $this->excludedPrefixes);
     }
@@ -68,7 +70,7 @@ class GlobResource implements \IteratorAggregate, SelfCheckingResourceInterface
     /**
      * {@inheritdoc}
      */
-    public function isFresh($timestamp)
+    public function isFresh(int $timestamp): bool
     {
         $hash = $this->computeHash();
 
@@ -99,11 +101,7 @@ class GlobResource implements \IteratorAggregate, SelfCheckingResourceInterface
         $this->globBrace = \defined('GLOB_BRACE') ? \GLOB_BRACE : 0;
     }
 
-    /**
-     * @return \Traversable
-     */
-    #[\ReturnTypeWillChange]
-    public function getIterator()
+    public function getIterator(): \Traversable
     {
         if (!file_exists($this->prefix) || (!$this->recursive && '' === $this->pattern)) {
             return;
