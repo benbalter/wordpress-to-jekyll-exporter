@@ -3,7 +3,8 @@
   "description": "One-click WordPress plugin that converts all posts, pages, taxonomies, metadata, and settings to Markdown and YAML which can be dropped into Jekyll.",
   "require": {
     "league/html-to-markdown": "^5.0",
-    "symfony/yaml": "^5.0"
+    "symfony/yaml": "^5.0",
+    "symfony/string": "^5.0"
   },
   "license": "GPLv3 or later",
   "authors": [{
@@ -24,6 +25,7 @@
     "vendor-dir": "vendor",
     "allow-plugins": {
       "dealerdirect/phpcodesniffer-composer-installer": true
-    }
+    },
+    "platform-check": false
   }
 }

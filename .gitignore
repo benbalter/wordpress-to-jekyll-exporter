@@ -3,7 +3,7 @@ vendor/*
 !vendor/autoload.php
 !vendor/composer
 !vendor/league/html-to-markdown/*
-!vendor/symfony/yaml/*
+!vendor/symfony/*
 vendor/**/docs
 vendor/**/test
 vendor/**/tests
