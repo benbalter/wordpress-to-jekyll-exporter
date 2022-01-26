@@ -9,6 +9,8 @@
  * @link       https://github.com/benbalter/wordpress-to-jekyll-exporter/
  */
 
+use Symfony\Component\Yaml\Yaml;
+
 /**
  * Test suite for JekyllExport
  */
