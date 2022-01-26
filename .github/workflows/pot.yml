@@ -17,7 +17,7 @@ jobs:
         run: npm install --global wp-pot-cli
 
       - name: Generate POT file
-        run: script/generate-pot
+        run: script/build-pot
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v3
