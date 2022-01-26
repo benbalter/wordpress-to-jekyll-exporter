@@ -1,5 +1,5 @@
-# Copyright (C) 2022 WordPress Jekyll Export 2.3.3
-# This file is distributed under the same license as the WordPress Jekyll Export 2.3.3 package.
+# Copyright (C) 2022 WordPress Jekyll Export 2.3.4
+# This file is distributed under the same license as the WordPress Jekyll Export 2.3.4 package.
 msgid ""
 msgstr ""
 "Project-Id-Version: wordpress-to-jekyll-exporter\n"
@@ -19,9 +19,9 @@ msgstr ""
 "X-Crowdin-File-ID: 39\n"
 "Language-Team: Czech\n"
 "Language: cs_CZ\n"
-"PO-Revision-Date: 2022-01-26 18:12\n"
+"PO-Revision-Date: 2022-01-26 20:34\n"
 
-#: jekyll-exporter.php:111, jekyll-exporter.php:111
+#: jekyll-exporter.php:110, jekyll-exporter.php:110
 msgid "Export to Jekyll"
 msgstr ""
 
