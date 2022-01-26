@@ -1,11 +1,6 @@
 CHANGELOG
 =========
 
-6.0
----
-
- * Remove `BaseNode::getDeprecationMessage()`
-
 5.3.0
 -----
 

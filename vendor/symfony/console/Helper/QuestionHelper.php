@@ -38,8 +38,8 @@ class QuestionHelper extends Helper
      */
     private $inputStream;
 
-    private static bool $stty = true;
-    private static bool $stdinIsInteractive;
+    private static $stty = true;
+    private static $stdinIsInteractive;
 
     /**
      * Asks a question to the user.
@@ -48,7 +48,7 @@ class QuestionHelper extends Helper
      *
      * @throws RuntimeException If there is no data to read in the input stream
      */
-    public function ask(InputInterface $input, OutputInterface $output, Question $question): mixed
+    public function ask(InputInterface $input, OutputInterface $output, Question $question)
     {
         if ($output instanceof ConsoleOutputInterface) {
             $output = $output->getErrorOutput();
@@ -86,7 +86,7 @@ class QuestionHelper extends Helper
     /**
      * {@inheritdoc}
      */
-    public function getName(): string
+    public function getName()
     {
         return 'question';
     }
@@ -102,9 +102,11 @@ class QuestionHelper extends Helper
     /**
      * Asks the question to the user.
      *
+     * @return mixed
+     *
      * @throws RuntimeException In case the fallback is deactivated and the response cannot be hidden
      */
-    private function doAsk(OutputInterface $output, Question $question): mixed
+    private function doAsk(OutputInterface $output, Question $question)
     {
         $this->writePrompt($output, $question);
 
@@ -151,7 +153,10 @@ class QuestionHelper extends Helper
         return $ret;
     }
 
-    private function getDefaultAnswer(Question $question): mixed
+    /**
+     * @return mixed
+     */
+    private function getDefaultAnswer(Question $question)
     {
         $default = $question->getDefault();
 
@@ -199,7 +204,7 @@ class QuestionHelper extends Helper
     /**
      * @return string[]
      */
-    protected function formatChoiceQuestionChoices(ChoiceQuestion $question, string $tag): array
+    protected function formatChoiceQuestionChoices(ChoiceQuestion $question, string $tag)
     {
         $messages = [];
 
@@ -444,9 +449,11 @@ class QuestionHelper extends Helper
      *
      * @param callable $interviewer A callable that will ask for a question and return the result
      *
+     * @return mixed The validated response
+     *
      * @throws \Exception In case the max number of attempts has been reached and no valid response has been given
      */
-    private function validateAttempts(callable $interviewer, OutputInterface $output, Question $question): mixed
+    private function validateAttempts(callable $interviewer, OutputInterface $output, Question $question)
     {
         $error = null;
         $attempts = $question->getMaxAttempts();
@@ -473,7 +480,7 @@ class QuestionHelper extends Helper
             return false;
         }
 
-        if (isset(self::$stdinIsInteractive)) {
+        if (null !== self::$stdinIsInteractive) {
             return self::$stdinIsInteractive;
         }
 
@@ -499,8 +506,10 @@ class QuestionHelper extends Helper
      *
      * @param resource $inputStream The handler resource
      * @param Question $question    The question being asked
+     *
+     * @return string|false The input received, false in case input could not be read
      */
-    private function readInput($inputStream, Question $question): string|false
+    private function readInput($inputStream, Question $question)
     {
         if (!$question->isMultiline()) {
             $cp = $this->setIOCodepage();
@@ -526,6 +535,11 @@ class QuestionHelper extends Helper
         return $this->resetIOCodepage($cp, $ret);
     }
 
+    /**
+     * Sets console I/O to the host code page.
+     *
+     * @return int Previous code page in IBM/EBCDIC format
+     */
     private function setIOCodepage(): int
     {
         if (\function_exists('sapi_windows_cp_set')) {
@@ -540,8 +554,12 @@ class QuestionHelper extends Helper
 
     /**
      * Sets console I/O to the specified code page and converts the user input.
+     *
+     * @param string|false $input
+     *
+     * @return string|false
      */
-    private function resetIOCodepage(int $cp, string|false $input): string|false
+    private function resetIOCodepage(int $cp, $input)
     {
         if (0 !== $cp) {
             sapi_windows_cp_set($cp);

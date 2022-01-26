@@ -21,8 +21,8 @@ use Symfony\Component\Console\Exception\InvalidArgumentException;
  */
 class OutputFormatter implements WrappableOutputFormatterInterface
 {
-    private bool $decorated;
-    private array $styles = [];
+    private $decorated;
+    private $styles = [];
     private $styleStack;
 
     public function __clone()
@@ -35,8 +35,10 @@ class OutputFormatter implements WrappableOutputFormatterInterface
 
     /**
      * Escapes "<" special char in given text.
+     *
+     * @return string
      */
-    public static function escape(string $text): string
+    public static function escape(string $text)
     {
         $text = preg_replace('/([^\\\\]?)</', '$1\\<', $text);
 
@@ -92,7 +94,7 @@ class OutputFormatter implements WrappableOutputFormatterInterface
     /**
      * {@inheritdoc}
      */
-    public function isDecorated(): bool
+    public function isDecorated()
     {
         return $this->decorated;
     }
@@ -108,7 +110,7 @@ class OutputFormatter implements WrappableOutputFormatterInterface
     /**
      * {@inheritdoc}
      */
-    public function hasStyle(string $name): bool
+    public function hasStyle(string $name)
     {
         return isset($this->styles[strtolower($name)]);
     }
@@ -116,7 +118,7 @@ class OutputFormatter implements WrappableOutputFormatterInterface
     /**
      * {@inheritdoc}
      */
-    public function getStyle(string $name): OutputFormatterStyleInterface
+    public function getStyle(string $name)
     {
         if (!$this->hasStyle($name)) {
             throw new InvalidArgumentException(sprintf('Undefined style: "%s".', $name));
@@ -128,7 +130,7 @@ class OutputFormatter implements WrappableOutputFormatterInterface
     /**
      * {@inheritdoc}
      */
-    public function format(?string $message): ?string
+    public function format(?string $message)
     {
         return $this->formatAndWrap($message, 0);
     }
@@ -183,7 +185,10 @@ class OutputFormatter implements WrappableOutputFormatterInterface
         return str_replace('\\<', '<', $output);
     }
 
-    public function getStyleStack(): OutputFormatterStyleStack
+    /**
+     * @return OutputFormatterStyleStack
+     */
+    public function getStyleStack()
     {
         return $this->styleStack;
     }

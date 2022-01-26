@@ -11,7 +11,6 @@
 
 namespace Symfony\Component\Console\CommandLoader;
 
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Exception\CommandNotFoundException;
 
 /**
@@ -21,7 +20,7 @@ use Symfony\Component\Console\Exception\CommandNotFoundException;
  */
 class FactoryCommandLoader implements CommandLoaderInterface
 {
-    private array $factories;
+    private $factories;
 
     /**
      * @param callable[] $factories Indexed by command names
@@ -34,7 +33,7 @@ class FactoryCommandLoader implements CommandLoaderInterface
     /**
      * {@inheritdoc}
      */
-    public function has(string $name): bool
+    public function has(string $name)
     {
         return isset($this->factories[$name]);
     }
@@ -42,7 +41,7 @@ class FactoryCommandLoader implements CommandLoaderInterface
     /**
      * {@inheritdoc}
      */
-    public function get(string $name): Command
+    public function get(string $name)
     {
         if (!isset($this->factories[$name])) {
             throw new CommandNotFoundException(sprintf('Command "%s" does not exist.', $name));
@@ -56,7 +55,7 @@ class FactoryCommandLoader implements CommandLoaderInterface
     /**
      * {@inheritdoc}
      */
-    public function getNames(): array
+    public function getNames()
     {
         return array_keys($this->factories);
     }

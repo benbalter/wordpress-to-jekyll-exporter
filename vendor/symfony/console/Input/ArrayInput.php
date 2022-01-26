@@ -25,7 +25,7 @@ use Symfony\Component\Console\Exception\InvalidOptionException;
  */
 class ArrayInput extends Input
 {
-    private array $parameters;
+    private $parameters;
 
     public function __construct(array $parameters, InputDefinition $definition = null)
     {
@@ -37,7 +37,7 @@ class ArrayInput extends Input
     /**
      * {@inheritdoc}
      */
-    public function getFirstArgument(): ?string
+    public function getFirstArgument()
     {
         foreach ($this->parameters as $param => $value) {
             if ($param && \is_string($param) && '-' === $param[0]) {
@@ -53,7 +53,7 @@ class ArrayInput extends Input
     /**
      * {@inheritdoc}
      */
-    public function hasParameterOption(string|array $values, bool $onlyParams = false): bool
+    public function hasParameterOption($values, bool $onlyParams = false)
     {
         $values = (array) $values;
 
@@ -77,7 +77,7 @@ class ArrayInput extends Input
     /**
      * {@inheritdoc}
      */
-    public function getParameterOption(string|array $values, string|bool|int|float|array|null $default = false, bool $onlyParams = false): mixed
+    public function getParameterOption($values, $default = false, bool $onlyParams = false)
     {
         $values = (array) $values;
 
@@ -100,8 +100,10 @@ class ArrayInput extends Input
 
     /**
      * Returns a stringified representation of the args passed to the command.
+     *
+     * @return string
      */
-    public function __toString(): string
+    public function __toString()
     {
         $params = [];
         foreach ($this->parameters as $param => $val) {
@@ -146,7 +148,7 @@ class ArrayInput extends Input
      *
      * @throws InvalidOptionException When option given doesn't exist
      */
-    private function addShortOption(string $shortcut, mixed $value)
+    private function addShortOption(string $shortcut, $value)
     {
         if (!$this->definition->hasShortcut($shortcut)) {
             throw new InvalidOptionException(sprintf('The "-%s" option does not exist.', $shortcut));
@@ -161,7 +163,7 @@ class ArrayInput extends Input
      * @throws InvalidOptionException When option given doesn't exist
      * @throws InvalidOptionException When a required value is missing
      */
-    private function addLongOption(string $name, mixed $value)
+    private function addLongOption(string $name, $value)
     {
         if (!$this->definition->hasOption($name)) {
             if (!$this->definition->hasNegation($name)) {
@@ -192,9 +194,12 @@ class ArrayInput extends Input
     /**
      * Adds an argument value.
      *
+     * @param string|int $name  The argument name
+     * @param mixed      $value The value for the argument
+     *
      * @throws InvalidArgumentException When argument given doesn't exist
      */
-    private function addArgument(string|int $name, mixed $value)
+    private function addArgument($name, $value)
     {
         if (!$this->definition->hasArgument($name)) {
             throw new InvalidArgumentException(sprintf('The "%s" argument does not exist.', $name));

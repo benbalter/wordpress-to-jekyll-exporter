@@ -39,7 +39,7 @@ class NodeBuilder implements NodeParentInterface
      *
      * @return $this
      */
-    public function setParent(ParentNodeDefinitionInterface $parent = null): static
+    public function setParent(ParentNodeDefinitionInterface $parent = null)
     {
         $this->parent = $parent;
 
@@ -48,56 +48,70 @@ class NodeBuilder implements NodeParentInterface
 
     /**
      * Creates a child array node.
+     *
+     * @return ArrayNodeDefinition
      */
-    public function arrayNode(string $name): ArrayNodeDefinition
+    public function arrayNode(string $name)
     {
         return $this->node($name, 'array');
     }
 
     /**
      * Creates a child scalar node.
+     *
+     * @return ScalarNodeDefinition
      */
-    public function scalarNode(string $name): ScalarNodeDefinition
+    public function scalarNode(string $name)
     {
         return $this->node($name, 'scalar');
     }
 
     /**
      * Creates a child Boolean node.
+     *
+     * @return BooleanNodeDefinition
      */
-    public function booleanNode(string $name): BooleanNodeDefinition
+    public function booleanNode(string $name)
     {
         return $this->node($name, 'boolean');
     }
 
     /**
      * Creates a child integer node.
+     *
+     * @return IntegerNodeDefinition
      */
-    public function integerNode(string $name): IntegerNodeDefinition
+    public function integerNode(string $name)
     {
         return $this->node($name, 'integer');
     }
 
     /**
      * Creates a child float node.
+     *
+     * @return FloatNodeDefinition
      */
-    public function floatNode(string $name): FloatNodeDefinition
+    public function floatNode(string $name)
     {
         return $this->node($name, 'float');
     }
 
     /**
      * Creates a child EnumNode.
+     *
+     * @return EnumNodeDefinition
      */
-    public function enumNode(string $name): EnumNodeDefinition
+    public function enumNode(string $name)
     {
         return $this->node($name, 'enum');
     }
 
     /**
      * Creates a child variable node.
+     *
+     * @return VariableNodeDefinition
      */
-    public function variableNode(string $name): VariableNodeDefinition
+    public function variableNode(string $name)
     {
         return $this->node($name, 'variable');
     }
@@ -115,10 +129,12 @@ class NodeBuilder implements NodeParentInterface
     /**
      * Creates a child node.
      *
+     * @return NodeDefinition
+     *
      * @throws \RuntimeException When the node type is not registered
      * @throws \RuntimeException When the node class is not found
      */
-    public function node(?string $name, string $type): NodeDefinition
+    public function node(?string $name, string $type)
     {
         $class = $this->getNodeClass($type);
 
@@ -144,7 +160,7 @@ class NodeBuilder implements NodeParentInterface
      *
      * @return $this
      */
-    public function append(NodeDefinition $node): static
+    public function append(NodeDefinition $node)
     {
         if ($node instanceof BuilderAwareInterface) {
             $builder = clone $this;
@@ -169,7 +185,7 @@ class NodeBuilder implements NodeParentInterface
      *
      * @return $this
      */
-    public function setNodeClass(string $type, string $class): static
+    public function setNodeClass(string $type, string $class)
     {
         $this->nodeMapping[strtolower($type)] = $class;
 
@@ -179,10 +195,12 @@ class NodeBuilder implements NodeParentInterface
     /**
      * Returns the class name of the node definition.
      *
+     * @return string
+     *
      * @throws \RuntimeException When the node type is not registered
      * @throws \RuntimeException When the node class is not found
      */
-    protected function getNodeClass(string $type): string
+    protected function getNodeClass(string $type)
     {
         $type = strtolower($type);
 

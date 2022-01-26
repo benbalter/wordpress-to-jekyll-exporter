@@ -65,7 +65,7 @@ EOF
     /**
      * {@inheritdoc}
      */
-    protected function execute(InputInterface $input, OutputInterface $output): int
+    protected function execute(InputInterface $input, OutputInterface $output)
     {
         $helper = new DescriptorHelper();
         $helper->describe($output, $this->getApplication(), [

@@ -29,7 +29,7 @@ use Symfony\Component\Console\Formatter\OutputFormatterInterface;
  */
 abstract class Output implements OutputInterface
 {
-    private int $verbosity;
+    private $verbosity;
     private $formatter;
 
     /**
@@ -55,7 +55,7 @@ abstract class Output implements OutputInterface
     /**
      * {@inheritdoc}
      */
-    public function getFormatter(): OutputFormatterInterface
+    public function getFormatter()
     {
         return $this->formatter;
     }
@@ -71,7 +71,7 @@ abstract class Output implements OutputInterface
     /**
      * {@inheritdoc}
      */
-    public function isDecorated(): bool
+    public function isDecorated()
     {
         return $this->formatter->isDecorated();
     }
@@ -87,7 +87,7 @@ abstract class Output implements OutputInterface
     /**
      * {@inheritdoc}
      */
-    public function getVerbosity(): int
+    public function getVerbosity()
     {
         return $this->verbosity;
     }
@@ -95,7 +95,7 @@ abstract class Output implements OutputInterface
     /**
      * {@inheritdoc}
      */
-    public function isQuiet(): bool
+    public function isQuiet()
     {
         return self::VERBOSITY_QUIET === $this->verbosity;
     }
@@ -103,7 +103,7 @@ abstract class Output implements OutputInterface
     /**
      * {@inheritdoc}
      */
-    public function isVerbose(): bool
+    public function isVerbose()
     {
         return self::VERBOSITY_VERBOSE <= $this->verbosity;
     }
@@ -111,7 +111,7 @@ abstract class Output implements OutputInterface
     /**
      * {@inheritdoc}
      */
-    public function isVeryVerbose(): bool
+    public function isVeryVerbose()
     {
         return self::VERBOSITY_VERY_VERBOSE <= $this->verbosity;
     }
@@ -119,7 +119,7 @@ abstract class Output implements OutputInterface
     /**
      * {@inheritdoc}
      */
-    public function isDebug(): bool
+    public function isDebug()
     {
         return self::VERBOSITY_DEBUG <= $this->verbosity;
     }
@@ -127,7 +127,7 @@ abstract class Output implements OutputInterface
     /**
      * {@inheritdoc}
      */
-    public function writeln(string|iterable $messages, int $options = self::OUTPUT_NORMAL)
+    public function writeln($messages, int $options = self::OUTPUT_NORMAL)
     {
         $this->write($messages, true, $options);
     }
@@ -135,7 +135,7 @@ abstract class Output implements OutputInterface
     /**
      * {@inheritdoc}
      */
-    public function write(string|iterable $messages, bool $newline = false, int $options = self::OUTPUT_NORMAL)
+    public function write($messages, bool $newline = false, int $options = self::OUTPUT_NORMAL)
     {
         if (!is_iterable($messages)) {
             $messages = [$messages];

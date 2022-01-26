@@ -82,9 +82,11 @@ class Filesystem
     /**
      * Creates a directory recursively.
      *
+     * @param string|iterable $dirs The directory path
+     *
      * @throws IOException On any directory creation failure
      */
-    public function mkdir(string|iterable $dirs, int $mode = 0777)
+    public function mkdir($dirs, int $mode = 0777)
     {
         foreach ($this->toIterable($dirs) as $dir) {
             if (is_dir($dir)) {
@@ -99,8 +101,12 @@ class Filesystem
 
     /**
      * Checks the existence of files or directories.
+     *
+     * @param string|iterable $files A filename, an array of files, or a \Traversable instance to check
+     *
+     * @return bool
      */
-    public function exists(string|iterable $files): bool
+    public function exists($files)
     {
         $maxPathLength = \PHP_MAXPATHLEN - 2;
 
@@ -120,12 +126,13 @@ class Filesystem
     /**
      * Sets access and modification time of file.
      *
-     * @param int|null $time  The touch time as a Unix timestamp, if not supplied the current system time is used
-     * @param int|null $atime The access time as a Unix timestamp, if not supplied the current system time is used
+     * @param string|iterable $files A filename, an array of files, or a \Traversable instance to create
+     * @param int|null        $time  The touch time as a Unix timestamp, if not supplied the current system time is used
+     * @param int|null        $atime The access time as a Unix timestamp, if not supplied the current system time is used
      *
      * @throws IOException When touch fails
      */
-    public function touch(string|iterable $files, int $time = null, int $atime = null)
+    public function touch($files, int $time = null, int $atime = null)
     {
         foreach ($this->toIterable($files) as $file) {
             if (!($time ? self::box('touch', $file, $time, $atime) : self::box('touch', $file))) {
@@ -137,9 +144,11 @@ class Filesystem
     /**
      * Removes files or directories.
      *
+     * @param string|iterable $files A filename, an array of files, or a \Traversable instance to remove
+     *
      * @throws IOException When removal fails
      */
-    public function remove(string|iterable $files)
+    public function remove($files)
     {
         if ($files instanceof \Traversable) {
             $files = iterator_to_array($files, false);
@@ -199,16 +208,17 @@ class Filesystem
     /**
      * Change mode for an array of files or directories.
      *
-     * @param int  $mode      The new mode (octal)
-     * @param int  $umask     The mode mask (octal)
-     * @param bool $recursive Whether change the mod recursively or not
+     * @param string|iterable $files     A filename, an array of files, or a \Traversable instance to change mode
+     * @param int             $mode      The new mode (octal)
+     * @param int             $umask     The mode mask (octal)
+     * @param bool            $recursive Whether change the mod recursively or not
      *
      * @throws IOException When the change fails
      */
-    public function chmod(string|iterable $files, int $mode, int $umask = 0000, bool $recursive = false)
+    public function chmod($files, int $mode, int $umask = 0000, bool $recursive = false)
     {
         foreach ($this->toIterable($files) as $file) {
-            if (\is_int($mode) && !self::box('chmod', $file, $mode & ~$umask)) {
+            if ((\PHP_VERSION_ID < 80000 || \is_int($mode)) && !self::box('chmod', $file, $mode & ~$umask)) {
                 throw new IOException(sprintf('Failed to chmod file "%s": ', $file).self::$lastError, 0, null, $file);
             }
             if ($recursive && is_dir($file) && !is_link($file)) {
@@ -220,12 +230,13 @@ class Filesystem
     /**
      * Change the owner of an array of files or directories.
      *
-     * @param string|int $user      A user name or number
-     * @param bool       $recursive Whether change the owner recursively or not
+     * @param string|iterable $files     A filename, an array of files, or a \Traversable instance to change owner
+     * @param string|int      $user      A user name or number
+     * @param bool            $recursive Whether change the owner recursively or not
      *
      * @throws IOException When the change fails
      */
-    public function chown(string|iterable $files, string|int $user, bool $recursive = false)
+    public function chown($files, $user, bool $recursive = false)
     {
         foreach ($this->toIterable($files) as $file) {
             if ($recursive && is_dir($file) && !is_link($file)) {
@@ -246,12 +257,13 @@ class Filesystem
     /**
      * Change the group of an array of files or directories.
      *
-     * @param string|int $group     A group name or number
-     * @param bool       $recursive Whether change the group recursively or not
+     * @param string|iterable $files     A filename, an array of files, or a \Traversable instance to change group
+     * @param string|int      $group     A group name or number
+     * @param bool            $recursive Whether change the group recursively or not
      *
      * @throws IOException When the change fails
      */
-    public function chgrp(string|iterable $files, string|int $group, bool $recursive = false)
+    public function chgrp($files, $group, bool $recursive = false)
     {
         foreach ($this->toIterable($files) as $file) {
             if ($recursive && is_dir($file) && !is_link($file)) {
@@ -350,7 +362,7 @@ class Filesystem
      * @throws FileNotFoundException When original file is missing or not a file
      * @throws IOException           When link fails, including if link already exists
      */
-    public function hardlink(string $originFile, string|iterable $targetFiles)
+    public function hardlink(string $originFile, $targetFiles)
     {
         if (!$this->exists($originFile)) {
             throw new FileNotFoundException(null, 0, null, $originFile);
@@ -397,8 +409,10 @@ class Filesystem
      * With $canonicalize = true
      *      - if $path does not exist, returns null
      *      - if $path exists, returns its absolute fully resolved final version
+     *
+     * @return string|null
      */
-    public function readlink(string $path, bool $canonicalize = false): ?string
+    public function readlink(string $path, bool $canonicalize = false)
     {
         if (!$canonicalize && !is_link($path)) {
             return null;
@@ -409,6 +423,14 @@ class Filesystem
                 return null;
             }
 
+            if ('\\' === \DIRECTORY_SEPARATOR && \PHP_VERSION_ID < 70410) {
+                $path = readlink($path);
+            }
+
+            return realpath($path);
+        }
+
+        if ('\\' === \DIRECTORY_SEPARATOR && \PHP_VERSION_ID < 70400) {
             return realpath($path);
         }
 
@@ -417,8 +439,10 @@ class Filesystem
 
     /**
      * Given an existing path, convert it to a path relative to a given starting path.
+     *
+     * @return string
      */
-    public function makePathRelative(string $endPath, string $startPath): string
+    public function makePathRelative(string $endPath, string $startPath)
     {
         if (!$this->isAbsolutePath($startPath)) {
             throw new InvalidArgumentException(sprintf('The start path "%s" is not absolute.', $startPath));
@@ -564,8 +588,10 @@ class Filesystem
 
     /**
      * Returns whether the file path is an absolute path.
+     *
+     * @return bool
      */
-    public function isAbsolutePath(string $file): bool
+    public function isAbsolutePath(string $file)
     {
         return '' !== $file && (strspn($file, '/\\', 0, 1)
             || (\strlen($file) > 3 && ctype_alpha($file[0])
@@ -585,8 +611,9 @@ class Filesystem
      *
      * @return string The new temporary filename (with path), or throw an exception on failure
      */
-    public function tempnam(string $dir, string $prefix, string $suffix = ''): string
+    public function tempnam(string $dir, string $prefix/*, string $suffix = ''*/)
     {
+        $suffix = \func_num_args() > 2 ? func_get_arg(2) : '';
         [$scheme, $hierarchy] = $this->getSchemeAndHierarchy($dir);
 
         // If no scheme or scheme is "file" or "gs" (Google Cloud) create temp file in local filesystem
@@ -688,7 +715,7 @@ class Filesystem
         }
     }
 
-    private function toIterable(string|iterable $files): iterable
+    private function toIterable($files): iterable
     {
         return is_iterable($files) ? $files : [$files];
     }
@@ -703,7 +730,12 @@ class Filesystem
         return 2 === \count($components) ? [$components[0], $components[1]] : [null, $components[0]];
     }
 
-    private static function box(callable $func, mixed ...$args): mixed
+    /**
+     * @param mixed ...$args
+     *
+     * @return mixed
+     */
+    private static function box(callable $func, ...$args)
     {
         self::$lastError = null;
         set_error_handler(__CLASS__.'::handleError');

@@ -50,8 +50,10 @@ abstract class MultiplePcreFilterIterator extends \FilterIterator
      * If there is no regexps defined in the class, this method will accept the string.
      * Such case can be handled by child classes before calling the method if they want to
      * apply a different behavior.
+     *
+     * @return bool
      */
-    protected function isAccepted(string $string): bool
+    protected function isAccepted(string $string)
     {
         // should at least not match one rule to exclude
         foreach ($this->noMatchRegexps as $regex) {
@@ -77,8 +79,10 @@ abstract class MultiplePcreFilterIterator extends \FilterIterator
 
     /**
      * Checks whether the string is a regex.
+     *
+     * @return bool
      */
-    protected function isRegex(string $str): bool
+    protected function isRegex(string $str)
     {
         if (preg_match('/^(.{3,}?)[imsxuADU]*$/', $str, $m)) {
             $start = substr($m[1], 0, 1);
@@ -100,6 +104,8 @@ abstract class MultiplePcreFilterIterator extends \FilterIterator
 
     /**
      * Converts string into regexp.
+     *
+     * @return string
      */
-    abstract protected function toRegex(string $str): string;
+    abstract protected function toRegex(string $str);
 }

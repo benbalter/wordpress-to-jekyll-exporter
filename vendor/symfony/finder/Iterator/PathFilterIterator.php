@@ -23,8 +23,11 @@ class PathFilterIterator extends MultiplePcreFilterIterator
 {
     /**
      * Filters the iterator values.
+     *
+     * @return bool
      */
-    public function accept(): bool
+    #[\ReturnTypeWillChange]
+    public function accept()
     {
         $filename = $this->current()->getRelativePathname();
 
@@ -46,8 +49,10 @@ class PathFilterIterator extends MultiplePcreFilterIterator
      * Use only / as directory separator (on Windows also).
      *
      * @param string $str Pattern: regexp or dirname
+     *
+     * @return string
      */
-    protected function toRegex(string $str): string
+    protected function toRegex(string $str)
     {
         return $this->isRegex($str) ? $str : '/'.preg_quote($str, '/').'/';
     }

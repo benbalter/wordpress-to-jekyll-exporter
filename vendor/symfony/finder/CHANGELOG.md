@@ -1,11 +1,6 @@
 CHANGELOG
 =========
 
-6.0
----
-
- * Remove `Comparator::setTarget()` and `Comparator::setOperator()`
-
 5.4.0
 -----
 

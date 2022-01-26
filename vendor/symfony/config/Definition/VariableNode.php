@@ -27,7 +27,7 @@ class VariableNode extends BaseNode implements PrototypeNodeInterface
     protected $defaultValue;
     protected $allowEmptyValue = true;
 
-    public function setDefaultValue(mixed $value)
+    public function setDefaultValue($value)
     {
         $this->defaultValueSet = true;
         $this->defaultValue = $value;
@@ -36,7 +36,7 @@ class VariableNode extends BaseNode implements PrototypeNodeInterface
     /**
      * {@inheritdoc}
      */
-    public function hasDefaultValue(): bool
+    public function hasDefaultValue()
     {
         return $this->defaultValueSet;
     }
@@ -44,7 +44,7 @@ class VariableNode extends BaseNode implements PrototypeNodeInterface
     /**
      * {@inheritdoc}
      */
-    public function getDefaultValue(): mixed
+    public function getDefaultValue()
     {
         $v = $this->defaultValue;
 
@@ -72,14 +72,14 @@ class VariableNode extends BaseNode implements PrototypeNodeInterface
     /**
      * {@inheritdoc}
      */
-    protected function validateType(mixed $value)
+    protected function validateType($value)
     {
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function finalizeValue(mixed $value): mixed
+    protected function finalizeValue($value)
     {
         // deny environment variables only when using custom validators
         // this avoids ever passing an empty value to final validation closures
@@ -109,7 +109,7 @@ class VariableNode extends BaseNode implements PrototypeNodeInterface
     /**
      * {@inheritdoc}
      */
-    protected function normalizeValue(mixed $value): mixed
+    protected function normalizeValue($value)
     {
         return $value;
     }
@@ -117,7 +117,7 @@ class VariableNode extends BaseNode implements PrototypeNodeInterface
     /**
      * {@inheritdoc}
      */
-    protected function mergeValues(mixed $leftSide, mixed $rightSide): mixed
+    protected function mergeValues($leftSide, $rightSide)
     {
         return $rightSide;
     }
@@ -129,9 +129,13 @@ class VariableNode extends BaseNode implements PrototypeNodeInterface
      * method may be overridden by subtypes to better match their understanding
      * of empty data.
      *
+     * @param mixed $value
+     *
+     * @return bool
+     *
      * @see finalizeValue()
      */
-    protected function isValueEmpty(mixed $value): bool
+    protected function isValueEmpty($value)
     {
         return empty($value);
     }

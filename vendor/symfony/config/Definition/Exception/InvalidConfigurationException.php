@@ -19,15 +19,15 @@ namespace Symfony\Component\Config\Definition\Exception;
  */
 class InvalidConfigurationException extends Exception
 {
-    private ?string $path = null;
-    private bool $containsHints = false;
+    private $path;
+    private $containsHints = false;
 
     public function setPath(string $path)
     {
         $this->path = $path;
     }
 
-    public function getPath(): ?string
+    public function getPath()
     {
         return $this->path;
     }

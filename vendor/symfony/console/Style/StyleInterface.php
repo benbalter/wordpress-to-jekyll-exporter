@@ -35,33 +35,45 @@ interface StyleInterface
 
     /**
      * Formats informational text.
+     *
+     * @param string|array $message
      */
-    public function text(string|array $message);
+    public function text($message);
 
     /**
      * Formats a success result bar.
+     *
+     * @param string|array $message
      */
-    public function success(string|array $message);
+    public function success($message);
 
     /**
      * Formats an error result bar.
+     *
+     * @param string|array $message
      */
-    public function error(string|array $message);
+    public function error($message);
 
     /**
      * Formats an warning result bar.
+     *
+     * @param string|array $message
      */
-    public function warning(string|array $message);
+    public function warning($message);
 
     /**
      * Formats a note admonition.
+     *
+     * @param string|array $message
      */
-    public function note(string|array $message);
+    public function note($message);
 
     /**
      * Formats a caution admonition.
+     *
+     * @param string|array $message
      */
-    public function caution(string|array $message);
+    public function caution($message);
 
     /**
      * Formats a table.
@@ -70,23 +82,33 @@ interface StyleInterface
 
     /**
      * Asks a question.
+     *
+     * @return mixed
      */
-    public function ask(string $question, string $default = null, callable $validator = null): mixed;
+    public function ask(string $question, string $default = null, callable $validator = null);
 
     /**
      * Asks a question with the user input hidden.
+     *
+     * @return mixed
      */
-    public function askHidden(string $question, callable $validator = null): mixed;
+    public function askHidden(string $question, callable $validator = null);
 
     /**
      * Asks for confirmation.
+     *
+     * @return bool
      */
-    public function confirm(string $question, bool $default = true): bool;
+    public function confirm(string $question, bool $default = true);
 
     /**
      * Asks a choice question.
+     *
+     * @param string|int|null $default
+     *
+     * @return mixed
      */
-    public function choice(string $question, array $choices, mixed $default = null): mixed;
+    public function choice(string $question, array $choices, $default = null);
 
     /**
      * Add newline(s).

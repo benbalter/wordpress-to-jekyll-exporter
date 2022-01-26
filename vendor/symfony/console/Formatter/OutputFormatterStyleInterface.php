@@ -45,6 +45,8 @@ interface OutputFormatterStyleInterface
 
     /**
      * Applies the style to a given text.
+     *
+     * @return string
      */
-    public function apply(string $text): string;
+    public function apply(string $text);
 }

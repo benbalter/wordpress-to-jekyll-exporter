@@ -27,9 +27,9 @@ class SelfCheckingResourceChecker implements ResourceCheckerInterface
     // situations. For example, when using the full stack framework, the router
     // and the container have their own cache. But they may check the very same
     // resources
-    private static array $cache = [];
+    private static $cache = [];
 
-    public function supports(ResourceInterface $metadata): bool
+    public function supports(ResourceInterface $metadata)
     {
         return $metadata instanceof SelfCheckingResourceInterface;
     }
@@ -37,7 +37,7 @@ class SelfCheckingResourceChecker implements ResourceCheckerInterface
     /**
      * @param SelfCheckingResourceInterface $resource
      */
-    public function isFresh(ResourceInterface $resource, int $timestamp): bool
+    public function isFresh(ResourceInterface $resource, int $timestamp)
     {
         $key = "$resource:$timestamp";
 

@@ -32,19 +32,19 @@ class ProgressIndicator
     ];
 
     private $output;
-    private int $startTime;
-    private ?string $format = null;
-    private ?string $message = null;
-    private array $indicatorValues;
-    private int $indicatorCurrent;
-    private int $indicatorChangeInterval;
-    private float $indicatorUpdateTime;
-    private bool $started = false;
+    private $startTime;
+    private $format;
+    private $message;
+    private $indicatorValues;
+    private $indicatorCurrent;
+    private $indicatorChangeInterval;
+    private $indicatorUpdateTime;
+    private $started = false;
 
     /**
      * @var array<string, callable>
      */
-    private static array $formatters;
+    private static $formatters;
 
     /**
      * @param int        $indicatorChangeInterval Change interval in milliseconds
@@ -146,8 +146,10 @@ class ProgressIndicator
 
     /**
      * Gets the format for a given name.
+     *
+     * @return string|null
      */
-    public static function getFormatDefinition(string $name): ?string
+    public static function getFormatDefinition(string $name)
     {
         return self::FORMATS[$name] ?? null;
     }
@@ -159,17 +161,23 @@ class ProgressIndicator
      */
     public static function setPlaceholderFormatterDefinition(string $name, callable $callable)
     {
-        self::$formatters ??= self::initPlaceholderFormatters();
+        if (!self::$formatters) {
+            self::$formatters = self::initPlaceholderFormatters();
+        }
 
         self::$formatters[$name] = $callable;
     }
 
     /**
      * Gets the placeholder formatter for a given name (including the delimiter char like %).
+     *
+     * @return callable|null
      */
-    public static function getPlaceholderFormatterDefinition(string $name): ?callable
+    public static function getPlaceholderFormatterDefinition(string $name)
     {
-        self::$formatters ??= self::initPlaceholderFormatters();
+        if (!self::$formatters) {
+            self::$formatters = self::initPlaceholderFormatters();
+        }
 
         return self::$formatters[$name] ?? null;
     }
@@ -221,9 +229,6 @@ class ProgressIndicator
         return round(microtime(true) * 1000);
     }
 
-    /**
-     * @return array<string, \Closure>
-     */
     private static function initPlaceholderFormatters(): array
     {
         return [

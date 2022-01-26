@@ -33,17 +33,19 @@ interface OutputInterface
     /**
      * Writes a message to the output.
      *
-     * @param $newline Whether to add a newline
-     * @param $options A bitmask of options (one of the OUTPUT or VERBOSITY constants), 0 is considered the same as self::OUTPUT_NORMAL | self::VERBOSITY_NORMAL
+     * @param string|iterable $messages The message as an iterable of strings or a single string
+     * @param bool            $newline  Whether to add a newline
+     * @param int             $options  A bitmask of options (one of the OUTPUT or VERBOSITY constants), 0 is considered the same as self::OUTPUT_NORMAL | self::VERBOSITY_NORMAL
      */
-    public function write(string|iterable $messages, bool $newline = false, int $options = 0);
+    public function write($messages, bool $newline = false, int $options = 0);
 
     /**
      * Writes a message to the output and adds a newline at the end.
      *
-     * @param $options A bitmask of options (one of the OUTPUT or VERBOSITY constants), 0 is considered the same as self::OUTPUT_NORMAL | self::VERBOSITY_NORMAL
+     * @param string|iterable $messages The message as an iterable of strings or a single string
+     * @param int             $options  A bitmask of options (one of the OUTPUT or VERBOSITY constants), 0 is considered the same as self::OUTPUT_NORMAL | self::VERBOSITY_NORMAL
      */
-    public function writeln(string|iterable $messages, int $options = 0);
+    public function writeln($messages, int $options = 0);
 
     /**
      * Sets the verbosity of the output.
@@ -52,28 +54,38 @@ interface OutputInterface
 
     /**
      * Gets the current verbosity of the output.
+     *
+     * @return int
      */
-    public function getVerbosity(): int;
+    public function getVerbosity();
 
     /**
      * Returns whether verbosity is quiet (-q).
+     *
+     * @return bool
      */
-    public function isQuiet(): bool;
+    public function isQuiet();
 
     /**
      * Returns whether verbosity is verbose (-v).
+     *
+     * @return bool
      */
-    public function isVerbose(): bool;
+    public function isVerbose();
 
     /**
      * Returns whether verbosity is very verbose (-vv).
+     *
+     * @return bool
      */
-    public function isVeryVerbose(): bool;
+    public function isVeryVerbose();
 
     /**
      * Returns whether verbosity is debug (-vvv).
+     *
+     * @return bool
      */
-    public function isDebug(): bool;
+    public function isDebug();
 
     /**
      * Sets the decorated flag.
@@ -82,13 +94,17 @@ interface OutputInterface
 
     /**
      * Gets the decorated flag.
+     *
+     * @return bool
      */
-    public function isDecorated(): bool;
+    public function isDecorated();
 
     public function setFormatter(OutputFormatterInterface $formatter);
 
     /**
      * Returns current output formatter instance.
+     *
+     * @return OutputFormatterInterface
      */
-    public function getFormatter(): OutputFormatterInterface;
+    public function getFormatter();
 }

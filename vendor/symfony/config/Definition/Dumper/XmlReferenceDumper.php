@@ -25,7 +25,7 @@ use Symfony\Component\Config\Definition\PrototypedArrayNode;
  */
 class XmlReferenceDumper
 {
-    private ?string $reference = null;
+    private $reference;
 
     public function dump(ConfigurationInterface $configuration, string $namespace = null)
     {
@@ -268,8 +268,10 @@ class XmlReferenceDumper
 
     /**
      * Renders the string conversion of the value.
+     *
+     * @param mixed $value
      */
-    private function writeValue(mixed $value): string
+    private function writeValue($value): string
     {
         if ('%%%%not_defined%%%%' === $value) {
             return '';

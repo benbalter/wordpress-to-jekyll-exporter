@@ -20,9 +20,9 @@ namespace Symfony\Component\Config\Resource;
  */
 class ComposerResource implements SelfCheckingResourceInterface
 {
-    private array $vendors;
+    private $vendors;
 
-    private static array $runtimeVendors;
+    private static $runtimeVendors;
 
     public function __construct()
     {

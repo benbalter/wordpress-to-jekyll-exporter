@@ -23,20 +23,25 @@ use Symfony\Component\Console\Tester\Constraint\CommandIsSuccessful;
  */
 trait TesterTrait
 {
+    /** @var StreamOutput */
     private $output;
-    private array $inputs = [];
-    private bool $captureStreamsIndependently = false;
+    private $inputs = [];
+    private $captureStreamsIndependently = false;
+    /** @var InputInterface */
     private $input;
-    private int $statusCode;
+    /** @var int */
+    private $statusCode;
 
     /**
      * Gets the display returned by the last execution of the command or application.
      *
      * @throws \RuntimeException If it's called before the execute method
+     *
+     * @return string
      */
-    public function getDisplay(bool $normalize = false): string
+    public function getDisplay(bool $normalize = false)
     {
-        if (!isset($this->output)) {
+        if (null === $this->output) {
             throw new \RuntimeException('Output not initialized, did you execute the command before requesting the display?');
         }
 
@@ -55,8 +60,10 @@ trait TesterTrait
      * Gets the output written to STDERR by the application.
      *
      * @param bool $normalize Whether to normalize end of lines to \n or not
+     *
+     * @return string
      */
-    public function getErrorOutput(bool $normalize = false): string
+    public function getErrorOutput(bool $normalize = false)
     {
         if (!$this->captureStreamsIndependently) {
             throw new \LogicException('The error output is not available when the tester is run without "capture_stderr_separately" option set.');
@@ -75,16 +82,20 @@ trait TesterTrait
 
     /**
      * Gets the input instance used by the last execution of the command or application.
+     *
+     * @return InputInterface
      */
-    public function getInput(): InputInterface
+    public function getInput()
     {
         return $this->input;
     }
 
     /**
      * Gets the output instance used by the last execution of the command or application.
+     *
+     * @return OutputInterface
      */
-    public function getOutput(): OutputInterface
+    public function getOutput()
     {
         return $this->output;
     }
@@ -93,10 +104,16 @@ trait TesterTrait
      * Gets the status code returned by the last execution of the command or application.
      *
      * @throws \RuntimeException If it's called before the execute method
+     *
+     * @return int
      */
-    public function getStatusCode(): int
+    public function getStatusCode()
     {
-        return $this->statusCode ?? throw new \RuntimeException('Status code not initialized, did you execute the command before requesting the status code?');
+        if (null === $this->statusCode) {
+            throw new \RuntimeException('Status code not initialized, did you execute the command before requesting the status code?');
+        }
+
+        return $this->statusCode;
     }
 
     public function assertCommandIsSuccessful(string $message = ''): void
@@ -112,7 +129,7 @@ trait TesterTrait
      *
      * @return $this
      */
-    public function setInputs(array $inputs): static
+    public function setInputs(array $inputs)
     {
         $this->inputs = $inputs;
 

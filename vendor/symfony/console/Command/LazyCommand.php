@@ -25,7 +25,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 final class LazyCommand extends Command
 {
     private $command;
-    private ?bool $isEnabled;
+    private $isEnabled;
 
     public function __construct(string $name, array $aliases, string $description, bool $isHidden, \Closure $commandFactory, ?bool $isEnabled = true)
     {
@@ -76,7 +76,10 @@ final class LazyCommand extends Command
         $this->getCommand()->complete($input, $suggestions);
     }
 
-    public function setCode(callable $code): static
+    /**
+     * @return $this
+     */
+    public function setCode(callable $code): self
     {
         $this->getCommand()->setCode($code);
 
@@ -91,7 +94,10 @@ final class LazyCommand extends Command
         $this->getCommand()->mergeApplicationDefinition($mergeArgs);
     }
 
-    public function setDefinition(array|InputDefinition $definition): static
+    /**
+     * @return $this
+     */
+    public function setDefinition($definition): self
     {
         $this->getCommand()->setDefinition($definition);
 
@@ -108,28 +114,40 @@ final class LazyCommand extends Command
         return $this->getCommand()->getNativeDefinition();
     }
 
-    public function addArgument(string $name, int $mode = null, string $description = '', mixed $default = null): static
+    /**
+     * @return $this
+     */
+    public function addArgument(string $name, int $mode = null, string $description = '', $default = null): self
     {
         $this->getCommand()->addArgument($name, $mode, $description, $default);
 
         return $this;
     }
 
-    public function addOption(string $name, string|array $shortcut = null, int $mode = null, string $description = '', mixed $default = null): static
+    /**
+     * @return $this
+     */
+    public function addOption(string $name, $shortcut = null, int $mode = null, string $description = '', $default = null): self
     {
         $this->getCommand()->addOption($name, $shortcut, $mode, $description, $default);
 
         return $this;
     }
 
-    public function setProcessTitle(string $title): static
+    /**
+     * @return $this
+     */
+    public function setProcessTitle(string $title): self
     {
         $this->getCommand()->setProcessTitle($title);
 
         return $this;
     }
 
-    public function setHelp(string $help): static
+    /**
+     * @return $this
+     */
+    public function setHelp(string $help): self
     {
         $this->getCommand()->setHelp($help);
 
@@ -151,7 +169,10 @@ final class LazyCommand extends Command
         return $this->getCommand()->getSynopsis($short);
     }
 
-    public function addUsage(string $usage): static
+    /**
+     * @return $this
+     */
+    public function addUsage(string $usage): self
     {
         $this->getCommand()->addUsage($usage);
 
@@ -163,7 +184,10 @@ final class LazyCommand extends Command
         return $this->getCommand()->getUsages();
     }
 
-    public function getHelper(string $name): mixed
+    /**
+     * @return mixed
+     */
+    public function getHelper(string $name)
     {
         return $this->getCommand()->getHelper($name);
     }

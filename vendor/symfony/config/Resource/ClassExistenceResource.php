@@ -23,12 +23,12 @@ namespace Symfony\Component\Config\Resource;
  */
 class ClassExistenceResource implements SelfCheckingResourceInterface
 {
-    private string $resource;
-    private ?array $exists = null;
+    private $resource;
+    private $exists;
 
-    private static int $autoloadLevel = 0;
-    private static ?string $autoloadedClass = null;
-    private static array $existsCache = [];
+    private static $autoloadLevel = 0;
+    private static $autoloadedClass;
+    private static $existsCache = [];
 
     /**
      * @param string    $resource The fully-qualified class name
@@ -184,7 +184,7 @@ class ClassExistenceResource implements SelfCheckingResourceInterface
             'args' => [$class],
         ];
 
-        if (isset($trace[1])) {
+        if (\PHP_VERSION_ID >= 80000 && isset($trace[1])) {
             $callerFrame = $trace[1];
             $i = 2;
         } elseif (false !== $i = array_search($autoloadFrame, $trace, true)) {

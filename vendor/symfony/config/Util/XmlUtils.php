@@ -38,28 +38,40 @@ class XmlUtils
      * @param string               $content          An XML string
      * @param string|callable|null $schemaOrCallable An XSD schema file path, a callable, or null to disable validation
      *
+     * @return \DOMDocument
+     *
      * @throws XmlParsingException When parsing of XML file returns error
      * @throws InvalidXmlException When parsing of XML with schema or callable produces any errors unrelated to the XML parsing itself
      * @throws \RuntimeException   When DOM extension is missing
      */
-    public static function parse(string $content, string|callable $schemaOrCallable = null): \DOMDocument
+    public static function parse(string $content, $schemaOrCallable = null)
     {
         if (!\extension_loaded('dom')) {
             throw new \LogicException('Extension DOM is required.');
         }
 
         $internalErrors = libxml_use_internal_errors(true);
+        if (\LIBXML_VERSION < 20900) {
+            $disableEntities = libxml_disable_entity_loader(true);
+        }
         libxml_clear_errors();
 
         $dom = new \DOMDocument();
         $dom->validateOnParse = true;
-        if (!$dom->loadXML($content, \LIBXML_NONET | \LIBXML_COMPACT)) {
+        if (!$dom->loadXML($content, \LIBXML_NONET | (\defined('LIBXML_COMPACT') ? \LIBXML_COMPACT : 0))) {
+            if (\LIBXML_VERSION < 20900) {
+                libxml_disable_entity_loader($disableEntities);
+            }
+
             throw new XmlParsingException(implode("\n", static::getXmlErrors($internalErrors)));
         }
 
         $dom->normalizeDocument();
 
         libxml_use_internal_errors($internalErrors);
+        if (\LIBXML_VERSION < 20900) {
+            libxml_disable_entity_loader($disableEntities);
+        }
 
         foreach ($dom->childNodes as $child) {
             if (\XML_DOCUMENT_TYPE_NODE === $child->nodeType) {
@@ -78,13 +90,13 @@ class XmlUtils
                 } catch (\Exception $e) {
                     $valid = false;
                 }
-            } elseif (is_file($schemaOrCallable)) {
+            } elseif (!\is_array($schemaOrCallable) && is_file((string) $schemaOrCallable)) {
                 $schemaSource = file_get_contents((string) $schemaOrCallable);
                 $valid = @$dom->schemaValidateSource($schemaSource);
             } else {
                 libxml_use_internal_errors($internalErrors);
 
-                throw new XmlParsingException(sprintf('Invalid XSD file: "%s".', $schemaOrCallable));
+                throw new XmlParsingException('The schemaOrCallable argument has to be a valid path to XSD file or callable.');
             }
 
             if (!$valid) {
@@ -108,11 +120,13 @@ class XmlUtils
      * @param string               $file             An XML file path
      * @param string|callable|null $schemaOrCallable An XSD schema file path, a callable, or null to disable validation
      *
+     * @return \DOMDocument
+     *
      * @throws \InvalidArgumentException When loading of XML file returns error
      * @throws XmlParsingException       When XML parsing returns any errors
      * @throws \RuntimeException         When DOM extension is missing
      */
-    public static function loadFile(string $file, string|callable $schemaOrCallable = null): \DOMDocument
+    public static function loadFile(string $file, $schemaOrCallable = null)
     {
         if (!is_file($file)) {
             throw new \InvalidArgumentException(sprintf('Resource "%s" is not a file.', $file));
@@ -152,8 +166,10 @@ class XmlUtils
      *
      * @param \DOMElement $element     A \DOMElement instance
      * @param bool        $checkPrefix Check prefix in an element or an attribute name
+     *
+     * @return mixed
      */
-    public static function convertDomElementToArray(\DOMElement $element, bool $checkPrefix = true): mixed
+    public static function convertDomElementToArray(\DOMElement $element, bool $checkPrefix = true)
     {
         $prefix = (string) $element->prefix;
         $empty = true;
@@ -206,8 +222,12 @@ class XmlUtils
 
     /**
      * Converts an xml value to a PHP type.
+     *
+     * @param mixed $value
+     *
+     * @return mixed
      */
-    public static function phpize(string|\Stringable $value): mixed
+    public static function phpize($value)
     {
         $value = (string) $value;
         $lowercaseValue = strtolower($value);

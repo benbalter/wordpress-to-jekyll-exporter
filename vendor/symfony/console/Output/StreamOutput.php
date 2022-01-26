@@ -91,7 +91,7 @@ class StreamOutput extends Output
      *
      * @return bool true if the stream supports colorization, false otherwise
      */
-    protected function hasColorSupport(): bool
+    protected function hasColorSupport()
     {
         // Follow https://no-color.org/
         if (isset($_SERVER['NO_COLOR']) || false !== getenv('NO_COLOR')) {

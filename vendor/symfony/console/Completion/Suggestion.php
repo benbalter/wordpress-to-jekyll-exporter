@@ -18,7 +18,7 @@ namespace Symfony\Component\Console\Completion;
  */
 class Suggestion
 {
-    private string $value;
+    private $value;
 
     public function __construct(string $value)
     {
