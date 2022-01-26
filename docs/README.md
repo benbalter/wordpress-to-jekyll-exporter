@@ -10,7 +10,7 @@ View plugin in [the WordPress plugin directory](https://wordpress.org/plugins/je
 
 ## Features
 
-* Converts all posts, pages, and settings from WordPress to Markdown and YAML for use in Jekyll
+* Converts all posts, pages, and settings from WordPress to Markdown and YAML for use in Jekyll (or Hugo or any other Markdown and YAML based site engine)
 * Export what your users see, not what the database stores (runs post content through `the_content` filter prior to export, allowing third-party plugins to modify the output)
 * Converts all `post_content` to Markdown
 * Converts all `post_meta` and fields within the `wp_posts` table to YAML front matter for parsing by Jekyll
