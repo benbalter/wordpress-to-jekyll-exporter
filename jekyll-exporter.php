@@ -377,9 +377,6 @@ class Jekyll_Export {
 
 		$output = Yaml::dump( $options );
 
-		// strip starting "---".
-		$output = substr( $output, 4 );
-
 		$wp_filesystem->put_contents( $this->dir . '_config.yml', $output );
 	}
 
