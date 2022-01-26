@@ -284,7 +284,8 @@ class Jekyll_Export {
 				}
 			}
 
-			$output  = Yaml::dump( $meta );
+			$output  = "---\n";
+			$output .= Yaml::dump( $meta );
 			$output .= "---\n";
 			$output .= $this->convert_content( $post );
 			$this->write( $output, $post );
