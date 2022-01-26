@@ -42,6 +42,9 @@ if ( version_compare( PHP_VERSION, '5.3.0', '<' ) ) {
 require_once dirname( __FILE__ ) . '/lib/cli.php';
 require_once dirname( __FILE__ ) . '/vendor/autoload.php';
 
+use League\HTMLToMarkdown\HtmlConverter;
+use League\HTMLToMarkdown\Converter\TableConverter;
+
 /**
  * Class Jekyll_Export
  *
@@ -52,9 +55,6 @@ require_once dirname( __FILE__ ) . '/vendor/autoload.php';
  * @link       https://github.com/benbalter/wordpress-to-jekyll-exporter/
  */
 class Jekyll_Export {
-
-
-
 
 	/**
 	 * Strings to strip from option keys on export
@@ -246,7 +246,7 @@ class Jekyll_Export {
 		}
 
 		$content   = apply_filters( 'the_content', $post->post_content );
-		
+
 		$converter_options = apply_filters( 'jekyll_export_markdown_converter_options', array('header_style'=>'atx') );
 		$converter = new HtmlConverter( $converter_options );
 		$converter->getEnvironment()->addConverter(new TableConverter());
