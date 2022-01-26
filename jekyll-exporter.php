@@ -246,8 +246,11 @@ class Jekyll_Export {
 		}
 
 		$content   = apply_filters( 'the_content', $post->post_content );
-		$converter = new Markdownify\ConverterExtra( Markdownify\Converter::LINK_IN_PARAGRAPH );
-		$markdown  = $converter->parseString( $content );
+		
+		$converter_options = apply_filters( 'jekyll_export_markdown_converter_options', array('header_style'=>'atx') );
+		$converter = new HtmlConverter( $converter_options );
+		$converter->getEnvironment()->addConverter(new TableConverter());
+		$markdown  = $converter->convert( $content );
 
 		if ( strpos( $markdown, '[]: ' ) !== false ) {
 			// faulty links; return plain HTML.
