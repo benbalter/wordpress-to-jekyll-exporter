@@ -249,8 +249,8 @@ class Jekyll_Export {
 		$converter_options = apply_filters( 'jekyll_export_markdown_converter_options', array( 'header_style' => 'atx' ) );
 		$converter         = new HtmlConverter( $converter_options );
 
-		$converter->getEnvironment()->addConverter (new TableConverter() );
-		$markdown  = $converter->convert( $content );
+		$converter->getEnvironment()->addConverter( new TableConverter() );
+		$markdown = $converter->convert( $content );
 
 		if ( strpos( $markdown, '[]: ' ) !== false ) {
 			// faulty links; return plain HTML.
