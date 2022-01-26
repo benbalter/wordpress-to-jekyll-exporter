@@ -270,7 +270,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 		);
 
 		// writes the post body.
-		$this->assertEquals( "\nThis is a test **post**.", $parts[2] );
+		$this->assertEquals( "\n\nThis is a test **post**.", $parts[2] );
 	}
 
 	/**
