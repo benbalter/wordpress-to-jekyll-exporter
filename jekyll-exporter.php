@@ -44,6 +44,7 @@ require_once dirname( __FILE__ ) . '/vendor/autoload.php';
 
 use League\HTMLToMarkdown\HtmlConverter;
 use League\HTMLToMarkdown\Converter\TableConverter;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * Class Jekyll_Export
@@ -283,9 +284,7 @@ class Jekyll_Export {
 				}
 			}
 
-			// Jekyll doesn't like word-wrapped permalinks.
-			$output = Spyc::YAMLDump( $meta, false, 0 );
-
+			$output = Yaml::dump( $meta);
 			$output .= "---\n";
 			$output .= $this->convert_content( $post );
 			$this->write( $output, $post );
@@ -375,7 +374,7 @@ class Jekyll_Export {
 			}
 		}
 
-		$output = Spyc::YAMLDump( $options );
+		$output = Yaml::dump( $options );
 
 		// strip starting "---".
 		$output = substr( $output, 4 );

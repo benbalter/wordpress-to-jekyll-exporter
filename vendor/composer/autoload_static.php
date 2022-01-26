@@ -34,10 +34,6 @@ class ComposerStaticInit85c237256145ae68b71a77045d81d88a
         array (
             'Webmozart\\Assert\\' => 17,
         ),
-        'T' => 
-        array (
-            'Test\\Markdownify\\' => 17,
-        ),
         'S' => 
         array (
             'Symfony\\Polyfill\\Php81\\' => 23,
@@ -67,7 +63,6 @@ class ComposerStaticInit85c237256145ae68b71a77045d81d88a
         'M' => 
         array (
             'Mustangostang\\' => 14,
-            'Markdownify\\' => 12,
         ),
         'L' => 
         array (
@@ -97,10 +92,6 @@ class ComposerStaticInit85c237256145ae68b71a77045d81d88a
         'Webmozart\\Assert\\' => 
         array (
             0 => __DIR__ . '/..' . '/webmozart/assert/src',
-        ),
-        'Test\\Markdownify\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/pixel418/markdownify/test',
         ),
         'Symfony\\Polyfill\\Php81\\' => 
         array (
@@ -186,10 +177,6 @@ class ComposerStaticInit85c237256145ae68b71a77045d81d88a
         'Mustangostang\\' => 
         array (
             0 => __DIR__ . '/..' . '/wp-cli/mustangostang-spyc/src',
-        ),
-        'Markdownify\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/pixel418/markdownify/src',
         ),
         'League\\HTMLToMarkdown\\' => 
         array (

@@ -5,7 +5,7 @@
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => '99bd70fe9536b8428743015dcd7faab13e02955c',
+        'reference' => '193fa315d8e0753d7c3edaf3a1cb143705e0af71',
         'name' => 'benbalter/wordpress-to-jekyll-exporter',
         'dev' => true,
     ),
@@ -16,7 +16,7 @@
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => '99bd70fe9536b8428743015dcd7faab13e02955c',
+            'reference' => '193fa315d8e0753d7c3edaf3a1cb143705e0af71',
             'dev_requirement' => false,
         ),
         'dealerdirect/phpcodesniffer-composer-installer' => array(
@@ -225,15 +225,6 @@
             'aliases' => array(),
             'reference' => '597cb647654ede35e43b137926dfdfef0fb11743',
             'dev_requirement' => true,
-        ),
-        'pixel418/markdownify' => array(
-            'pretty_version' => 'v2.3.1',
-            'version' => '2.3.1.0',
-            'type' => 'lib',
-            'install_path' => __DIR__ . '/../pixel418/markdownify',
-            'aliases' => array(),
-            'reference' => '891be2176858712c6c4581da410e96fc2019e3f0',
-            'dev_requirement' => false,
         ),
         'psr/container' => array(
             'pretty_version' => '2.0.2',
@@ -527,7 +518,7 @@
             'install_path' => __DIR__ . '/../symfony/polyfill-ctype',
             'aliases' => array(),
             'reference' => '30885182c981ab175d4d034db0f6f469898070ab',
-            'dev_requirement' => true,
+            'dev_requirement' => false,
         ),
         'symfony/polyfill-intl-grapheme' => array(
             'pretty_version' => 'v1.24.0',
@@ -599,7 +590,7 @@
             'install_path' => __DIR__ . '/../symfony/yaml',
             'aliases' => array(),
             'reference' => 'ed602f38b8636a2ea21af760d2578f3d2f92fc60',
-            'dev_requirement' => true,
+            'dev_requirement' => false,
         ),
         'theseer/tokenizer' => array(
             'pretty_version' => '1.2.1',
