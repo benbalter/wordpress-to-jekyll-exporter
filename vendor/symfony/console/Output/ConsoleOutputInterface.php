@@ -16,6 +16,8 @@ namespace Symfony\Component\Console\Output;
  * This adds information about stderr and section output stream.
  *
  * @author Dariusz Górecki <darek.krk@gmail.com>
+ *
+ * @method ConsoleSectionOutput section() Creates a new output section
  */
 interface ConsoleOutputInterface extends OutputInterface
 {
@@ -27,6 +29,4 @@ interface ConsoleOutputInterface extends OutputInterface
     public function getErrorOutput();
 
     public function setErrorOutput(OutputInterface $error);
-
-    public function section(): ConsoleSectionOutput;
 }

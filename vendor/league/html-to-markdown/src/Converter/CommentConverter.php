@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace League\HTMLToMarkdown\Converter;
 
 use League\HTMLToMarkdown\Configuration;
@@ -10,44 +8,55 @@ use League\HTMLToMarkdown\ElementInterface;
 
 class CommentConverter implements ConverterInterface, ConfigurationAwareInterface
 {
-    /** @var Configuration */
+    /**
+     * @var Configuration
+     */
     protected $config;
 
-    public function setConfig(Configuration $config): void
+    /**
+     * @param Configuration $config
+     */
+    public function setConfig(Configuration $config)
     {
         $this->config = $config;
     }
 
-    public function convert(ElementInterface $element): string
+    /**
+     * @param ElementInterface $element
+     *
+     * @return string
+     */
+    public function convert(ElementInterface $element)
     {
         if ($this->shouldPreserve($element)) {
             return '<!--' . $element->getValue() . '-->';
         }
-
         return '';
     }
 
     /**
      * @return string[]
      */
-    public function getSupportedTags(): array
+    public function getSupportedTags()
     {
-        return ['#comment'];
+        return array('#comment');
     }
 
-    private function shouldPreserve(ElementInterface $element): bool
+    /**
+     * @param ElementInterface $element
+     *
+     * @return bool
+     */
+    private function shouldPreserve(ElementInterface $element)
     {
         $preserve = $this->config->getOption('preserve_comments');
         if ($preserve === true) {
             return true;
         }
-
-        if (\is_array($preserve)) {
-            $value = \trim($element->getValue());
-
-            return \in_array($value, $preserve, true);
+        if (is_array($preserve)) {
+            $value = trim($element->getValue());
+            return in_array($value, $preserve);
         }
-
         return false;
     }
 }

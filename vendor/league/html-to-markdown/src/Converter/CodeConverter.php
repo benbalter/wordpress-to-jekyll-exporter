@@ -1,14 +1,17 @@
 <?php
 
-declare(strict_types=1);
-
 namespace League\HTMLToMarkdown\Converter;
 
 use League\HTMLToMarkdown\ElementInterface;
 
 class CodeConverter implements ConverterInterface
 {
-    public function convert(ElementInterface $element): string
+    /**
+     * @param ElementInterface $element
+     *
+     * @return string
+     */
+    public function convert(ElementInterface $element)
     {
         $language = '';
 
@@ -17,24 +20,23 @@ class CodeConverter implements ConverterInterface
 
         if ($classes) {
             // Since tags can have more than one class, we need to find the one that starts with 'language-'
-            $classes = \explode(' ', $classes);
+            $classes = explode(' ', $classes);
             foreach ($classes as $class) {
-                if (\strpos($class, 'language-') !== false) {
+                if (strpos($class, 'language-') !== false) {
                     // Found one, save it as the selected language and stop looping over the classes.
-                    $language = \str_replace('language-', '', $class);
+                    $language = str_replace('language-', '', $class);
                     break;
                 }
             }
         }
 
         $markdown = '';
-        $code     = \html_entity_decode($element->getChildrenAsString());
+        $code = html_entity_decode($element->getChildrenAsString());
 
         // In order to remove the code tags we need to search for them and, in the case of the opening tag
         // use a regular expression to find the tag and the other attributes it might have
-        $code = \preg_replace('/<code\b[^>]*>/', '', $code);
-        \assert($code !== null);
-        $code = \str_replace('</code>', '', $code);
+        $code = preg_replace('/<code\b[^>]*>/', '', $code);
+        $code = str_replace('</code>', '', $code);
 
         // Checking if it's a code block or span
         if ($this->shouldBeBlock($element, $code)) {
@@ -42,7 +44,7 @@ class CodeConverter implements ConverterInterface
             $markdown .= '```' . $language . "\n" . $code . "\n" . '```';
         } else {
             // One line of code, wrapping it on one backtick, removing new lines
-            $markdown .= '`' . \preg_replace('/\r\n|\r|\n/', '', $code) . '`';
+            $markdown .= '`' . preg_replace('/\r\n|\r|\n/', '', $code) . '`';
         }
 
         return $markdown;
@@ -51,18 +53,27 @@ class CodeConverter implements ConverterInterface
     /**
      * @return string[]
      */
-    public function getSupportedTags(): array
+    public function getSupportedTags()
     {
-        return ['code'];
+        return array('code');
     }
 
-    private function shouldBeBlock(ElementInterface $element, string $code): bool
+    /**
+     * @param ElementInterface $element
+     * @param string $code
+     *
+     * @return bool
+     */
+    private function shouldBeBlock(ElementInterface $element, $code)
     {
-        $parent = $element->getParent();
-        if ($parent !== null && $parent->getTagName() === 'pre') {
+        if ($element->getParent()->getTagName() == 'pre') {
             return true;
         }
 
-        return \preg_match('/[^\s]` `/', $code) === 1;
+        if (preg_match('/[^\s]` `/', $code)) {
+            return true;
+        }
+
+        return false;
     }
 }

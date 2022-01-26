@@ -44,30 +44,23 @@ class StopwatchEvent
     private $started = [];
 
     /**
-     * @var string
-     */
-    private $name;
-
-    /**
      * @param float       $origin        The origin time in milliseconds
      * @param string|null $category      The event category or null to use the default
      * @param bool        $morePrecision If true, time is stored as float to keep the original microsecond precision
-     * @param string|null $name          The event name or null to define the name as default
      *
      * @throws \InvalidArgumentException When the raw time is not valid
      */
-    public function __construct(float $origin, string $category = null, bool $morePrecision = false, string $name = null)
+    public function __construct(float $origin, string $category = null, bool $morePrecision = false)
     {
         $this->origin = $this->formatTime($origin);
         $this->category = \is_string($category) ? $category : 'default';
         $this->morePrecision = $morePrecision;
-        $this->name = $name ?? 'default';
     }
 
     /**
      * Gets the category.
      *
-     * @return string
+     * @return string The category
      */
     public function getCategory()
     {
@@ -75,9 +68,9 @@ class StopwatchEvent
     }
 
     /**
-     * Gets the origin in milliseconds.
+     * Gets the origin.
      *
-     * @return float
+     * @return float The origin in milliseconds
      */
     public function getOrigin()
     {
@@ -147,7 +140,7 @@ class StopwatchEvent
     /**
      * Gets all event periods.
      *
-     * @return StopwatchPeriod[]
+     * @return StopwatchPeriod[] An array of StopwatchPeriod instances
      */
     public function getPeriods()
     {
@@ -155,9 +148,9 @@ class StopwatchEvent
     }
 
     /**
-     * Gets the relative time of the start of the first period in milliseconds.
+     * Gets the relative time of the start of the first period.
      *
-     * @return int|float
+     * @return int|float The time (in milliseconds)
      */
     public function getStartTime()
     {
@@ -173,9 +166,9 @@ class StopwatchEvent
     }
 
     /**
-     * Gets the relative time of the end of the last period in milliseconds.
+     * Gets the relative time of the end of the last period.
      *
-     * @return int|float
+     * @return int|float The time (in milliseconds)
      */
     public function getEndTime()
     {
@@ -185,9 +178,9 @@ class StopwatchEvent
     }
 
     /**
-     * Gets the duration of the events in milliseconds (including all periods).
+     * Gets the duration of the events (including all periods).
      *
-     * @return int|float
+     * @return int|float The duration (in milliseconds)
      */
     public function getDuration()
     {
@@ -207,9 +200,9 @@ class StopwatchEvent
     }
 
     /**
-     * Gets the max memory usage of all periods in bytes.
+     * Gets the max memory usage of all periods.
      *
-     * @return int
+     * @return int The memory usage (in bytes)
      */
     public function getMemory()
     {
@@ -224,9 +217,9 @@ class StopwatchEvent
     }
 
     /**
-     * Return the current time relative to origin in milliseconds.
+     * Return the current time relative to origin.
      *
-     * @return float
+     * @return float Time in ms
      */
     protected function getNow()
     {
@@ -244,15 +237,10 @@ class StopwatchEvent
     }
 
     /**
-     * Gets the event name.
+     * @return string
      */
-    public function getName(): string
+    public function __toString()
     {
-        return $this->name;
-    }
-
-    public function __toString(): string
-    {
-        return sprintf('%s/%s: %.2F MiB - %d ms', $this->getCategory(), $this->getName(), $this->getMemory() / 1024 / 1024, $this->getDuration());
+        return sprintf('%s: %.2F MiB - %d ms', $this->getCategory(), $this->getMemory() / 1024 / 1024, $this->getDuration());
     }
 }

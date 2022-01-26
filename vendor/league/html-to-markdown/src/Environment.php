@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace League\HTMLToMarkdown;
 
 use League\HTMLToMarkdown\Converter\BlockquoteConverter;
@@ -24,27 +22,34 @@ use League\HTMLToMarkdown\Converter\TextConverter;
 
 final class Environment
 {
-    /** @var Configuration */
+    /**
+     * @var Configuration
+     */
     protected $config;
 
-    /** @var ConverterInterface[] */
-    protected $converters = [];
-
     /**
-     * @param array<string, mixed> $config
+     * @var ConverterInterface[]
      */
-    public function __construct(array $config = [])
+    protected $converters = array();
+
+    public function __construct(array $config = array())
     {
         $this->config = new Configuration($config);
         $this->addConverter(new DefaultConverter());
     }
 
-    public function getConfig(): Configuration
+    /**
+     * @return Configuration
+     */
+    public function getConfig()
     {
         return $this->config;
     }
 
-    public function addConverter(ConverterInterface $converter): void
+    /**
+     * @param ConverterInterface $converter
+     */
+    public function addConverter(ConverterInterface $converter)
     {
         if ($converter instanceof ConfigurationAwareInterface) {
             $converter->setConfig($this->config);
@@ -55,7 +60,12 @@ final class Environment
         }
     }
 
-    public function getConverterByTag(string $tag): ConverterInterface
+    /**
+     * @param string $tag
+     *
+     * @return ConverterInterface
+     */
+    public function getConverterByTag($tag)
     {
         if (isset($this->converters[$tag])) {
             return $this->converters[$tag];
@@ -65,9 +75,11 @@ final class Environment
     }
 
     /**
-     * @param array<string, mixed> $config
+     * @param array $config
+     *
+     * @return Environment
      */
-    public static function createDefaultEnvironment(array $config = []): Environment
+    public static function createDefaultEnvironment(array $config = array())
     {
         $environment = new static($config);
 

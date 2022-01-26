@@ -66,9 +66,11 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
     /**
      * Sets a prototype for child nodes.
      *
+     * @param string $type The type of node
+     *
      * @return NodeDefinition
      */
-    public function prototype(string $type)
+    public function prototype($type)
     {
         return $this->prototype = $this->getNodeBuilder()->node(null, $type)->setParent($this);
     }
@@ -192,12 +194,12 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
     /**
      * Sets a normalization rule for XML configurations.
      *
-     * @param string      $singular The key to remap
-     * @param string|null $plural   The plural of the key for irregular plurals
+     * @param string $singular The key to remap
+     * @param string $plural   The plural of the key for irregular plurals
      *
      * @return $this
      */
-    public function fixXmlConfig(string $singular, string $plural = null)
+    public function fixXmlConfig($singular, $plural = null)
     {
         $this->normalization()->remap($singular, $plural);
 
@@ -232,7 +234,7 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
      *
      * @return $this
      */
-    public function useAttributeAsKey(string $name, bool $removeKeyItem = true)
+    public function useAttributeAsKey($name, $removeKeyItem = true)
     {
         $this->key = $name;
         $this->removeKeyItem = $removeKeyItem;
@@ -243,9 +245,11 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
     /**
      * Sets whether the node can be unset.
      *
+     * @param bool $allow
+     *
      * @return $this
      */
-    public function canBeUnset(bool $allow = true)
+    public function canBeUnset($allow = true)
     {
         $this->merge()->allowUnset($allow);
 
@@ -337,7 +341,7 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
      *
      * @return $this
      */
-    public function ignoreExtraKeys(bool $remove = true)
+    public function ignoreExtraKeys($remove = true)
     {
         $this->ignoreExtraKeys = true;
         $this->removeExtraKeys = $remove;
@@ -346,13 +350,15 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
     }
 
     /**
-     * Sets whether to enable key normalization.
+     * Sets key normalization.
+     *
+     * @param bool $bool Whether to enable key normalization
      *
      * @return $this
      */
-    public function normalizeKeys(bool $bool)
+    public function normalizeKeys($bool)
     {
-        $this->normalizeKeys = $bool;
+        $this->normalizeKeys = (bool) $bool;
 
         return $this;
     }
@@ -370,7 +376,7 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
     /**
      * Returns a node builder to be used to add children and prototype.
      *
-     * @return NodeBuilder
+     * @return NodeBuilder The node builder
      */
     protected function getNodeBuilder()
     {
@@ -411,10 +417,6 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
             }
 
             if ($this->default) {
-                if (!\is_array($this->defaultValue)) {
-                    throw new \InvalidArgumentException(sprintf('%s: the default value of an array node has to be an array.', $node->getPath()));
-                }
-
                 $node->setDefaultValue($this->defaultValue);
             }
 
@@ -435,12 +437,9 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
         $node->addEquivalentValue(false, $this->falseEquivalent);
         $node->setPerformDeepMerging($this->performDeepMerging);
         $node->setRequired($this->required);
+        $node->setDeprecated($this->deprecationMessage);
         $node->setIgnoreExtraKeys($this->ignoreExtraKeys, $this->removeExtraKeys);
         $node->setNormalizeKeys($this->normalizeKeys);
-
-        if ($this->deprecation) {
-            $node->setDeprecated($this->deprecation['package'], $this->deprecation['version'], $this->deprecation['message']);
-        }
 
         if (null !== $this->normalization) {
             $node->setNormalizationClosures($this->normalization->before);

@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace League\HTMLToMarkdown\Converter;
 
 use League\HTMLToMarkdown\Configuration;
@@ -10,19 +8,28 @@ use League\HTMLToMarkdown\ElementInterface;
 
 class LinkConverter implements ConverterInterface, ConfigurationAwareInterface
 {
-    /** @var Configuration */
+    /**
+     * @var Configuration
+     */
     protected $config;
 
-    public function setConfig(Configuration $config): void
-    {
+    /**
+     * @param Configuration $config
+     */
+    public function setConfig(Configuration $config) {
         $this->config = $config;
     }
 
-    public function convert(ElementInterface $element): string
+    /**
+     * @param ElementInterface $element
+     *
+     * @return string
+     */
+    public function convert(ElementInterface $element)
     {
-        $href  = $element->getAttribute('href');
+        $href = $element->getAttribute('href');
         $title = $element->getAttribute('title');
-        $text  = \trim($element->getValue(), "\t\n\r\0\x0B");
+        $text = trim($element->getValue(), "\t\n\r\0\x0B");
 
         if ($title !== '') {
             $markdown = '[' . $text . '](' . $href . ' "' . $title . '")';
@@ -31,19 +38,14 @@ class LinkConverter implements ConverterInterface, ConfigurationAwareInterface
         } elseif ($href === 'mailto:' . $text && $this->isValidEmail($text)) {
             $markdown = '<' . $text . '>';
         } else {
-            if (\stristr($href, ' ')) {
-                $href = '<' . $href . '>';
+            if (stristr($href, ' ')) {
+                $href = '<'.$href.'>';
             }
-
             $markdown = '[' . $text . '](' . $href . ')';
         }
 
-        if (! $href) {
-            if ($this->shouldStrip()) {
-                $markdown = $text;
-            } else {
-                $markdown = \html_entity_decode($element->getChildrenAsString());
-            }
+        if (!$href) {
+            $markdown = html_entity_decode($element->getChildrenAsString());
         }
 
         return $markdown;
@@ -52,26 +54,30 @@ class LinkConverter implements ConverterInterface, ConfigurationAwareInterface
     /**
      * @return string[]
      */
-    public function getSupportedTags(): array
+    public function getSupportedTags()
     {
-        return ['a'];
+        return array('a');
     }
 
-    private function isValidAutolink(string $href): bool
+    /**
+     * @param string $href
+     *
+     * @return bool
+     */
+    private function isValidAutolink($href)
     {
         $useAutolinks = $this->config->getOption('use_autolinks');
-
-        return $useAutolinks && (\preg_match('/^[A-Za-z][A-Za-z0-9.+-]{1,31}:[^<>\x00-\x20]*/i', $href) === 1);
+        return $useAutolinks && (preg_match('/^[A-Za-z][A-Za-z0-9.+-]{1,31}:[^<>\x00-\x20]*/i', $href) === 1);
     }
 
-    private function isValidEmail(string $email): bool
+    /**
+     * @param string $email
+     *
+     * @return bool
+     */
+    private function isValidEmail($email)
     {
         // Email validation is messy business, but this should cover most cases
-        return \filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
-    }
-
-    private function shouldStrip(): bool
-    {
-        return $this->config->getOption('strip_placeholder_links') ?? false;
+        return filter_var($email, FILTER_VALIDATE_EMAIL);
     }
 }

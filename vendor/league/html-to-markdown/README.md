@@ -1,9 +1,11 @@
 HTML To Markdown for PHP
 ========================
 
+[![Join the chat at https://gitter.im/thephpleague/html-to-markdown](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/thephpleague/html-to-markdown?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 [![Latest Version](https://img.shields.io/packagist/v/league/html-to-markdown.svg?style=flat-square)](https://packagist.org/packages/league/html-to-markdown)
 [![Software License](http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE)
-[![Build Status](https://img.shields.io/github/workflow/status/thephpleague/html-to-markdown/Tests/master.svg?style=flat-square)](https://github.com/thephpleague/html-to-markdown/actions?query=workflow%3ATests+branch%3Amaster)
+[![Build Status](https://img.shields.io/travis/thephpleague/html-to-markdown/master.svg?style=flat-square)](https://travis-ci.org/thephpleague/html-to-markdown)
 [![Coverage Status](https://img.shields.io/scrutinizer/coverage/g/thephpleague/html-to-markdown.svg?style=flat-square)](https://scrutinizer-ci.com/g/thephpleague/html-to-markdown/code-structure)
 [![Quality Score](https://img.shields.io/scrutinizer/g/thephpleague/html-to-markdown.svg?style=flat-square)](https://scrutinizer-ci.com/g/thephpleague/html-to-markdown)
 [![Total Downloads](https://img.shields.io/packagist/dt/league/html-to-markdown.svg?style=flat-square)](https://packagist.org/packages/league/html-to-markdown)
@@ -11,7 +13,7 @@ HTML To Markdown for PHP
 Library which converts HTML to [Markdown](http://daringfireball.net/projects/markdown/) for your sanity and convenience.
 
 
-**Requires**: PHP 7.2+
+**Requires**: PHP 5.3+ or PHP 7.0+
 
 **Lead Developer**: [@colinodell](http://twitter.com/colinodell)
 
@@ -111,15 +113,6 @@ $html = '<span>Turnips!</span><!-- Monkeys! --><!-- Eggs! -->';
 $markdown = $converter->convert($html); // $markdown now contains "Turnips!<!-- Eggs! -->"
 ```
 
-By default, placeholder links are preserved. To strip the placeholder links, use the `strip_placeholder_links` option, like this:
-
-```php
-$converter = new HtmlConverter(array('strip_placeholder_links' => true));
-
-$html = '<a>Github</a>';
-$markdown = $converter->convert($html); // $markdown now contains "Github"
-```
-
 ### Style options
 
 By default bold tags are converted using the asterisk syntax, and italic tags are converted using the underlined syntax. Change these by using the `bold_style` and `italic_style` options.
@@ -181,24 +174,17 @@ $html = '<h3>Header</h3>
 $markdown = $converter->convert($html); // $markdown now contains "### Header" and "<img src="" />"
 ```
 
-### Table support
-
-Support for Markdown tables is not enabled by default because it is not part of the original Markdown syntax. To use tables add the converter explicitly:
-
-```php
-use League\HTMLToMarkdown\HtmlConverter;
-use League\HTMLToMarkdown\Converter\TableConverter;
-
-$converter = new HtmlConverter();
-$converter->getEnvironment()->addConverter(new TableConverter());
-
-$html = "<table><tr><th>A</th></tr><tr><td>a</td></tr></table>";
-$markdown = $converter->convert($html);
-```
-
 ### Limitations
 
 - Markdown Extra, MultiMarkdown and other variants aren't supported – just Markdown.
+
+### Known issues
+
+- Nested lists and lists containing multiple paragraphs aren't converted correctly.
+- Lists inside blockquotes aren't converted correctly.
+- Any reported [open issues here](https://github.com/thephpleague/html-to-markdown/issues?state=open).
+
+[Report your issue or request a feature here.](https://github.com/thephpleague/html-to-markdown/issues/new) Issues with patches or failing tests are especially welcome.
 
 ### Style notes
 

@@ -11,6 +11,7 @@
 
 namespace Symfony\Component\Config\Resource;
 
+use Symfony\Component\DependencyInjection\ServiceSubscriberInterface as LegacyServiceSubscriberInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Messenger\Handler\MessageSubscriberInterface;
 use Symfony\Contracts\Service\ServiceSubscriberInterface;
@@ -18,7 +19,7 @@ use Symfony\Contracts\Service\ServiceSubscriberInterface;
 /**
  * @author Nicolas Grekas <p@tchwork.com>
  *
- * @final
+ * @final since Symfony 4.3
  */
 class ReflectionClassResource implements SelfCheckingResourceInterface
 {
@@ -35,10 +36,7 @@ class ReflectionClassResource implements SelfCheckingResourceInterface
         $this->excludedVendors = $excludedVendors;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function isFresh(int $timestamp): bool
+    public function isFresh($timestamp)
     {
         if (null === $this->hash) {
             $this->hash = $this->computeHash();
@@ -58,7 +56,7 @@ class ReflectionClassResource implements SelfCheckingResourceInterface
         return true;
     }
 
-    public function __toString(): string
+    public function __toString()
     {
         return 'reflection.'.$this->className;
     }
@@ -83,7 +81,7 @@ class ReflectionClassResource implements SelfCheckingResourceInterface
         }
         do {
             $file = $class->getFileName();
-            if (false !== $file && is_file($file)) {
+            if (false !== $file && file_exists($file)) {
                 foreach ($this->excludedVendors as $vendor) {
                     if (str_starts_with($file, $vendor) && false !== strpbrk(substr($file, \strlen($vendor), 1), '/'.\DIRECTORY_SEPARATOR)) {
                         $file = false;
@@ -259,7 +257,10 @@ class ReflectionClassResource implements SelfCheckingResourceInterface
             }
         }
 
-        if (interface_exists(ServiceSubscriberInterface::class, false) && $class->isSubclassOf(ServiceSubscriberInterface::class)) {
+        if (interface_exists(LegacyServiceSubscriberInterface::class, false) && $class->isSubclassOf(LegacyServiceSubscriberInterface::class)) {
+            yield LegacyServiceSubscriberInterface::class;
+            yield print_r([$class->name, 'getSubscribedServices'](), true);
+        } elseif (interface_exists(ServiceSubscriberInterface::class, false) && $class->isSubclassOf(ServiceSubscriberInterface::class)) {
             yield ServiceSubscriberInterface::class;
             yield print_r($class->name::getSubscribedServices(), true);
         }

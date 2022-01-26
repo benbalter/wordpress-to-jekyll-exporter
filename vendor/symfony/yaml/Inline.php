@@ -271,7 +271,7 @@ class Inline
      */
     public static function parseScalar(string $scalar, int $flags = 0, array $delimiters = null, int &$i = 0, bool $evaluate = true, array &$references = [], bool &$isQuoted = null)
     {
-        if (\in_array($scalar[$i], ['"', "'"], true)) {
+        if (\in_array($scalar[$i], ['"', "'"])) {
             // quoted scalar
             $isQuoted = true;
             $output = self::parseQuotedScalar($scalar, $i);
@@ -329,7 +329,7 @@ class Inline
             throw new ParseException(sprintf('Malformed inline YAML string: "%s".', substr($scalar, $i)), self::$parsedLineNumber + 1, $scalar, self::$parsedFilename);
         }
 
-        $output = substr($match[0], 1, -1);
+        $output = substr($match[0], 1, \strlen($match[0]) - 2);
 
         $unescaper = new Unescaper();
         if ('"' == $scalar[$i]) {
@@ -566,6 +566,7 @@ class Inline
     {
         $isQuotedString = false;
         $scalar = trim($scalar);
+        $scalarLower = strtolower($scalar);
 
         if (0 === strpos($scalar, '*')) {
             if (false !== $pos = strpos($scalar, '#')) {
@@ -585,8 +586,6 @@ class Inline
 
             return $references[$value];
         }
-
-        $scalarLower = strtolower($scalar);
 
         switch (true) {
             case 'null' === $scalarLower:
@@ -613,8 +612,6 @@ class Inline
                     case 0 === strpos($scalar, '!php/object'):
                         if (self::$objectSupport) {
                             if (!isset($scalar[12])) {
-                                trigger_deprecation('symfony/yaml', '5.1', 'Using the !php/object tag without a value is deprecated.');
-
                                 return false;
                             }
 
@@ -629,8 +626,6 @@ class Inline
                     case 0 === strpos($scalar, '!php/const'):
                         if (self::$constantSupport) {
                             if (!isset($scalar[11])) {
-                                trigger_deprecation('symfony/yaml', '5.1', 'Using the !php/const tag without a value is deprecated.');
-
                                 return '';
                             }
 
@@ -653,19 +648,10 @@ class Inline
                     default:
                         throw new ParseException(sprintf('The string "%s" could not be parsed as it uses an unsupported built-in tag.', $scalar), self::$parsedLineNumber, $scalar, self::$parsedFilename);
                 }
-                // no break
-            case preg_match('/^(?:\+|-)?0o(?P<value>[0-7_]++)$/', $scalar, $matches):
-                $value = str_replace('_', '', $matches['value']);
-
-                if ('-' === $scalar[0]) {
-                    return -octdec($value);
-                } else {
-                    return octdec($value);
-                }
 
             // Optimize for returning strings.
             // no break
-            case \in_array($scalar[0], ['+', '-', '.'], true) || is_numeric($scalar[0]):
+            case '+' === $scalar[0] || '-' === $scalar[0] || '.' === $scalar[0] || is_numeric($scalar[0]):
                 if (Parser::preg_match('{^[+-]?[0-9][0-9_]*$}', $scalar)) {
                     $scalar = str_replace('_', '', $scalar);
                 }
@@ -673,8 +659,6 @@ class Inline
                 switch (true) {
                     case ctype_digit($scalar):
                         if (preg_match('/^0[0-7]+$/', $scalar)) {
-                            trigger_deprecation('symfony/yaml', '5.1', 'Support for parsing numbers prefixed with 0 as octal numbers. They will be parsed as strings as of 6.0.');
-
                             return octdec($scalar);
                         }
 
@@ -683,8 +667,6 @@ class Inline
                         return ($scalar === (string) $cast) ? $cast : $scalar;
                     case '-' === $scalar[0] && ctype_digit(substr($scalar, 1)):
                         if (preg_match('/^-0[0-7]+$/', $scalar)) {
-                            trigger_deprecation('symfony/yaml', '5.1', 'Support for parsing numbers prefixed with 0 as octal numbers. They will be parsed as strings as of 6.0.');
-
                             return -octdec(substr($scalar, 1));
                         }
 
@@ -781,7 +763,7 @@ class Inline
         return base64_decode($parsedBinaryData, true);
     }
 
-    private static function isBinaryString(string $value): bool
+    private static function isBinaryString(string $value)
     {
         return !preg_match('//u', $value) || preg_match('/[^\x00\x07-\x0d\x1B\x20-\xff]/', $value);
     }

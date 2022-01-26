@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace League\HTMLToMarkdown\Converter;
 
 use League\HTMLToMarkdown\Configuration;
@@ -10,25 +8,35 @@ use League\HTMLToMarkdown\ElementInterface;
 
 class HardBreakConverter implements ConverterInterface, ConfigurationAwareInterface
 {
-    /** @var Configuration */
+    /**
+     * @var Configuration
+     */
     protected $config;
 
-    public function setConfig(Configuration $config): void
+    /**
+     * @param Configuration $config
+     */
+    public function setConfig(Configuration $config)
     {
         $this->config = $config;
     }
 
-    public function convert(ElementInterface $element): string
+    /**
+     * @param ElementInterface $element
+     *
+     * @return string
+     */
+    public function convert(ElementInterface $element)
     {
         $return = $this->config->getOption('hard_break') ? "\n" : "  \n";
 
         $next = $element->getNext();
         if ($next) {
-            $nextValue = $next->getValue();
-            if ($nextValue) {
-                if (\in_array(\substr($nextValue, 0, 2), ['- ', '* ', '+ '], true)) {
+            $next_value = $next->getValue();
+            if ($next_value) {
+                if (in_array(substr($next_value, 0, 2), array('- ', '* ', '+ '))) {
                     $parent = $element->getParent();
-                    if ($parent && $parent->getTagName() === 'li') {
+                    if ($parent && $parent->getTagName() == 'li') {
                         $return .= '\\';
                     }
                 }
@@ -41,8 +49,8 @@ class HardBreakConverter implements ConverterInterface, ConfigurationAwareInterf
     /**
      * @return string[]
      */
-    public function getSupportedTags(): array
+    public function getSupportedTags()
     {
-        return ['br'];
+        return array('br');
     }
 }

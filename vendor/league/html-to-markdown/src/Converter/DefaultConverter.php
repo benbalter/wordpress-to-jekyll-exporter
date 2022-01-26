@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace League\HTMLToMarkdown\Converter;
 
 use League\HTMLToMarkdown\Configuration;
@@ -10,17 +8,27 @@ use League\HTMLToMarkdown\ElementInterface;
 
 class DefaultConverter implements ConverterInterface, ConfigurationAwareInterface
 {
-    public const DEFAULT_CONVERTER = '_default';
+    const DEFAULT_CONVERTER = '_default';
 
-    /** @var Configuration */
+    /**
+     * @var Configuration
+     */
     protected $config;
 
-    public function setConfig(Configuration $config): void
+    /**
+     * @param Configuration $config
+     */
+    public function setConfig(Configuration $config)
     {
         $this->config = $config;
     }
 
-    public function convert(ElementInterface $element): string
+    /**
+     * @param ElementInterface $element
+     *
+     * @return string
+     */
+    public function convert(ElementInterface $element)
     {
         // If strip_tags is false (the default), preserve tags that don't have Markdown equivalents,
         // such as <span> nodes on their own. C14N() canonicalizes the node to a string.
@@ -29,9 +37,8 @@ class DefaultConverter implements ConverterInterface, ConfigurationAwareInterfac
             return $element->getValue();
         }
 
-        $markdown = \html_entity_decode($element->getChildrenAsString());
+        $markdown = html_entity_decode($element->getChildrenAsString());
 
-        // Tables are only handled here if TableConverter is not used
         if ($element->getTagName() === 'table') {
             $markdown .= "\n\n";
         }
@@ -42,8 +49,8 @@ class DefaultConverter implements ConverterInterface, ConfigurationAwareInterfac
     /**
      * @return string[]
      */
-    public function getSupportedTags(): array
+    public function getSupportedTags()
     {
-        return [self::DEFAULT_CONVERTER];
+        return array(self::DEFAULT_CONVERTER);
     }
 }

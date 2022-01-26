@@ -1,28 +1,28 @@
 <?php
 
-declare(strict_types=1);
-
 namespace League\HTMLToMarkdown;
 
 class Element implements ElementInterface
 {
-    /** @var \DOMNode */
+    /**
+     * @var \DOMNode
+     */
     protected $node;
 
-    /** @var ElementInterface|null */
+    /**
+     * @var ElementInterface|null
+     */
     private $nextCached;
-
-    /** @var \DOMNode|null */
-    private $previousSiblingCached;
 
     public function __construct(\DOMNode $node)
     {
         $this->node = $node;
-
-        $this->previousSiblingCached = $this->node->previousSibling;
     }
 
-    public function isBlock(): bool
+    /**
+     * @return bool
+     */
+    public function isBlock()
     {
         switch ($this->getTagName()) {
             case 'blockquote':
@@ -46,47 +46,50 @@ class Element implements ElementInterface
         }
     }
 
-    public function isText(): bool
+    /**
+     * @return bool
+     */
+    public function isText()
     {
         return $this->getTagName() === '#text';
     }
 
-    public function isWhitespace(): bool
+    /**
+     * @return bool
+     */
+    public function isWhitespace()
     {
-        return $this->getTagName() === '#text' && \trim($this->getValue()) === '';
+        return $this->getTagName() === '#text' && trim($this->getValue()) === '';
     }
 
-    public function getTagName(): string
+    /**
+     * @return string
+     */
+    public function getTagName()
     {
         return $this->node->nodeName;
     }
 
-    public function getValue(): string
+    /**
+     * @return string
+     */
+    public function getValue()
     {
         return $this->node->nodeValue;
     }
 
-    public function hasParent(): bool
+    /**
+     * @return ElementInterface|null
+     */
+    public function getParent()
     {
-        return $this->node->parentNode !== null;
+        return new static($this->node->parentNode) ?: null;
     }
 
-    public function getParent(): ?ElementInterface
-    {
-        return $this->node->parentNode ? new self($this->node->parentNode) : null;
-    }
-
-    public function getNextSibling(): ?ElementInterface
-    {
-        return $this->node->nextSibling !== null ? new self($this->node->nextSibling) : null;
-    }
-
-    public function getPreviousSibling(): ?ElementInterface
-    {
-        return $this->previousSiblingCached !== null ? new self($this->previousSiblingCached) : null;
-    }
-
-    public function hasChildren(): bool
+    /**
+     * @return bool
+     */
+    public function hasChildren()
     {
         return $this->node->hasChildNodes();
     }
@@ -94,29 +97,39 @@ class Element implements ElementInterface
     /**
      * @return ElementInterface[]
      */
-    public function getChildren(): array
+    public function getChildren()
     {
-        $ret = [];
+        $ret = array();
+        /** @var \DOMNode $node */
         foreach ($this->node->childNodes as $node) {
-            $ret[] = new self($node);
+            $ret[] = new static($node);
         }
 
         return $ret;
     }
 
-    public function getNext(): ?ElementInterface
+    /**
+     * @return ElementInterface|null
+     */
+    public function getNext()
     {
         if ($this->nextCached === null) {
             $nextNode = $this->getNextNode($this->node);
             if ($nextNode !== null) {
-                $this->nextCached = new self($nextNode);
+                $this->nextCached = new static($nextNode);
             }
         }
 
         return $this->nextCached;
     }
 
-    private function getNextNode(\DomNode $node, bool $checkChildren = true): ?\DomNode
+    /**
+     * @param \DomNode $node
+     * @param bool $checkChildren
+     *
+     * @return \DomNode|null
+     */
+    private function getNextNode($node, $checkChildren = true)
     {
         if ($checkChildren && $node->firstChild) {
             return $node->firstChild;
@@ -129,25 +142,25 @@ class Element implements ElementInterface
         if ($node->parentNode) {
             return $this->getNextNode($node->parentNode, false);
         }
-
-        return null;
     }
 
     /**
      * @param string[]|string $tagNames
+     *
+     * @return bool
      */
-    public function isDescendantOf($tagNames): bool
+    public function isDescendantOf($tagNames)
     {
-        if (! \is_array($tagNames)) {
-            $tagNames = [$tagNames];
+        if (!is_array($tagNames)) {
+            $tagNames = array($tagNames);
         }
 
         for ($p = $this->node->parentNode; $p !== false; $p = $p->parentNode) {
-            if ($p === null) {
+            if (is_null($p)) {
                 return false;
             }
 
-            if (\in_array($p->nodeName, $tagNames, true)) {
+            if (in_array($p->nodeName, $tagNames)) {
                 return true;
             }
         }
@@ -155,43 +168,39 @@ class Element implements ElementInterface
         return false;
     }
 
-    public function setFinalMarkdown(string $markdown): void
+    /**
+     * @param string $markdown
+     */
+    public function setFinalMarkdown($markdown)
     {
-        if ($this->node->ownerDocument === null) {
-            throw new \RuntimeException('Unowned node');
-        }
-
-        if ($this->node->parentNode === null) {
-            throw new \RuntimeException('Cannot setFinalMarkdown() on a node without a parent');
-        }
-
-        $markdownNode = $this->node->ownerDocument->createTextNode($markdown);
-        $this->node->parentNode->replaceChild($markdownNode, $this->node);
+        $markdown_node = $this->node->ownerDocument->createTextNode($markdown);
+        $this->node->parentNode->replaceChild($markdown_node, $this->node);
     }
 
-    public function getChildrenAsString(): string
+    /**
+     * @return string
+     */
+    public function getChildrenAsString()
     {
         return $this->node->C14N();
     }
 
-    public function getSiblingPosition(): int
+    /**
+     * @return int
+     */
+    public function getSiblingPosition()
     {
         $position = 0;
 
-        $parent = $this->getParent();
-        if ($parent === null) {
-            return $position;
-        }
-
         // Loop through all nodes and find the given $node
-        foreach ($parent->getChildren() as $currentNode) {
-            if (! $currentNode->isWhitespace()) {
+        foreach ($this->getParent()->getChildren() as $current_node) {
+            if (!$current_node->isWhitespace()) {
                 $position++;
             }
 
             // TODO: Need a less-buggy way of comparing these
             // Perhaps we can somehow ensure that we always have the exact same object and use === instead?
-            if ($this->equals($currentNode)) {
+            if ($this->equals($current_node)) {
                 break;
             }
         }
@@ -199,23 +208,30 @@ class Element implements ElementInterface
         return $position;
     }
 
-    public function getListItemLevel(): int
+    /**
+     * @return int
+     */
+    public function getListItemLevel()
     {
-        $level  = 0;
+        $level = 0;
         $parent = $this->getParent();
 
-        while ($parent !== null && $parent->hasParent()) {
+        while ($parent !== null && $parent->node->parentNode) {
             if ($parent->getTagName() === 'li') {
                 $level++;
             }
-
             $parent = $parent->getParent();
         }
 
         return $level;
     }
 
-    public function getAttribute(string $name): string
+    /**
+     * @param string $name
+     *
+     * @return string
+     */
+    public function getAttribute($name)
     {
         if ($this->node instanceof \DOMElement) {
             return $this->node->getAttribute($name);
@@ -224,12 +240,17 @@ class Element implements ElementInterface
         return '';
     }
 
-    public function equals(ElementInterface $element): bool
+    /**
+     * @param ElementInterface $element
+     *
+     * @return bool
+     */
+    public function equals(ElementInterface $element)
     {
         if ($element instanceof self) {
             return $element->node === $this->node;
         }
 
-        return false;
+        return $element === $this;
     }
 }

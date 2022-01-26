@@ -63,7 +63,7 @@ class JsonDescriptor extends Descriptor
      */
     protected function describeApplication(Application $application, array $options = [])
     {
-        $describedNamespace = isset($options['namespace']) ? $options['namespace'] : null;
+        $describedNamespace = $options['namespace'] ?? null;
         $description = new ApplicationDescription($application, $describedNamespace, true);
         $commands = [];
 
@@ -95,7 +95,7 @@ class JsonDescriptor extends Descriptor
      */
     private function writeData(array $data, array $options)
     {
-        $flags = isset($options['json_encoding']) ? $options['json_encoding'] : 0;
+        $flags = $options['json_encoding'] ?? 0;
 
         $this->write(json_encode($data, $flags));
     }
@@ -141,6 +141,7 @@ class JsonDescriptor extends Descriptor
 
     private function getCommandData(Command $command): array
     {
+        $command->getSynopsis();
         $command->mergeApplicationDefinition(false);
 
         return [
@@ -148,7 +149,7 @@ class JsonDescriptor extends Descriptor
             'usage' => array_merge([$command->getSynopsis()], $command->getUsages(), $command->getAliases()),
             'description' => $command->getDescription(),
             'help' => $command->getProcessedHelp(),
-            'definition' => $this->getInputDefinitionData($command->getDefinition()),
+            'definition' => $this->getInputDefinitionData($command->getNativeDefinition()),
             'hidden' => $command->isHidden(),
         ];
     }

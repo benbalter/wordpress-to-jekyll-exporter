@@ -11,7 +11,6 @@
 
 namespace Symfony\Component\Yaml\Command;
 
-use Symfony\Component\Console\CI\GithubActionReporter;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Exception\InvalidArgumentException;
 use Symfony\Component\Console\Exception\RuntimeException;
@@ -33,7 +32,6 @@ use Symfony\Component\Yaml\Yaml;
 class LintCommand extends Command
 {
     protected static $defaultName = 'lint:yaml';
-    protected static $defaultDescription = 'Lint a YAML file and outputs encountered errors';
 
     private $parser;
     private $format;
@@ -55,9 +53,9 @@ class LintCommand extends Command
     protected function configure()
     {
         $this
-            ->setDescription(self::$defaultDescription)
+            ->setDescription('Lint a file and outputs encountered errors')
             ->addArgument('filename', InputArgument::IS_ARRAY, 'A file, a directory or "-" for reading from STDIN')
-            ->addOption('format', null, InputOption::VALUE_REQUIRED, 'The output format')
+            ->addOption('format', null, InputOption::VALUE_REQUIRED, 'The output format', 'txt')
             ->addOption('parse-tags', null, InputOption::VALUE_NONE, 'Parse custom tags')
             ->setHelp(<<<EOF
 The <info>%command.name%</info> command lints a YAML file and outputs to STDOUT
@@ -86,16 +84,6 @@ EOF
         $io = new SymfonyStyle($input, $output);
         $filenames = (array) $input->getArgument('filename');
         $this->format = $input->getOption('format');
-
-        if ('github' === $this->format && !class_exists(GithubActionReporter::class)) {
-            throw new \InvalidArgumentException('The "github" format is only available since "symfony/console" >= 5.3.');
-        }
-
-        if (null === $this->format) {
-            // Autodetect format according to CI environment
-            $this->format = class_exists(GithubActionReporter::class) && GithubActionReporter::isGithubActionEnvironment() ? 'github' : 'txt';
-        }
-
         $this->displayCorrectFiles = $output->isVerbose();
         $flags = $input->getOption('parse-tags') ? Yaml::PARSE_CUSTOM_TAGS : 0;
 
@@ -103,7 +91,14 @@ EOF
             return $this->display($io, [$this->validate(file_get_contents('php://stdin'), $flags)]);
         }
 
+        // @deprecated to be removed in 5.0
         if (!$filenames) {
+            if (0 === ftell(\STDIN)) {
+                @trigger_error('Piping content from STDIN to the "lint:yaml" command without passing the dash symbol "-" as argument is deprecated since Symfony 4.4.', \E_USER_DEPRECATED);
+
+                return $this->display($io, [$this->validate(file_get_contents('php://stdin'), $flags)]);
+            }
+
             throw new RuntimeException('Please provide a filename or pipe file content to STDIN.');
         }
 
@@ -149,22 +144,16 @@ EOF
                 return $this->displayTxt($io, $files);
             case 'json':
                 return $this->displayJson($io, $files);
-            case 'github':
-                return $this->displayTxt($io, $files, true);
             default:
                 throw new InvalidArgumentException(sprintf('The format "%s" is not supported.', $this->format));
         }
     }
 
-    private function displayTxt(SymfonyStyle $io, array $filesInfo, bool $errorAsGithubAnnotations = false): int
+    private function displayTxt(SymfonyStyle $io, array $filesInfo): int
     {
         $countFiles = \count($filesInfo);
         $erroredFiles = 0;
         $suggestTagOption = false;
-
-        if ($errorAsGithubAnnotations) {
-            $githubReporter = new GithubActionReporter($io);
-        }
 
         foreach ($filesInfo as $info) {
             if ($info['valid'] && $this->displayCorrectFiles) {
@@ -176,10 +165,6 @@ EOF
 
                 if (false !== strpos($info['message'], 'PARSE_CUSTOM_TAGS')) {
                     $suggestTagOption = true;
-                }
-
-                if ($errorAsGithubAnnotations) {
-                    $githubReporter->error($info['message'], $info['file'] ?? 'php://stdin', $info['line']);
                 }
             }
         }

@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace League\HTMLToMarkdown;
 
 /**
@@ -18,9 +16,11 @@ interface HtmlConverterInterface
     /**
      * Convert the given $html to Markdown
      *
-     * @return string The Markdown version of the html
+     * @param string $html
      *
      * @throws \InvalidArgumentException
+     *
+     * @return string The Markdown version of the html
      */
-    public function convert(string $html): string;
+    public function convert($html);
 }

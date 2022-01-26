@@ -35,9 +35,9 @@ class StopwatchPeriod
     }
 
     /**
-     * Gets the relative time of the start of the period in milliseconds.
+     * Gets the relative time of the start of the period.
      *
-     * @return int|float
+     * @return int|float The time (in milliseconds)
      */
     public function getStartTime()
     {
@@ -45,9 +45,9 @@ class StopwatchPeriod
     }
 
     /**
-     * Gets the relative time of the end of the period in milliseconds.
+     * Gets the relative time of the end of the period.
      *
-     * @return int|float
+     * @return int|float The time (in milliseconds)
      */
     public function getEndTime()
     {
@@ -55,9 +55,9 @@ class StopwatchPeriod
     }
 
     /**
-     * Gets the time spent in this period in milliseconds.
+     * Gets the time spent in this period.
      *
-     * @return int|float
+     * @return int|float The period duration (in milliseconds)
      */
     public function getDuration()
     {
@@ -65,17 +65,12 @@ class StopwatchPeriod
     }
 
     /**
-     * Gets the memory usage in bytes.
+     * Gets the memory usage.
      *
-     * @return int
+     * @return int The memory usage (in bytes)
      */
     public function getMemory()
     {
         return $this->memory;
-    }
-
-    public function __toString(): string
-    {
-        return sprintf('%.2F MiB - %d ms', $this->getMemory() / 1024 / 1024, $this->getDuration());
     }
 }

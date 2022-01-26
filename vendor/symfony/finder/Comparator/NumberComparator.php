@@ -73,6 +73,7 @@ class NumberComparator extends Comparator
             }
         }
 
-        parent::__construct($target, $matches[1] ?: '==');
+        $this->setTarget($target);
+        $this->setOperator($matches[1] ?? '==');
     }
 }

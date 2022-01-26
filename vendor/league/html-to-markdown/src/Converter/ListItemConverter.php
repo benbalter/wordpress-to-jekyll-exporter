@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace League\HTMLToMarkdown\Converter;
 
 use League\HTMLToMarkdown\Configuration;
@@ -10,26 +8,39 @@ use League\HTMLToMarkdown\ElementInterface;
 
 class ListItemConverter implements ConverterInterface, ConfigurationAwareInterface
 {
-    /** @var Configuration */
+    /**
+     * @var Configuration
+     */
     protected $config;
 
-    /** @var string|null */
+    /**
+     * @var string
+     */
     protected $listItemStyle;
 
-    public function setConfig(Configuration $config): void
+    /**
+     * @param Configuration $config
+     */
+    public function setConfig(Configuration $config)
     {
         $this->config = $config;
     }
 
-    public function convert(ElementInterface $element): string
+    /**
+     * @param ElementInterface $element
+     *
+     * @return string
+     */
+    public function convert(ElementInterface $element)
     {
         // If parent is an ol, use numbers, otherwise, use dashes
-        $listType = ($parent = $element->getParent()) ? $parent->getTagName() : 'ul';
+        $list_type = $element->getParent()->getTagName();
 
         // Add spaces to start for nested list items
-        $level = $element->getListItemLevel();
+        $level = $element->getListItemLevel($element);
 
-        $value = \trim(\implode("\n" . '    ', \explode("\n", \trim($element->getValue()))));
+        $prefixForParagraph = str_repeat('  ', $level + 1);
+        $value = trim(implode("\n" . $prefixForParagraph, explode("\n", trim($element->getValue()))));
 
         // If list item is the first in a nested list, add a newline before it
         $prefix = '';
@@ -37,21 +48,21 @@ class ListItemConverter implements ConverterInterface, ConfigurationAwareInterfa
             $prefix = "\n";
         }
 
-        if ($listType === 'ul') {
-            $listItemStyle          = $this->config->getOption('list_item_style', '-');
-            $listItemStyleAlternate = $this->config->getOption('list_item_style_alternate');
-            if (! isset($this->listItemStyle)) {
-                $this->listItemStyle = $listItemStyleAlternate ?: $listItemStyle;
+        if ($list_type === 'ul') {
+            $list_item_style = $this->config->getOption('list_item_style', '-');
+            $list_item_style_alternate = $this->config->getOption('list_item_style_alternate');
+            if (!isset($this->listItemStyle)) {
+                $this->listItemStyle = $list_item_style_alternate ? $list_item_style_alternate : $list_item_style;
             }
 
-            if ($listItemStyleAlternate && $level === 0 && $element->getSiblingPosition() === 1) {
-                $this->listItemStyle = $this->listItemStyle === $listItemStyle ? $listItemStyleAlternate : $listItemStyle;
+            if ($list_item_style_alternate && $level == 0 && $element->getSiblingPosition() === 1) {
+                $this->listItemStyle = $this->listItemStyle == $list_item_style ? $list_item_style_alternate : $list_item_style;
             }
 
             return $prefix . $this->listItemStyle . ' ' . $value . "\n";
         }
 
-        if ($listType === 'ol' && ($parent = $element->getParent()) && ($start = \intval($parent->getAttribute('start')))) {
+        if ($list_type === 'ol' && $start = $element->getParent()->getAttribute('start')) {
             $number = $start + $element->getSiblingPosition() - 1;
         } else {
             $number = $element->getSiblingPosition();
@@ -63,8 +74,8 @@ class ListItemConverter implements ConverterInterface, ConfigurationAwareInterfa
     /**
      * @return string[]
      */
-    public function getSupportedTags(): array
+    public function getSupportedTags()
     {
-        return ['li'];
+        return array('li');
     }
 }

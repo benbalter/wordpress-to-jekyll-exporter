@@ -1,22 +1,23 @@
 <?php
 
-declare(strict_types=1);
-
 namespace League\HTMLToMarkdown\Converter;
 
 use League\HTMLToMarkdown\ElementInterface;
 
 class ParagraphConverter implements ConverterInterface
 {
-    public function convert(ElementInterface $element): string
+    /**
+     * @param ElementInterface $element
+     *
+     * @return string
+     */
+    public function convert(ElementInterface $element)
     {
         $value = $element->getValue();
 
         $markdown = '';
 
-        $lines = \preg_split('/\r\n|\r|\n/', $value);
-        \assert($lines !== false);
-
+        $lines = preg_split('/\r\n|\r|\n/', $value);
         foreach ($lines as $line) {
             /*
              * Some special characters need to be escaped based on the position that they appear
@@ -26,18 +27,23 @@ class ParagraphConverter implements ConverterInterface
             $markdown .= "\n";
         }
 
-        return \trim($markdown) !== '' ? \rtrim($markdown) . "\n\n" : '';
+        return trim($markdown) !== '' ? rtrim($markdown) . "\n\n" : '';
     }
 
     /**
      * @return string[]
      */
-    public function getSupportedTags(): array
+    public function getSupportedTags()
     {
-        return ['p'];
+        return array('p');
     }
 
-    private function escapeSpecialCharacters(string $line): string
+    /**
+     * @param string $line
+     *
+     * @return string
+     */
+    private function escapeSpecialCharacters($line)
     {
         $line = $this->escapeFirstCharacters($line);
         $line = $this->escapeOtherCharacters($line);
@@ -46,61 +52,72 @@ class ParagraphConverter implements ConverterInterface
         return $line;
     }
 
-    private function escapeFirstCharacters(string $line): string
+    /**
+     * @param string $line
+     *
+     * @return string
+     */
+    private function escapeFirstCharacters($line)
     {
-        $escapable = [
+        $escapable = array(
             '>',
             '- ',
             '+ ',
             '--',
             '~~~',
             '---',
-            '- - -',
-        ];
+            '- - -'
+        );
 
         foreach ($escapable as $i) {
-            if (\strpos(\ltrim($line), $i) === 0) {
+            if (strpos(ltrim($line), $i) === 0) {
                 // Found a character that must be escaped, adding a backslash before
-                return '\\' . \ltrim($line);
+                return '\\' . ltrim($line);
             }
         }
 
         return $line;
     }
 
-    private function escapeOtherCharacters(string $line): string
+    /**
+     * @param string $line
+     *
+     * @return string
+     */
+    private function escapeOtherCharacters($line)
     {
-        $escapable = [
-            '<!--',
-        ];
+        $escapable = array(
+            '<!--'
+        );
 
         foreach ($escapable as $i) {
-            if (($pos = \strpos($line, $i)) === false) {
-                continue;
+            if (strpos($line, $i) !== false) {
+                // Found an escapable character, escaping it
+                $line = substr_replace($line, '\\', strpos($line, $i), 0);
             }
-
-            // Found an escapable character, escaping it
-            $line = \substr_replace($line, '\\', $pos, 0);
         }
 
         return $line;
     }
 
-    private function escapeOtherCharactersRegex(string $line): string
+    /**
+     * @param string $line
+     *
+     * @return string
+     */
+    private function escapeOtherCharactersRegex($line)
     {
-        $regExs = [
+        $regExs = array(
             // Match numbers ending on ')' or '.' that are at the beginning of the line.
             // They will be escaped if immediately followed by a space or newline.
-            '/^[0-9]+(?=(\)|\.)( |$))/',
-        ];
+            '/^[0-9]+(?=(\)|\.)( |$))/'
+        );
 
         foreach ($regExs as $i) {
-            if (! \preg_match($i, $line, $match)) {
-                continue;
+            if (preg_match($i, $line, $match)) {
+                // Matched an escapable character, adding a backslash on the string before the offending character
+                $line = substr_replace($line, '\\', strlen($match[0]), 0);
             }
-
-            // Matched an escapable character, adding a backslash on the string before the offending character
-            $line = \substr_replace($line, '\\', \strlen($match[0]), 0);
         }
 
         return $line;

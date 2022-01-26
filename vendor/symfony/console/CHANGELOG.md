@@ -1,42 +1,6 @@
 CHANGELOG
 =========
 
-5.2.0
------
-
- * Added `SingleCommandApplication::setAutoExit()` to allow testing via `CommandTester`
- * added support for multiline responses to questions through `Question::setMultiline()`
-   and `Question::isMultiline()`
- * Added `SignalRegistry` class to stack signals handlers
- * Added support for signals:
-    * Added `Application::getSignalRegistry()` and `Application::setSignalsToDispatchEvent()` methods
-    * Added `SignalableCommandInterface` interface
- * Added `TableCellStyle` class to customize table cell
- * Removed `php ` prefix invocation from help messages.
-
-5.1.0
------
-
- * `Command::setHidden()` is final since Symfony 5.1
- * Add `SingleCommandApplication`
- * Add `Cursor` class
-
-5.0.0
------
-
- * removed support for finding hidden commands using an abbreviation, use the full name instead
- * removed `TableStyle::setCrossingChar()` method in favor of `TableStyle::setDefaultCrossingChar()`
- * removed `TableStyle::setHorizontalBorderChar()` method in favor of `TableStyle::setDefaultCrossingChars()`
- * removed `TableStyle::getHorizontalBorderChar()` method in favor of `TableStyle::getBorderChars()`
- * removed `TableStyle::setVerticalBorderChar()` method in favor of `TableStyle::setVerticalBorderChars()`
- * removed `TableStyle::getVerticalBorderChar()` method in favor of `TableStyle::getBorderChars()`
- * removed support for returning `null` from `Command::execute()`, return `0` instead
- * `ProcessHelper::run()` accepts only `array|Symfony\Component\Process\Process` for its `command` argument
- * `Application::setDispatcher` accepts only `Symfony\Contracts\EventDispatcher\EventDispatcherInterface`
-   for its `dispatcher` argument
- * renamed `Application::renderException()` and `Application::doRenderException()`
-   to `renderThrowable()` and `doRenderThrowable()` respectively.
-
 4.4.0
 -----
 
@@ -83,9 +47,9 @@ CHANGELOG
  * `OutputFormatter` throws an exception when unknown options are used
  * removed `QuestionHelper::setInputStream()/getInputStream()`
  * removed `Application::getTerminalWidth()/getTerminalHeight()` and
-  `Application::setTerminalDimensions()/getTerminalDimensions()`
-* removed `ConsoleExceptionEvent`
-* removed `ConsoleEvents::EXCEPTION`
+   `Application::setTerminalDimensions()/getTerminalDimensions()`
+ * removed `ConsoleExceptionEvent`
+ * removed `ConsoleEvents::EXCEPTION`
 
 3.4.0
 -----
@@ -102,23 +66,23 @@ CHANGELOG
 3.3.0
 -----
 
-* added `ExceptionListener`
-* added `AddConsoleCommandPass` (originally in FrameworkBundle)
-* [BC BREAK] `Input::getOption()` no longer returns the default value for options
-  with value optional explicitly passed empty
-* added console.error event to catch exceptions thrown by other listeners
-* deprecated console.exception event in favor of console.error
-* added ability to handle `CommandNotFoundException` through the
- `console.error` event
-* deprecated default validation in `SymfonyQuestionHelper::ask`
+ * added `ExceptionListener`
+ * added `AddConsoleCommandPass` (originally in FrameworkBundle)
+ * [BC BREAK] `Input::getOption()` no longer returns the default value for options
+   with value optional explicitly passed empty
+ * added console.error event to catch exceptions thrown by other listeners
+ * deprecated console.exception event in favor of console.error
+ * added ability to handle `CommandNotFoundException` through the
+   `console.error` event
+ * deprecated default validation in `SymfonyQuestionHelper::ask`
 
 3.2.0
 ------
 
-* added `setInputs()` method to CommandTester for ease testing of commands expecting inputs
-* added `setStream()` and `getStream()` methods to Input (implement StreamableInputInterface)
-* added StreamableInputInterface
-* added LockableTrait
+ * added `setInputs()` method to CommandTester for ease testing of commands expecting inputs
+ * added `setStream()` and `getStream()` methods to Input (implement StreamableInputInterface)
+ * added StreamableInputInterface
+ * added LockableTrait
 
 3.1.0
 -----

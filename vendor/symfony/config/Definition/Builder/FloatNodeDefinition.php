@@ -23,7 +23,7 @@ class FloatNodeDefinition extends NumericNodeDefinition
     /**
      * Instantiates a Node.
      *
-     * @return FloatNode
+     * @return FloatNode The node
      */
     protected function instantiateNode()
     {

@@ -18,7 +18,7 @@ namespace Symfony\Component\Config\Resource;
  *
  * @author Fabien Potencier <fabien@symfony.com>
  *
- * @final
+ * @final since Symfony 4.3
  */
 class FileResource implements SelfCheckingResourceInterface
 {
@@ -41,15 +41,15 @@ class FileResource implements SelfCheckingResourceInterface
         }
     }
 
-    public function __toString(): string
+    public function __toString()
     {
         return $this->resource;
     }
 
     /**
-     * Returns the canonicalized, absolute path to the resource.
+     * @return string The canonicalized, absolute path to the resource
      */
-    public function getResource(): string
+    public function getResource()
     {
         return $this->resource;
     }
@@ -57,7 +57,7 @@ class FileResource implements SelfCheckingResourceInterface
     /**
      * {@inheritdoc}
      */
-    public function isFresh(int $timestamp): bool
+    public function isFresh($timestamp)
     {
         return false !== ($filemtime = @filemtime($this->resource)) && $filemtime <= $timestamp;
     }

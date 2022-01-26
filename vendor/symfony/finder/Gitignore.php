@@ -26,21 +26,11 @@ class Gitignore
      */
     public static function toRegex(string $gitignoreFileContent): string
     {
-        return self::buildRegex($gitignoreFileContent, false);
-    }
-
-    public static function toRegexMatchingNegatedPatterns(string $gitignoreFileContent): string
-    {
-        return self::buildRegex($gitignoreFileContent, true);
-    }
-
-    private static function buildRegex(string $gitignoreFileContent, bool $inverted): string
-    {
         $gitignoreFileContent = preg_replace('~(?<!\\\\)#[^\n\r]*~', '', $gitignoreFileContent);
         $gitignoreLines = preg_split('~\r\n?|\n~', $gitignoreFileContent);
 
         $res = self::lineToRegex('');
-        foreach ($gitignoreLines as $line) {
+        foreach ($gitignoreLines as $i => $line) {
             $line = preg_replace('~(?<!\\\\)[ \t]+$~', '', $line);
 
             if ('!' === substr($line, 0, 1)) {
@@ -51,7 +41,7 @@ class Gitignore
             }
 
             if ('' !== $line) {
-                if ($isNegative xor $inverted) {
+                if ($isNegative) {
                     $res = '(?!'.self::lineToRegex($line).'$)'.$res;
                 } else {
                     $res = '(?:'.$res.'|'.self::lineToRegex($line).')';

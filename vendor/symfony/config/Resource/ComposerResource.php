@@ -16,7 +16,7 @@ namespace Symfony\Component\Config\Resource;
  *
  * @author Nicolas Grekas <p@tchwork.com>
  *
- * @final
+ * @final since Symfony 4.3
  */
 class ComposerResource implements SelfCheckingResourceInterface
 {
@@ -30,12 +30,12 @@ class ComposerResource implements SelfCheckingResourceInterface
         $this->vendors = self::$runtimeVendors;
     }
 
-    public function getVendors(): array
+    public function getVendors()
     {
         return array_keys($this->vendors);
     }
 
-    public function __toString(): string
+    public function __toString()
     {
         return __CLASS__;
     }
@@ -43,7 +43,7 @@ class ComposerResource implements SelfCheckingResourceInterface
     /**
      * {@inheritdoc}
      */
-    public function isFresh(int $timestamp): bool
+    public function isFresh($timestamp)
     {
         self::refresh();
 
@@ -58,7 +58,7 @@ class ComposerResource implements SelfCheckingResourceInterface
             if ('C' === $class[0] && str_starts_with($class, 'ComposerAutoloaderInit')) {
                 $r = new \ReflectionClass($class);
                 $v = \dirname($r->getFileName(), 2);
-                if (is_file($v.'/composer/installed.json')) {
+                if (file_exists($v.'/composer/installed.json')) {
                     self::$runtimeVendors[$v] = @filemtime($v.'/composer/installed.json');
                 }
             }

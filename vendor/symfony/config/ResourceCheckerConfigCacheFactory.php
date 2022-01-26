@@ -22,7 +22,7 @@ class ResourceCheckerConfigCacheFactory implements ConfigCacheFactoryInterface
     private $resourceCheckers = [];
 
     /**
-     * @param iterable<int, ResourceCheckerInterface> $resourceCheckers
+     * @param iterable|ResourceCheckerInterface[] $resourceCheckers
      */
     public function __construct(iterable $resourceCheckers = [])
     {
@@ -32,11 +32,15 @@ class ResourceCheckerConfigCacheFactory implements ConfigCacheFactoryInterface
     /**
      * {@inheritdoc}
      */
-    public function cache(string $file, callable $callable)
+    public function cache($file, $callback)
     {
+        if (!\is_callable($callback)) {
+            throw new \InvalidArgumentException(sprintf('Invalid type for callback argument. Expected callable, but got "%s".', \gettype($callback)));
+        }
+
         $cache = new ResourceCheckerConfigCache($file, $this->resourceCheckers);
         if (!$cache->isFresh()) {
-            $callable($cache);
+            $callback($cache);
         }
 
         return $cache;

@@ -40,15 +40,15 @@ class HelpCommand extends Command
                 new InputOption('format', null, InputOption::VALUE_REQUIRED, 'The output format (txt, xml, json, or md)', 'txt'),
                 new InputOption('raw', null, InputOption::VALUE_NONE, 'To output raw command help'),
             ])
-            ->setDescription('Displays help for a command')
+            ->setDescription('Display help for a command')
             ->setHelp(<<<'EOF'
 The <info>%command.name%</info> command displays help for a given command:
 
-  <info>%command.full_name% list</info>
+  <info>php %command.full_name% list</info>
 
 You can also output the help in other formats by using the <comment>--format</comment> option:
 
-  <info>%command.full_name% --format=xml list</info>
+  <info>php %command.full_name% --format=xml list</info>
 
 To display the list of available commands, please use the <info>list</info> command.
 EOF

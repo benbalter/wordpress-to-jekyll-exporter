@@ -37,7 +37,12 @@ class HelperSet implements \IteratorAggregate
         }
     }
 
-    public function set(HelperInterface $helper, string $alias = null)
+    /**
+     * Sets a helper.
+     *
+     * @param string $alias An alias
+     */
+    public function set(HelperInterface $helper, $alias = null)
     {
         $this->helpers[$helper->getName()] = $helper;
         if (null !== $alias) {
@@ -50,9 +55,11 @@ class HelperSet implements \IteratorAggregate
     /**
      * Returns true if the helper if defined.
      *
+     * @param string $name The helper name
+     *
      * @return bool true if the helper is defined, false otherwise
      */
-    public function has(string $name)
+    public function has($name)
     {
         return isset($this->helpers[$name]);
     }
@@ -60,11 +67,13 @@ class HelperSet implements \IteratorAggregate
     /**
      * Gets a helper value.
      *
+     * @param string $name The helper name
+     *
      * @return HelperInterface The helper instance
      *
      * @throws InvalidArgumentException if the helper is not defined
      */
-    public function get(string $name)
+    public function get($name)
     {
         if (!$this->has($name)) {
             throw new InvalidArgumentException(sprintf('The helper "%s" is not defined.', $name));
@@ -89,8 +98,9 @@ class HelperSet implements \IteratorAggregate
     }
 
     /**
-     * @return Helper[]
+     * @return \Traversable<Helper>
      */
+    #[\ReturnTypeWillChange]
     public function getIterator()
     {
         return new \ArrayIterator($this->helpers);

@@ -53,7 +53,7 @@ class ArrayInput extends Input
     /**
      * {@inheritdoc}
      */
-    public function hasParameterOption($values, bool $onlyParams = false)
+    public function hasParameterOption($values, $onlyParams = false)
     {
         $values = (array) $values;
 
@@ -77,7 +77,7 @@ class ArrayInput extends Input
     /**
      * {@inheritdoc}
      */
-    public function getParameterOption($values, $default = false, bool $onlyParams = false)
+    public function getParameterOption($values, $default = false, $onlyParams = false)
     {
         $values = (array) $values;
 
@@ -108,12 +108,13 @@ class ArrayInput extends Input
         $params = [];
         foreach ($this->parameters as $param => $val) {
             if ($param && \is_string($param) && '-' === $param[0]) {
+                $glue = ('-' === $param[1]) ? '=' : ' ';
                 if (\is_array($val)) {
                     foreach ($val as $v) {
-                        $params[] = $param.('' != $v ? '='.$this->escapeToken($v) : '');
+                        $params[] = $param.('' != $v ? $glue.$this->escapeToken($v) : '');
                     }
                 } else {
-                    $params[] = $param.('' != $val ? '='.$this->escapeToken($val) : '');
+                    $params[] = $param.('' != $val ? $glue.$this->escapeToken($val) : '');
                 }
             } else {
                 $params[] = \is_array($val) ? implode(' ', array_map([$this, 'escapeToken'], $val)) : $this->escapeToken($val);
@@ -132,9 +133,9 @@ class ArrayInput extends Input
             if ('--' === $key) {
                 return;
             }
-            if (0 === strpos($key, '--')) {
+            if (str_starts_with($key, '--')) {
                 $this->addLongOption(substr($key, 2), $value);
-            } elseif (0 === strpos($key, '-')) {
+            } elseif (str_starts_with($key, '-')) {
                 $this->addShortOption(substr($key, 1), $value);
             } else {
                 $this->addArgument($key, $value);

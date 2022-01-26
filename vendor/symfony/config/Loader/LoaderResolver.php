@@ -39,7 +39,7 @@ class LoaderResolver implements LoaderResolverInterface
     /**
      * {@inheritdoc}
      */
-    public function resolve($resource, string $type = null)
+    public function resolve($resource, $type = null)
     {
         foreach ($this->loaders as $loader) {
             if ($loader->supports($resource, $type)) {
@@ -59,7 +59,7 @@ class LoaderResolver implements LoaderResolverInterface
     /**
      * Returns the registered loaders.
      *
-     * @return LoaderInterface[]
+     * @return LoaderInterface[] An array of LoaderInterface instances
      */
     public function getLoaders()
     {
