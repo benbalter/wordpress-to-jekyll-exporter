@@ -5,7 +5,7 @@
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => '882dc9df337a5608646d6bffbaf4e266132c4317',
+        'reference' => '703e0bfa06fad72fbe736c11bcb92fc54029687d',
         'name' => 'benbalter/wordpress-to-jekyll-exporter',
         'dev' => true,
     ),
@@ -16,7 +16,7 @@
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => '882dc9df337a5608646d6bffbaf4e266132c4317',
+            'reference' => '703e0bfa06fad72fbe736c11bcb92fc54029687d',
             'dev_requirement' => false,
         ),
         'dealerdirect/phpcodesniffer-composer-installer' => array(
