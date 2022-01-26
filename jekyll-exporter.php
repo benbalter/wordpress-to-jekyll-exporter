@@ -245,11 +245,11 @@ class Jekyll_Export {
 			}
 		}
 
-		$content   = apply_filters( 'the_content', $post->post_content );
+		$content           = apply_filters( 'the_content', $post->post_content );
+		$converter_options = apply_filters( 'jekyll_export_markdown_converter_options', array( 'header_style' => 'atx' ) );
+		$converter         = new HtmlConverter( $converter_options );
 
-		$converter_options = apply_filters( 'jekyll_export_markdown_converter_options', array('header_style'=>'atx') );
-		$converter = new HtmlConverter( $converter_options );
-		$converter->getEnvironment()->addConverter(new TableConverter());
+		$converter->getEnvironment()->addConverter (new TableConverter() );
 		$markdown  = $converter->convert( $content );
 
 		if ( strpos( $markdown, '[]: ' ) !== false ) {
