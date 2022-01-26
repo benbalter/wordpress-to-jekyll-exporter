@@ -146,7 +146,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 	 */
 	function test_loads_dependencies() {
 		$this->assertTrue( class_exists( 'Spyc' ), 'Spyc class not defined' );
-		$this->assertTrue( class_exists( 'Markdownify\Parser' ), 'Markdownify class not defined' );
+		$this->assertTrue( class_exists( 'League\HTMLToMarkdown\HtmlConverter' ), 'Markdownify class not defined' );
 	}
 
 	/**

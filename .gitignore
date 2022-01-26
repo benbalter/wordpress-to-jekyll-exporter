@@ -1,9 +1,9 @@
 #composer bloat
 vendor/*
 !vendor/mustangostang/spyc/*
-!vendor/pixel418/markdownify
 !vendor/autoload.php
 !vendor/composer
+!vendor/league/html-to-markdown
 vendor/**/docs
 vendor/**/test
 vendor/**/tests
