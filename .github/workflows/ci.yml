@@ -14,7 +14,7 @@ jobs:
       TRAVIS_BUILD_DIR: ${{ github.workspace }}
     strategy: 
       matrix:
-        php_version: [7.4, 8.0]
+        php_version: [7.4]
         wp_version: [latest]
         wp_multisite: [0]
         include:
@@ -46,7 +46,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: vendor
-        key: ${{ runner.os }}-php-${{ matrix.php_version }}-${{ hashFiles('**/composer.lock') }}
+        key: ${{ runner.os }}-php-${{ matrix.php_version }}-${{ hashFiles('**/composer.json') }}
         restore-keys: |
           ${{ runner.os }}-php-${{ matrix.php_version }}-
 
@@ -94,7 +94,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: vendor
-          key: ${{ runner.os }}-php-${{ matrix.php_version }}-${{ hashFiles('**/composer.lock') }}
+          key: ${{ runner.os }}-php-${{ matrix.php_version }}-${{ hashFiles('**/composer.json') }}
           restore-keys: |
             ${{ runner.os }}-php-${{ matrix.php_version }}-
 
