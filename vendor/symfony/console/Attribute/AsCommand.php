@@ -18,8 +18,8 @@ namespace Symfony\Component\Console\Attribute;
 class AsCommand
 {
     public function __construct(
-        public string $name,
-        public ?string $description = null,
+        string $name,
+        string $description = null,
         array $aliases = [],
         bool $hidden = false,
     ) {
