@@ -24,8 +24,10 @@ class Dumper
 {
     /**
      * The amount of spaces to use for indentation of nested nodes.
+     *
+     * @var int
      */
-    private int $indentation;
+    protected $indentation;
 
     public function __construct(int $indentation = 4)
     {
@@ -44,7 +46,7 @@ class Dumper
      * @param int   $indent The level of indentation (used internally)
      * @param int   $flags  A bit field of Yaml::DUMP_* constants to customize the dumped YAML string
      */
-    public function dump(mixed $input, int $inline = 0, int $indent = 0, int $flags = 0): string
+    public function dump($input, int $inline = 0, int $indent = 0, int $flags = 0): string
     {
         $output = '';
         $prefix = $indent ? str_repeat(' ', $indent) : '';

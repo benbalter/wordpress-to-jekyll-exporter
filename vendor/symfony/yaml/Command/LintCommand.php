@@ -11,7 +11,6 @@
 
 namespace Symfony\Component\Yaml\Command;
 
-use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\CI\GithubActionReporter;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Completion\CompletionInput;
@@ -33,21 +32,23 @@ use Symfony\Component\Yaml\Yaml;
  * @author Grégoire Pineau <lyrixx@lyrixx.info>
  * @author Robin Chalas <robin.chalas@gmail.com>
  */
-#[AsCommand(name: 'lint:yaml', description: 'Lint a YAML file and outputs encountered errors')]
 class LintCommand extends Command
 {
+    protected static $defaultName = 'lint:yaml';
+    protected static $defaultDescription = 'Lint a YAML file and outputs encountered errors';
+
     private $parser;
-    private ?string $format = null;
-    private bool $displayCorrectFiles;
-    private ?\Closure $directoryIteratorProvider;
-    private ?\Closure $isReadableProvider;
+    private $format;
+    private $displayCorrectFiles;
+    private $directoryIteratorProvider;
+    private $isReadableProvider;
 
     public function __construct(string $name = null, callable $directoryIteratorProvider = null, callable $isReadableProvider = null)
     {
         parent::__construct($name);
 
-        $this->directoryIteratorProvider = null === $directoryIteratorProvider || $directoryIteratorProvider instanceof \Closure ? $directoryIteratorProvider : \Closure::fromCallable($directoryIteratorProvider);
-        $this->isReadableProvider = null === $isReadableProvider || $isReadableProvider instanceof \Closure ? $isReadableProvider : \Closure::fromCallable($isReadableProvider);
+        $this->directoryIteratorProvider = $directoryIteratorProvider;
+        $this->isReadableProvider = $isReadableProvider;
     }
 
     /**
@@ -56,6 +57,7 @@ class LintCommand extends Command
     protected function configure()
     {
         $this
+            ->setDescription(self::$defaultDescription)
             ->addArgument('filename', InputArgument::IS_ARRAY, 'A file, a directory or "-" for reading from STDIN')
             ->addOption('format', null, InputOption::VALUE_REQUIRED, 'The output format')
             ->addOption('exclude', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Path(s) to exclude')
@@ -86,7 +88,7 @@ EOF
         ;
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output): int
+    protected function execute(InputInterface $input, OutputInterface $output)
     {
         $io = new SymfonyStyle($input, $output);
         $filenames = (array) $input->getArgument('filename');
@@ -242,7 +244,11 @@ EOF
 
     private function getParser(): Parser
     {
-        return $this->parser ??= new Parser();
+        if (!$this->parser) {
+            $this->parser = new Parser();
+        }
+
+        return $this->parser;
     }
 
     private function getDirectoryIterator(string $directory): iterable

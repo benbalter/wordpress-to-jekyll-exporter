@@ -5,7 +5,7 @@
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => '5021c22e155cca0977a7ec5448e087058380c1aa',
+        'reference' => '158de6e273b64eaea79ace3a0677f59637b3938a',
         'name' => 'benbalter/wordpress-to-jekyll-exporter',
         'dev' => true,
     ),
@@ -16,7 +16,7 @@
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => '5021c22e155cca0977a7ec5448e087058380c1aa',
+            'reference' => '158de6e273b64eaea79ace3a0677f59637b3938a',
             'dev_requirement' => false,
         ),
         'dealerdirect/phpcodesniffer-composer-installer' => array(
@@ -81,15 +81,6 @@
             'aliases' => array(),
             'reference' => '579ffa5c96e1d292c060b3dd62811ff01ad8c24e',
             'dev_requirement' => true,
-        ),
-        'mustangostang/spyc' => array(
-            'pretty_version' => '0.6.3',
-            'version' => '0.6.3.0',
-            'type' => 'library',
-            'install_path' => __DIR__ . '/../mustangostang/spyc',
-            'aliases' => array(),
-            'reference' => '4627c838b16550b666d15aeae1e5289dd5b77da0',
-            'dev_requirement' => false,
         ),
         'myclabs/deep-copy' => array(
             'pretty_version' => '1.10.2',
@@ -491,7 +482,7 @@
             'install_path' => __DIR__ . '/../symfony/deprecation-contracts',
             'aliases' => array(),
             'reference' => 'c726b64c1ccfe2896cb7df2e1331c357ad1c8ced',
-            'dev_requirement' => true,
+            'dev_requirement' => false,
         ),
         'symfony/filesystem' => array(
             'pretty_version' => 'v6.0.0',
@@ -584,12 +575,12 @@
             'dev_requirement' => true,
         ),
         'symfony/yaml' => array(
-            'pretty_version' => 'v6.0.2',
-            'version' => '6.0.2.0',
+            'pretty_version' => 'v5.4.2',
+            'version' => '5.4.2.0',
             'type' => 'library',
             'install_path' => __DIR__ . '/../symfony/yaml',
             'aliases' => array(),
-            'reference' => 'ed602f38b8636a2ea21af760d2578f3d2f92fc60',
+            'reference' => 'b9eb163846a61bb32dfc147f7859e274fab38b58',
             'dev_requirement' => false,
         ),
         'theseer/tokenizer' => array(
