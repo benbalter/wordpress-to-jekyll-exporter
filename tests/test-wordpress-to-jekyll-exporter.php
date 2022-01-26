@@ -9,6 +9,8 @@
  * @link       https://github.com/benbalter/wordpress-to-jekyll-exporter/
  */
 
+use Symfony\Component\Yaml\Yaml;
+
 /**
  * Test suite for JekyllExport
  */
@@ -145,8 +147,8 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 	 * Test that the plugin loads dependencies
 	 */
 	function test_loads_dependencies() {
-		$this->assertTrue( class_exists( 'Spyc' ), 'Spyc class not defined' );
-		$this->assertTrue( class_exists( 'Markdownify\Parser' ), 'Markdownify class not defined' );
+		$this->assertTrue( class_exists( 'Symfony\Component\Yaml\Yaml' ), 'Yaml class not defined' );
+		$this->assertTrue( class_exists( 'League\HTMLToMarkdown\HtmlConverter' ), 'HtmlConverter class not defined' );
 	}
 
 	/**
@@ -240,12 +242,12 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 
 		// writes the file contents.
 		$contents = file_get_contents( $post );
-		$this->assertStringContainsString( 'title: Test Post', $contents, 'file contents' );
+		$this->assertStringContainsString( 'title: \'Test Post\'', $contents, 'file contents' );
 
 		// writes valid YAML.
 		$parts = explode( '---', $contents );
-		$this->assertEquals( 3, count( $parts ), 'Invalid YAML Front Matter' );
-		$yaml = spyc_load( $parts[1] );
+		$this->assertEquals( 3, count( $parts ), "Invalid YAML Front Matter: $contents" );
+		$yaml = Yaml::parse( $parts[1] );
 		$this->assertNotEmpty( $yaml, 'Empty YAML' );
 
 		// writes the front matter.
@@ -284,10 +286,10 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 
 		// writes the file content.
 		$contents = file_get_contents( $config );
-		$this->assertStringContainsString( 'description: Just another WordPress site', $contents );
+		$this->assertStringContainsString( 'description: \'Just another WordPress site\'', $contents );
 
 		// writes valid YAML.
-		$yaml = spyc_load( $contents );
+		$yaml = Yaml::parse( $contents );
 		$this->assertEquals( 'Just another WordPress site', $yaml['description'] );
 		$this->assertEquals( 'http://example.org', $yaml['url'] );
 		$this->assertEquals( 'Test Blog', $yaml['name'] );

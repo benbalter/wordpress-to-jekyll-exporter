@@ -42,6 +42,10 @@ if ( version_compare( PHP_VERSION, '5.3.0', '<' ) ) {
 require_once dirname( __FILE__ ) . '/lib/cli.php';
 require_once dirname( __FILE__ ) . '/vendor/autoload.php';
 
+use League\HTMLToMarkdown\HtmlConverter;
+use League\HTMLToMarkdown\Converter\TableConverter;
+use Symfony\Component\Yaml\Yaml;
+
 /**
  * Class Jekyll_Export
  *
@@ -52,9 +56,6 @@ require_once dirname( __FILE__ ) . '/vendor/autoload.php';
  * @link       https://github.com/benbalter/wordpress-to-jekyll-exporter/
  */
 class Jekyll_Export {
-
-
-
 
 	/**
 	 * Strings to strip from option keys on export
@@ -245,9 +246,12 @@ class Jekyll_Export {
 			}
 		}
 
-		$content   = apply_filters( 'the_content', $post->post_content );
-		$converter = new Markdownify\ConverterExtra( Markdownify\Converter::LINK_IN_PARAGRAPH );
-		$markdown  = $converter->parseString( $content );
+		$content           = apply_filters( 'the_content', $post->post_content );
+		$converter_options = apply_filters( 'jekyll_export_markdown_converter_options', array( 'header_style' => 'atx' ) );
+		$converter         = new HtmlConverter( $converter_options );
+
+		$converter->getEnvironment()->addConverter( new TableConverter() );
+		$markdown = $converter->convert( $content );
 
 		if ( strpos( $markdown, '[]: ' ) !== false ) {
 			// faulty links; return plain HTML.
@@ -280,9 +284,8 @@ class Jekyll_Export {
 				}
 			}
 
-			// Jekyll doesn't like word-wrapped permalinks.
-			$output = Spyc::YAMLDump( $meta, false, 0 );
-
+			$output  = "---\n";
+			$output .= Yaml::dump( $meta );
 			$output .= "---\n";
 			$output .= $this->convert_content( $post );
 			$this->write( $output, $post );
@@ -372,10 +375,7 @@ class Jekyll_Export {
 			}
 		}
 
-		$output = Spyc::YAMLDump( $options );
-
-		// strip starting "---".
-		$output = substr( $output, 4 );
+		$output = Yaml::dump( $options );
 
 		$wp_filesystem->put_contents( $this->dir . '_config.yml', $output );
 	}
