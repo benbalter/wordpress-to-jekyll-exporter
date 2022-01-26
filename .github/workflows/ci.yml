@@ -39,13 +39,14 @@ jobs:
         php-version: ${{ matrix.php_version }}
         extensions: mysqli
         coverage: xdebug
+        tools: phpunit-polyfills
 
     - name: Cache Composer packages
       id: composer-cache
       uses: actions/cache@v2
       with:
         path: vendor
-        key: ${{ runner.os }}-php-${{ matrix.php_version }}-${{ hashFiles('**/composer.lock') }}
+        key: ${{ runner.os }}-php-${{ matrix.php_version }}-${{ hashFiles('**/composer.json') }}
         restore-keys: |
           ${{ runner.os }}-php-${{ matrix.php_version }}-
 
@@ -93,7 +94,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: vendor
-          key: ${{ runner.os }}-php-${{ matrix.php_version }}-${{ hashFiles('**/composer.lock') }}
+          key: ${{ runner.os }}-php-${{ matrix.php_version }}-${{ hashFiles('**/composer.json') }}
           restore-keys: |
             ${{ runner.os }}-php-${{ matrix.php_version }}-
 

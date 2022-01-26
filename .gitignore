@@ -14,3 +14,4 @@ vendor/**/*.js
 vendor/**/*.css
 bin/
 coverage.xml
+composer.lock
