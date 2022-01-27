@@ -42,4 +42,8 @@ jobs:
 
       - name: Unzip
         run: |
-          unzip export.zip
+          unzip export.zip -d export
+
+      - name: Verify export
+        run: | 
+          cat export/sample-page.md | grep "title: 'Sample Page'"
