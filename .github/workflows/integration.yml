@@ -18,7 +18,7 @@ jobs:
       - name: Docker compose
         uses: isbang/compose-action@v1.0.0
         with:
-          compose-file: './docker-compose-ci.yml'
+          compose-file: './docker-compose.yml'
 
       - name: Setup WP
         run: |
