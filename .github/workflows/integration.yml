@@ -22,7 +22,7 @@ jobs:
 
       - name: Wait for DB to initialize
         run: |
-          while ! docker-compose run --rm --user 33:33 wpcli wp db tables; do
+          while ! docker-compose run --rm --user 33:33 wpcli wp db check; do
             echo "Waiting for DB to initialize..."
             sleep 1
           done
