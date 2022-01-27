@@ -17,7 +17,7 @@ services:
       - db
     volumes:
       - wordpress:/var/www/html
-      - ./:/var/www/html/wp-content/plugins/jekyll-exporter
+      - ${PWD}/:/var/www/html/wp-content/plugins/jekyll-exporter
 
   wpcli:
     image: "wordpress:cli"
@@ -33,7 +33,7 @@ services:
       - db
     volumes:
       - wordpress:/var/www/html
-      - ./:/var/www/html/wp-content/plugins/jekyll-exporter
+      - ${PWD}/:/var/www/html/wp-content/plugins/jekyll-exporter
 
   db:
     image: mysql:5.7
