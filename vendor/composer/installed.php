@@ -5,7 +5,7 @@
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => 'af26e133208a718a73e241402db033fa54b0a268',
+        'reference' => 'd2e7ef00ec8105bb0137b7481898d18b22794251',
         'name' => 'benbalter/wordpress-to-jekyll-exporter',
         'dev' => false,
     ),
@@ -16,7 +16,7 @@
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => 'af26e133208a718a73e241402db033fa54b0a268',
+            'reference' => 'd2e7ef00ec8105bb0137b7481898d18b22794251',
             'dev_requirement' => false,
         ),
         'league/html-to-markdown' => array(
