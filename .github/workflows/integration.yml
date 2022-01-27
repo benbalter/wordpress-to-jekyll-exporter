@@ -20,6 +20,14 @@ jobs:
         with:
           compose-file: './docker-compose.yml'
 
+      - name: Wait for DB to initialize
+        run: |
+          while ! nc -zv localhost 3306; do
+            echo "Waiting for DB to initialize..."
+            sleep 1
+          done
+          echo "DB is ready"
+
       - name: Setup WP
         run: |
           docker-compose run --rm --user 33:33 wpcli wp core install --url=http://localhost:8088 --title=WordPress --admin_user=admin --admin_email=admin@example.com
