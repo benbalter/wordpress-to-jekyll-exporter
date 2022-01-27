@@ -1,0 +1,37 @@
+name: Integration test
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  integration-test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Docker compose
+        uses: isbang/compose-action@v1.0.0
+        with:
+          compose-file: './docker-compose-ci.yml'
+
+      - name: Setup WP
+        run: |
+          docker-compose run --rm --user 33:33 wpcli wp core install --url=http://localhost:8088 --title=WordPress --admin_user=admin --admin_email=admin@example.com
+
+      - name: Activate plugin
+        run: 
+          docker-compose run --rm --user 33:33 wpcli wp plugin activate jekyll-exporter
+
+      - name: Export
+        run: |
+          docker-compose run --rm --user 33:33 wpcli wp jekyll-export > export.zip
+
+      - name: Unzip
+        run: |
+          unzip export.zip

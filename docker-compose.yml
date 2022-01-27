@@ -3,7 +3,7 @@ version: '3.1'
 services:
 
   wordpress:
-    image: wordpress
+    image: wordpress:latest
     restart: always
     ports:
       - 8088:80
@@ -12,6 +12,25 @@ services:
       WORDPRESS_DB_USER: exampleuser
       WORDPRESS_DB_PASSWORD: examplepass
       WORDPRESS_DB_NAME: exampledb
+      WORDPRESS_DEBUG: 1
+    depends_on:
+      - db
+    volumes:
+      - wordpress:/var/www/html
+      - $PWD:/var/www/html/wp-content/plugins/jekyll-exporter
+
+  wpcli:
+    image: "wordpress:cli"
+    restart: always
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: exampleuser
+      WORDPRESS_DB_PASSWORD: examplepass
+      WORDPRESS_DB_NAME: exampledb
+      WORDPRESS_DEBUG: 1
+    depends_on:
+      - wordpress
+      - db
     volumes:
       - wordpress:/var/www/html
       - $PWD:/var/www/html/wp-content/plugins/jekyll-exporter
@@ -27,17 +46,6 @@ services:
     volumes:
       - db:/var/lib/mysql
 
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    links: 
-        - db:db
-    ports:
-        - 8089:80
-    environment:
-        MYSQL_USER: exampleuser
-        MYSQL_PASSWORD: examplepass
-        MYSQL_ROOT_PASSWORD: '1'
-      
 volumes:
   wordpress:
   db:
