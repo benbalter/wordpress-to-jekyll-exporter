@@ -1,0 +1,49 @@
+name: Integration test
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  integration-test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Docker compose
+        uses: isbang/compose-action@v1.1.0
+        with:
+          compose-file: './docker-compose.yml'
+
+      - name: Wait for DB to initialize
+        run: |
+          while ! docker-compose run --rm --user 33:33 wpcli wp db check; do
+            echo "Waiting for DB to initialize..."
+            sleep 1
+          done
+          echo "DB is ready"
+
+      - name: Setup WP
+        run: |
+          docker-compose run --rm --user 33:33 wpcli wp core install --url=http://localhost:8088 --title=WordPress --admin_user=admin --admin_email=admin@example.com
+
+      - name: Activate plugin
+        run: 
+          docker-compose run --rm --user 33:33 wpcli wp plugin activate jekyll-exporter
+
+      - name: Export
+        run: |
+          docker-compose run --rm --user 33:33 wpcli wp jekyll-export > export.zip
+
+      - name: Unzip
+        run: |
+          unzip export.zip -d export
+
+      - name: Verify export
+        run: | 
+          cat export/sample-page.md | grep "title: 'Sample Page'"
