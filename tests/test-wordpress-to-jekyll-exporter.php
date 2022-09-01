@@ -24,6 +24,13 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 	private static $post_id = 0;
 
 	/**
+	 * ID of sample future post
+	 *
+	 * @var int
+	 */
+	private static $future_post_id = 1;
+
+	/**
 	 * ID of sample draft
 	 *
 	 * @var int
@@ -74,6 +81,19 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 				'post_category' => array( $category_id ),
 				'tags_input'    => array( 'tag1', 'tag2' ),
 				'post_date'     => '2014-01-01',
+			)
+		);
+
+		self::$future_post_id = wp_insert_post(
+			array(
+				'post_name'     => 'test-future-post',
+				'post_title'    => 'Test Future Post',
+				'post_content'  => 'This is a test <strong>future post</strong>.',
+				'post_status'   => 'future',
+				'post_author'   => $author,
+				'post_category' => array( $category_id ),
+				'tags_input'    => array( 'tag1', 'tag2' ),
+				'post_date'     => '3014-01-01',
 			)
 		);
 
@@ -156,7 +176,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 	 */
 	function test_gets_post_ids() {
 		global $jekyll_export;
-		$expected = array( self::$post_id, self::$draft_id, self::$page_id, self::$sub_page_id );
+		$expected = array( self::$post_id, self::$future_post_id, self::$draft_id, self::$page_id, self::$sub_page_id );
 		$actual   = $jekyll_export->get_posts();
 		$this->assertTrue( ! array_diff( $expected, $actual ) && ! array_diff( $actual, $expected ) );
 	}
@@ -228,10 +248,12 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 		global $jekyll_export;
 		$jekyll_export->convert_posts();
 
-		$post = $jekyll_export->dir . '/_posts/2014-01-01-test-post.md';
+		$post        = $jekyll_export->dir . '/_posts/2014-01-01-test-post.md';
+		$future_post = $jekyll_export->dir . '/_posts/3014-01-01-test-future-post.md';
 
-		// write the post file to the temp dir.
+		// write the post files to the temp dir.
 		$this->assertFileExists( $post );
+		$this->assertFileExists( $future_post );
 
 		// Handles pages.
 		$this->assertFileExists( $jekyll_export->dir . 'test-page.md' );
@@ -243,6 +265,8 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 		// writes the file contents.
 		$contents = file_get_contents( $post );
 		$this->assertStringContainsString( 'title: \'Test Post\'', $contents, 'file contents' );
+		$future_contents = file_get_contents( $future_post );
+		$this->assertStringContainsString( 'title: \'Test Future Post\'', $future_contents, 'file contents' );
 
 		// writes valid YAML.
 		$parts = explode( '---', $contents );
