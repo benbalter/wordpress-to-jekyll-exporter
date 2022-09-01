@@ -391,7 +391,7 @@ class Jekyll_Export {
 
 		global $wp_filesystem;
 
-		if ( get_post_status( $post ) !== 'publish' ) {
+		if ( ! in_array( get_post_status( $post ), array( 'publish', 'future' ), true ) ) {
 			$filename = '_drafts/' . sanitize_file_name( get_page_uri( $post->id ) . '-' . ( get_the_title( $post->id ) ) . '.md' );
 		} elseif ( get_post_type( $post ) === 'page' ) {
 			$filename = get_page_uri( $post->id ) . '.md';
