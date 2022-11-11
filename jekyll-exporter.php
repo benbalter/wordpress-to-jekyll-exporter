@@ -60,6 +60,32 @@ $config['comment_target_data'] = true;		// Export comments as data files
 // $config['category_id'] = "DIC_kwDOIVZ3Bc4CSRMx"; // Get values from giscus config page
 
 
+// The site URL should be correctly detected from Wordpress, if not force here (ex: "https://www.mywebsite.fr/")
+$config["site_url"] = get_site_url() . '/';		// Trailing slash is important to get relative URLs
+
+$config["extra_remove_site_url"] = $config["site_url"];  // Will remove site url to get relative URLs
+$config['extra_code'] = true; // Will retrieve lang and protect pre/code
+$config['extra_img_style'] = true; // Will retrieve style from image
+$config['extra_tag_spoiler'] = true; // Will convert spoiler tags
+
+// Configure types exported (revision can cause some article mismatch, try remove it in case of problems)
+$config['export_types'] = ['post', 'page', 'revision'];
+
+// Configure name of key where WordPress post id is exported to
+$config["post_id_key"] = "id";
+
+$config["meta_ignore_list"] = array(
+	'_*',
+	'ocean_*',
+	'classic-editor-remember',
+	'osh_disable_topbar_sticky',
+	'osh_disable_header_sticky',
+	'osh_sticky_header_style',
+	'ampforwp-amp-on-off',
+);
+
+//$config['force_dest_dir'] = "/dest-path/"; // "_export/"; // Force destination directory to relative one (without temp folder, will deactivate zip)
+
 
 if ( version_compare( PHP_VERSION, '5.3.0', '<' ) ) {
 	wp_die( 'Jekyll Export requires PHP 5.3 or later' );
@@ -72,6 +98,33 @@ use League\HTMLToMarkdown\HtmlConverter;
 use League\HTMLToMarkdown\Converter\TableConverter;
 use Symfony\Component\Yaml\Yaml;
 
+
+function jekyll_exporter_patch_contents($contents) {
+	
+	if ($config["extra_remove_site_url"]) $contents = preg_replace("!${$config['extra_remove_site_url']}!",'', $contents);
+
+	if ($config['extra_code']) {
+		$contents = preg_replace('!<span[^>]*crayon-inline[^>]*>([^<]*)</span>!','<code>\1</code>', $contents);
+		$contents = preg_replace('!class="lang:default!','class="', $contents);
+		$contents = preg_replace('!class="lang:!','class="language-', $contents);
+		$contents = preg_replace('!<pre([^>]*)><code>!','<pre\1>', $contents);
+		$contents = preg_replace('!</code></pre>!','</pre>', $contents);
+		$contents = preg_replace('!<pre([^>]*)>!','<pre><code \1>', $contents);
+		$contents = preg_replace('!</pre[^>]*>!','</code></pre>', $contents);
+	}
+	if ($config['extra_img_style']) {
+		$contents = preg_replace('!(<img[^>]*alignright[^>]*/>)!','\1{: .img-right}', $contents);
+		$contents = preg_replace('!(<img[^>]*aligncenter[^>]*/>)!','\1{: .img-center}', $contents);
+		$contents = preg_replace('!(<img[^>]*aligncenter[^>]*/>)!','\1{: .img-center}', $contents);
+	}
+	if ($config['extra_tag_spoiler']) {
+		$contents = preg_replace('!\[su_spoiler title="([^"]*)" [^\]]*\]!',"<details markdown=\"1\"><summary>\\1</summary>", $contents);
+		$contents = preg_replace('!\[/su_spoiler\]!',"</details>", $contents);
+	}
+								
+	return $contents;
+}
+add_filter( 'the_content', 'jekyll_exporter_patch_contents');
 
 // https://gist.github.com/dunglas/05d901cb7560d2667d999875322e690a
 function graphql_query(string $endpoint, string $query, array $variables = [], ?string $token = null): array
@@ -243,6 +296,7 @@ class Jekyll_Export {
 	 */
 	function get_posts() {
 		global $wpdb;
+		global $config;
 
 		$posts = wp_cache_get( 'jekyll_export_posts' );
 		if ( $posts ) {
@@ -250,7 +304,7 @@ class Jekyll_Export {
 		}
 
 		$posts      = array();
-		$post_types = apply_filters( 'jekyll_export_post_types', array( 'post', 'page' /*, 'revision'*/ ) );
+		$post_types = apply_filters( 'jekyll_export_post_types', $config['export_types'] );
 
 		/**
 		 * WordPress style rules don't let us interpolate a string before passing it to
@@ -273,8 +327,10 @@ class Jekyll_Export {
 	 */
 	function convert_meta( $post ) {
 
+		global $config;
+
 		$output = array(
-			'post_id'      => $post->ID,
+			$config["post_id_key"] => $post->ID,
 			'title'   => get_the_title( $post ),
 			'date'    => get_the_date( 'c', $post ),
 			'last_modified_at'    => get_the_modified_date( 'c', $post ),
@@ -292,15 +348,7 @@ class Jekyll_Export {
 		}
 
 		// Convert traditional post_meta values, hide hidden values.
-		$ignore_list = array(
-			'_*',
-			'ocean_*',
-			'classic-editor-remember',
-			'osh_disable_topbar_sticky',
-			'osh_disable_header_sticky',
-			'osh_sticky_header_style',
-			'ampforwp-amp-on-off',
-		);
+		$ignore_list = $config['meta_ignore_list'];
 
 		foreach ( get_post_custom( $post->ID ) as $key => $value ) {
 
@@ -457,8 +505,6 @@ class Jekyll_Export {
 			$post = get_post( $post_id );
 
 			setup_postdata( $post );
-
-			//if ($post->ID != $post_id)  var_dump($post);
 
 			$meta = array_merge( $this->convert_meta( $post ), $this->convert_terms( $post_id ) );
 
@@ -690,9 +736,11 @@ class Jekyll_Export {
 	/**
 	 * Main function, bootstraps, converts, and cleans up
 	 */
-	function export() {
+	function export($user_config = null) {
 		global $config;
 
+		if ($user_config) $config = array_merge($config, $user_config);
+		
 		do_action( 'jekyll_export' );
 		ob_start();
 		$this->init_temp_dir();
