@@ -17,7 +17,7 @@
     "dealerdirect/phpcodesniffer-composer-installer": "^0.7.0",
     "php-coveralls/php-coveralls": "*",
     "squizlabs/php_codesniffer": "~3.5",
-    "yoast/phpunit-polyfills": "^1.0"
+    "yoast/phpunit-polyfills": "^2.0"
   },
   "config": {
     "bin-dir": "bin",
