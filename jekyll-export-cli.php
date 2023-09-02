@@ -16,7 +16,17 @@
  *
  * Must be run in the wordpress-to-jekyll-exporter/ directory.
  */
-require '../../../wp-load.php';
+
+// Uncomment for extra replace options
+
+// Customize here the path to wordpress installation if not in the wordpress plugin dir (ex: "/home/wordpress/")
+$wordpress_path = "../../../";
+
+$user_config = array();
+// You may customize user_config outside the source files with adding a jekyll-export-local-conf.php
+if (file_exists('jekyll-export-local-conf.php')) { include 'jekyll-export-local-conf.php'; }
+
+require $wordpress_path . 'wp-load.php';
 require_once 'jekyll-exporter.php'; // Ensure plugin is "activated".
 
 if ( php_sapi_name() !== 'cli' ) {
@@ -24,4 +34,4 @@ if ( php_sapi_name() !== 'cli' ) {
 }
 
 $jekyll_export = new Jekyll_Export();
-$jekyll_export->export();
+$jekyll_export->export($user_config);
