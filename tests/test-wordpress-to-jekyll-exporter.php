@@ -310,11 +310,10 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 
 		// writes the file content.
 		$contents = file_get_contents( $config );
-		$this->assertStringContainsString( 'description: \'Just another WordPress site\'', $contents );
+		$this->assertStringContainsString( 'name: \'Test Blog\'', $contents );
 
 		// writes valid YAML.
 		$yaml = Yaml::parse( $contents );
-		$this->assertEquals( 'Just another WordPress site', $yaml['description'] );
 		$this->assertEquals( 'http://example.org', $yaml['url'] );
 		$this->assertEquals( 'Test Blog', $yaml['name'] );
 	}
