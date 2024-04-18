@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace League\HTMLToMarkdown\Converter;
 
+use League\HTMLToMarkdown\Coerce;
 use League\HTMLToMarkdown\Configuration;
 use League\HTMLToMarkdown\ConfigurationAwareInterface;
 use League\HTMLToMarkdown\ElementInterface;
@@ -38,8 +39,8 @@ class ListItemConverter implements ConverterInterface, ConfigurationAwareInterfa
         }
 
         if ($listType === 'ul') {
-            $listItemStyle          = $this->config->getOption('list_item_style', '-');
-            $listItemStyleAlternate = $this->config->getOption('list_item_style_alternate');
+            $listItemStyle          = Coerce::toString($this->config->getOption('list_item_style', '-'));
+            $listItemStyleAlternate = Coerce::toString($this->config->getOption('list_item_style_alternate', ''));
             if (! isset($this->listItemStyle)) {
                 $this->listItemStyle = $listItemStyleAlternate ?: $listItemStyle;
             }

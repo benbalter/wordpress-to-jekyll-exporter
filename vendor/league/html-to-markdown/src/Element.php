@@ -63,7 +63,7 @@ class Element implements ElementInterface
 
     public function getValue(): string
     {
-        return $this->node->nodeValue;
+        return $this->node->nodeValue ?? '';
     }
 
     public function hasParent(): bool
@@ -98,6 +98,8 @@ class Element implements ElementInterface
     {
         $ret = [];
         foreach ($this->node->childNodes as $node) {
+            /** @psalm-suppress RedundantCondition */
+            \assert($node instanceof \DOMNode);
             $ret[] = new self($node);
         }
 
@@ -116,7 +118,7 @@ class Element implements ElementInterface
         return $this->nextCached;
     }
 
-    private function getNextNode(\DomNode $node, bool $checkChildren = true): ?\DomNode
+    private function getNextNode(\DOMNode $node, bool $checkChildren = true): ?\DOMNode
     {
         if ($checkChildren && $node->firstChild) {
             return $node->firstChild;
@@ -142,11 +144,7 @@ class Element implements ElementInterface
             $tagNames = [$tagNames];
         }
 
-        for ($p = $this->node->parentNode; $p !== false; $p = $p->parentNode) {
-            if ($p === null) {
-                return false;
-            }
-
+        for ($p = $this->node->parentNode; $p !== null; $p = $p->parentNode) {
             if (\in_array($p->nodeName, $tagNames, true)) {
                 return true;
             }
