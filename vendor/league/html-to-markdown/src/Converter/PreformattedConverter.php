@@ -11,9 +11,7 @@ class PreformattedConverter implements ConverterInterface
     public function convert(ElementInterface $element): string
     {
         $preContent = \html_entity_decode($element->getChildrenAsString());
-        $preContent = \preg_replace('/<pre\b[^>]*>/', '', $preContent);
-        \assert($preContent !== null);
-        $preContent = \str_replace('</pre>', '', $preContent);
+        $preContent = \str_replace(['<pre>', '</pre>'], '', $preContent);
 
         /*
          * Checking for the code tag.
