@@ -18,7 +18,7 @@
 		<exclude name="WordPress.WP.AlternativeFunctions.file_system_operations_readfile" />
 		<exclude name="Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound" />
 		<exclude name="Generic.CodeAnalysis.AssignmentInCondition.FoundInWhileCondition" />
-		<exclude name-"WordPress.WP.AlternativeFunctions.file_system_operations_fwrite" />
+		<exclude name="WordPress.WP.AlternativeFunctions.file_system_operations_fwrite" />
 		<exclude name="WordPress.WP.AlternativeFunctions.file_system_operations_mkdir" />
 		<exclude name="Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed" />
 	</rule>
