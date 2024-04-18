@@ -2,9 +2,9 @@
 Contributors: benbalter
 Tags: jekyll, github, github pages, yaml, export, markdown
 Requires at least: 4.4
-Tested up to: 5.9
+Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 2.3.6
+Stable tag: 2.4.0
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -28,11 +28,11 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
 See [the full documentation](https://ben.balter.com/wordpress-to-jekyll-exporter):
 
-* [Changelog](https://ben.balter.com/wordpress-to-jekyll-exporter/changelog/)
-* [Command-line-usage](https://ben.balter.com/wordpress-to-jekyll-exporter/command-line-usage/)
-* [Custom post types](https://ben.balter.com/wordpress-to-jekyll-exporter/custom-post-types/)
-* [Developing locally](https://ben.balter.com/wordpress-to-jekyll-exporter/developing-locally/)
-* [Minimum required PHP version](https://ben.balter.com/wordpress-to-jekyll-exporter/required-php-version/)
+* [Changelog](https://ben.balter.com/wordpress-to-jekyll-exporter/./docs/changelog/)
+* [Command-line-usage](https://ben.balter.com/wordpress-to-jekyll-exporter/./docs/command-line-usage/)
+* [Custom post types](https://ben.balter.com/wordpress-to-jekyll-exporter/./docs/custom-post-types/)
+* [Developing locally](https://ben.balter.com/wordpress-to-jekyll-exporter/./docs/developing-locally/)
+* [Minimum required PHP version](https://ben.balter.com/wordpress-to-jekyll-exporter/./docs/required-php-version/)
 
 
 === Security Policy ===
