@@ -13,7 +13,7 @@
   "require-dev": {
     "phpunit/phpunit": "~8.0",
     "wp-cli/wp-cli": "~2.4",
-    "wp-coding-standards/wpcs": "^3.0.0",
+    "wp-coding-standards/wpcs": "^3.0",
     "php-coveralls/php-coveralls": "*",
     "yoast/phpunit-polyfills": "^1.0"
   },
