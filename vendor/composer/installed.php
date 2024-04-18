@@ -3,7 +3,7 @@
         'name' => 'benbalter/wordpress-to-jekyll-exporter',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => '4265631f526976ae968a0ede62d0e14d400bf874',
+        'reference' => '52dec7112d6d2d45eac2c8ee766f0ef56dc68f94',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'benbalter/wordpress-to-jekyll-exporter' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '4265631f526976ae968a0ede62d0e14d400bf874',
+            'reference' => '52dec7112d6d2d45eac2c8ee766f0ef56dc68f94',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
