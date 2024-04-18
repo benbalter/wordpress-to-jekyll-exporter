@@ -43,6 +43,7 @@ require_once __DIR__ . '/lib/cli.php';
 require_once __DIR__ . '/vendor/autoload.php';
 
 use League\HTMLToMarkdown\HtmlConverter;
+use League\HTMLToMarkdown\Coerce
 use League\HTMLToMarkdown\Converter\TableConverter;
 use Symfony\Component\Yaml\Yaml;
 
