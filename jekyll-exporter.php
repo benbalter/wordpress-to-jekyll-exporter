@@ -39,8 +39,8 @@ if ( version_compare( PHP_VERSION, '5.3.0', '<' ) ) {
 	wp_die( 'Jekyll Export requires PHP 5.3 or later' );
 }
 
-require_once dirname( __FILE__ ) . '/lib/cli.php';
-require_once dirname( __FILE__ ) . '/vendor/autoload.php';
+require_once __DIR__ . '/lib/cli.php';
+require_once __DIR__ . '/vendor/autoload.php';
 
 use League\HTMLToMarkdown\HtmlConverter;
 use League\HTMLToMarkdown\Converter\TableConverter;

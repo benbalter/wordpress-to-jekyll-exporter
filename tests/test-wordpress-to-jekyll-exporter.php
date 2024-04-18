@@ -412,5 +412,4 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 		$this->assertTrue( file_exists( $jekyll_export->dir . '/foo.txt' ) );
 		$this->assertTrue( file_exists( $jekyll_export->dir . '/folder/foo.txt' ) );
 	}
-
 }
