@@ -51,7 +51,8 @@ add_filter( 'jekyll_export_meta', function($meta) {
                 $value = $value[0];
             }
         }
-        $meta[$key] = match ($key) {
+        // convert types
+        $value = match ($key) {
             // Advanced Custom Fields: "true_false" type
             'my-bool' => (bool) $value,
             default => $value
