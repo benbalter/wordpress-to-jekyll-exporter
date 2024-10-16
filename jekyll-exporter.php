@@ -392,9 +392,9 @@ class Jekyll_Export {
 		global $wp_filesystem;
 
 		if ( ! in_array( get_post_status( $post ), array( 'publish', 'future' ), true ) ) {
-			$filename = '_drafts/' . sanitize_file_name( get_page_uri( $post->id ) . '-' . ( get_the_title( $post->id ) ) . '.md' );
+			$filename = '_drafts/' . sanitize_file_name( get_page_uri( $post->ID ) . '-' . ( get_the_title( $post->ID ) ) . '.md' );
 		} elseif ( get_post_type( $post ) === 'page' ) {
-			$filename = get_page_uri( $post->id ) . '.md';
+			$filename = get_page_uri( $post->ID ) . '.md';
 		} else {
 			$filename = '_' . get_post_type( $post ) . 's/' . gmdate( 'Y-m-d', strtotime( $post->post_date ) ) . '-' . sanitize_file_name( $post->post_name ) . '.md';
 		}
