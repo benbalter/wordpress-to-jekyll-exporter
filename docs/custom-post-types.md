@@ -1,10 +1,10 @@
 ## Custom post types
 
-To export custom post types, you'll need to add a filter to do the following:
+To export custom post types, you'll need to add a filter (w.g. to your themes config file) to do the following:
 
 ```php
 add_filter( 'jekyll_export_post_types', function() {
-	return array('posts', 'pages', 'you-custom-post-type');
+	return array('post', 'page', 'you-custom-post-type');
 });
 ```
 
