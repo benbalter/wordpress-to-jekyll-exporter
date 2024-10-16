@@ -43,13 +43,16 @@ A more complete solution could look like that:
 ```php
 add_filter( 'jekyll_export_meta', function($meta) {
     foreach ($meta as $key => $value) {
+        // Advanced Custom Fields
         if (is_array($value) && count($value) === 1 && array_key_exists(0, $value)) {
             $value = maybe_unserialize($value[0]);
-            if (is_array($value)) {
+            // Advanced Custom Fields: NextGEN Gallery Field add-on
+            if (is_array($value) && count($value) === 1 && array_key_exists(0, $value)) {
                 $value = $value[0];
             }
         }
         $meta[$key] = match ($key) {
+            // Advanced Custom Fields: "true_false" type
             'my-bool' => (bool) $value,
             default => $value
         };
