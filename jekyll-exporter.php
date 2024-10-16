@@ -275,7 +275,7 @@ class Jekyll_Export {
 			$post = get_post( $post_id );
 			setup_postdata( $post );
 
-			$meta = array_merge( $this->convert_meta( $post ), $this->convert_terms( $post_id ) );
+			$meta = array_merge( $this->convert_meta( $post ), $this->convert_terms( $post ) );
 
 			// remove falsy values, which just add clutter.
 			foreach ( $meta as $key => $value ) {
