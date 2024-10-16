@@ -18,7 +18,7 @@ jobs:
       - name: Docker compose
         uses: isbang/compose-action@v2.0.1
         with:
-          compose-file: './docker compose.yml'
+          compose-file: './docker-compose.yml'
 
       - name: Wait for DB to initialize
         run: |
