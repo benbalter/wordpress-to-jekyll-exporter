@@ -12,9 +12,9 @@
  * Plugin Name: WordPress to Jekyll Exporter
  * Plugin URI:  https://github.com/benbalter/wordpress-to-jekyll-exporter/
  * Description: Exports WordPress posts, pages, and options as YAML files parsable by Jekyll
- * Version:     2.4.0
+ * Version:     2.4.1
  * Author:      Ben Balter
- * Author URI:  http://ben.balter.com
+ * Author URI:  https://ben.balter.com
  * Text Domain: jekyll-export
  * License:     GPL-3.0+
  * License URI: http://www.gnu.org/licenses/gpl-3.0.txt
@@ -275,7 +275,7 @@ class Jekyll_Export {
 			$post = get_post( $post_id );
 			setup_postdata( $post );
 
-			$meta = array_merge( $this->convert_meta( $post ), $this->convert_terms( $post_id ) );
+			$meta = array_merge( $this->convert_meta( $post ), $this->convert_terms( $post ) );
 
 			// remove falsy values, which just add clutter.
 			foreach ( $meta as $key => $value ) {
