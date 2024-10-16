@@ -37,3 +37,26 @@ add_filter( 'jekyll_export_meta', function($meta) {
     return $meta;
 });
 ```
+
+A more complete solution could look like that:
+
+```php
+add_filter( 'jekyll_export_meta', function($meta) {
+    foreach ($meta as $key => $value) {
+        if (is_array($value) && count($value) === 1 && array_key_exists(0, $value)) {
+            $value = maybe_unserialize($value[0]);
+            if (is_array($value)) {
+                $value = $value[0];
+            }
+        }
+        $meta[$key] = match ($key) {
+            'my-bool' => (bool) $value,
+            default => $value
+        };
+        $meta[$key] = $value;
+    }
+
+    return $meta;
+});
+```
+
