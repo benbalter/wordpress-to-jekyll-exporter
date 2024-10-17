@@ -31,5 +31,6 @@ See [the full documentation](https://ben.balter.com/wordpress-to-jekyll-exporter
 * [Changelog](../docs/changelog.md)
 * [Command-line-usage](../docs/command-line-usage.md)
 * [Custom post types](../docs/custom-post-types.md)
+* [Custom fields](../docs/custom-fields.md)
 * [Developing locally](../docs/developing-locally.md)
 * [Minimum required PHP version](../docs/required-php-version.md)
