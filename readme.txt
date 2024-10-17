@@ -2,9 +2,9 @@
 Contributors: benbalter
 Tags: jekyll, github, github pages, yaml, export, markdown
 Requires at least: 4.4
-Tested up to: 6.5
+Tested up to: 6.6
 Requires PHP: 7.2
-Stable tag: 2.4.0
+Stable tag: 2.4.1
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -31,6 +31,7 @@ See [the full documentation](https://ben.balter.com/wordpress-to-jekyll-exporter
 * [Changelog](https://ben.balter.com/wordpress-to-jekyll-exporter/./docs/changelog/)
 * [Command-line-usage](https://ben.balter.com/wordpress-to-jekyll-exporter/./docs/command-line-usage/)
 * [Custom post types](https://ben.balter.com/wordpress-to-jekyll-exporter/./docs/custom-post-types/)
+* [Custom fields](https://ben.balter.com/wordpress-to-jekyll-exporter/./docs/custom-fields/)
 * [Developing locally](https://ben.balter.com/wordpress-to-jekyll-exporter/./docs/developing-locally/)
 * [Minimum required PHP version](https://ben.balter.com/wordpress-to-jekyll-exporter/./docs/required-php-version/)
 
@@ -89,13 +90,81 @@ wp jekyll-export > export.zip
 The WP-CLI version will provide greater compatibility for alternate WordPress environments, such as when `wp-content` isn't in the usual location.
 
 
+== Custom fields ==
+
+When using custom fields (e.g. with the Advanced Custom fields plugin) you might have to register a filter to convert array style configs to plain values.
+
+By default, the plugin saves custom fields in an array structure that is exported as: 
+
+```php
+["my-bool"]=>
+    array(1) {
+        [0] => string(1) "1"
+    }
+["location"]=>
+    array(1) {
+        [0] => string(88) "My address"
+    }
+```
+
+And this leads to a YAML structure like:
+
+```yaml
+my-bool:
+- "1"
+location:
+- 'My address'
+```
+
+This is likely not the structure you expect or want to work with. You can convert it using a filter:
+
+```php
+add_filter( 'jekyll_export_meta', function($meta) {
+    foreach ($meta as $key => $value) {
+        if (is_array($value) && count($value) === 1 && array_key_exists(0, $value)) {
+            $meta[$key] = $value[0];
+        }
+    }
+
+    return $meta;
+});
+```
+
+A more complete solution could look like that:
+
+```php
+add_filter( 'jekyll_export_meta', function($meta) {
+    foreach ($meta as $key => $value) {
+        // Advanced Custom Fields
+        if (is_array($value) && count($value) === 1 && array_key_exists(0, $value)) {
+            $value = maybe_unserialize($value[0]);
+            // Advanced Custom Fields: NextGEN Gallery Field add-on
+            if (is_array($value) && count($value) === 1 && array_key_exists(0, $value)) {
+                $value = $value[0];
+            }
+        }
+        // convert types
+        $value = match ($key) {
+            // Advanced Custom Fields: "true_false" type
+            'my-bool' => (bool) $value,
+            default => $value
+        };
+        $meta[$key] = $value;
+    }
+
+    return $meta;
+});
+```
+
+
+
 == Custom post types ==
 
-To export custom post types, you'll need to add a filter to do the following:
+To export custom post types, you'll need to add a filter (w.g. to your themes config file) to do the following:
 
 ```php
 add_filter( 'jekyll_export_post_types', function() {
-	return array('posts', 'pages', 'you-custom-post-type');
+	return array('post', 'page', 'you-custom-post-type');
 });
 ```
 
