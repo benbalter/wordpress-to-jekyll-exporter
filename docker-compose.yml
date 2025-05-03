@@ -28,6 +28,8 @@ services:
       WORDPRESS_DB_PASSWORD: examplepass
       WORDPRESS_DB_NAME: exampledb
       WORDPRESS_DEBUG: 1
+      MYSQL_SSL_MODE: DISABLED
+      MYSQL_CLIENT_FLAGS: --ssl-mode=DISABLED
     depends_on:
       - wordpress
       - db
