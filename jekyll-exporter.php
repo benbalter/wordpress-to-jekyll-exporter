@@ -199,8 +199,8 @@ class Jekyll_Export {
 		$output = array();
 
 		foreach ( get_object_taxonomies(
-            get_post_type( $post )
-          ) as $tax ) {
+					get_post_type( $post )
+				) as $tax ) {
 
 			$terms = get_the_terms( $post, $tax );
 
@@ -245,7 +245,7 @@ class Jekyll_Export {
 			}
 		}
 
-		$content           = get_the_content(null, false, $post);
+		$content           = get_the_content( null, false, $post );
 		$converter_options = apply_filters( 'jekyll_export_markdown_converter_options', array( 'header_style' => 'atx' ) );
 		$converter         = new HtmlConverter( $converter_options );
 		$converter->getEnvironment()->addConverter( new TableConverter() );
