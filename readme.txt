@@ -7,7 +7,8 @@ Requires PHP: 7.2
 Stable tag: 2.4.2
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
-
+GitHub Plugin URI: benbalter/wordpress-to-jekyll-exporter
+Primary Branch: master
 == Features ==
 
 * Converts all posts, pages, and settings from WordPress to Markdown and YAML for use in Jekyll (or Hugo or any other Markdown and YAML based site engine)
