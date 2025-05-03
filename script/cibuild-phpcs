@@ -4,5 +4,6 @@ set -e
 
 export PATH="$TRAVIS_BUILD_DIR/vendor/squizlabs/php_codesniffer/bin:$PATH"
 
-#phpcs --config-set installed_paths $TRAVIS_BUILD_DIR/vendor/wp-coding-standards/wpcs
+composer config allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
+composer require --dev wp-coding-standards/wpcs:"^3.0"
 phpcs --standard=phpcs.ruleset.xml -p -s --colors *.php */**.php -v
