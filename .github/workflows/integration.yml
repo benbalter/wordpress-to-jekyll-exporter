@@ -22,7 +22,7 @@ jobs:
 
       - name: Wait for DB to initialize
         run: |
-          while ! docker compose run --rm --user 33:33 wpcli wp db check; do
+          while ! docker compose run --rm --user 33:33 -e MYSQL_SSL_MODE=DISABLED wpcli wp db check; do
             echo "Waiting for DB to initialize..."
             sleep 1
           done
@@ -30,15 +30,15 @@ jobs:
 
       - name: Setup WP
         run: |
-          docker compose run --rm --user 33:33 wpcli wp core install --url=http://localhost:8088 --title=WordPress --admin_user=admin --admin_email=admin@example.com
+          docker compose run --rm --user 33:33 -e MYSQL_SSL_MODE=DISABLED wpcli wp core install --url=http://localhost:8088 --title=WordPress --admin_user=admin --admin_email=admin@example.com
 
       - name: Activate plugin
-        run: 
-          docker compose run --rm --user 33:33 wpcli wp plugin activate jekyll-exporter
+        run: |
+          docker compose run --rm --user 33:33 -e MYSQL_SSL_MODE=DISABLED wpcli wp plugin activate jekyll-exporter
 
       - name: Export
         run: |
-          docker compose run --rm --user 33:33 wpcli wp jekyll-export > export.zip
+          docker compose run --rm --user 33:33 -e MYSQL_SSL_MODE=DISABLED wpcli wp jekyll-export > export.zip
 
       - name: Unzip
         run: |
