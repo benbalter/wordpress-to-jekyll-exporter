@@ -199,8 +199,8 @@ class Jekyll_Export {
 		$output = array();
 
 		foreach ( get_object_taxonomies(
-					get_post_type( $post )
-				) as $tax ) {
+			get_post_type( $post )
+		) as $tax ) {
 
 			$terms = get_the_terms( $post, $tax );
 
