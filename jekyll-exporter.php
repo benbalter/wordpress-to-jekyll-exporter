@@ -12,14 +12,14 @@
  * Plugin Name: WordPress to Jekyll Exporter
  * Plugin URI:  https://github.com/benbalter/wordpress-to-jekyll-exporter/
  * Description: Exports WordPress posts, pages, and options as YAML files parsable by Jekyll
- * Version:     2.4.1
+ * Version:     2.4.2
  * Author:      Ben Balter
  * Author URI:  https://ben.balter.com
  * Text Domain: jekyll-export
  * License:     GPL-3.0+
  * License URI: http://www.gnu.org/licenses/gpl-3.0.txt
  *
- * Copyright 2012-2022 Ben Balter  (email : Ben@Balter.com)
+ * Copyright 2012-2025 Ben Balter  (email : Ben@Balter.com)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as
@@ -51,7 +51,7 @@ use Symfony\Component\Yaml\Yaml;
  *
  * @package    JekyllExporter
  * @author     Ben Balter <ben.balter@github.com>
- * @copyright  2012-2022 Ben Balter
+ * @copyright  2012-2025 Ben Balter
  * @license    GPLv3
  * @link       https://github.com/benbalter/wordpress-to-jekyll-exporter/
  */
