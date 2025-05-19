@@ -18,6 +18,8 @@
  * Text Domain: jekyll-export
  * License:     GPL-3.0+
  * License URI: http://www.gnu.org/licenses/gpl-3.0.txt
+ * Requires at least: 3.0.0
+ * Tested up to: 6.7.1
  *
  * Copyright 2012-2025 Ben Balter  (email : Ben@Balter.com)
  *
@@ -327,6 +329,9 @@ class Jekyll_Export {
 	 * Main function, bootstraps, converts, and cleans up
 	 */
 	function export() {
+		// Extend PHP execution time to prevent timeouts
+		@set_time_limit(0);
+		
 		do_action( 'jekyll_export' );
 		ob_start();
 		$this->init_temp_dir();
