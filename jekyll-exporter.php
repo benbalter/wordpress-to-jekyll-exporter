@@ -334,7 +334,7 @@ class Jekyll_Export {
 		if ( ! defined( 'WP_TESTS_DOMAIN' ) ) {
 			set_time_limit( 0 );
 		}
-		
+
 		do_action( 'jekyll_export' );
 		ob_start();
 		$this->init_temp_dir();
