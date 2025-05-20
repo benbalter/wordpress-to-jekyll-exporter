@@ -329,10 +329,10 @@ class Jekyll_Export {
 	 * Main function, bootstraps, converts, and cleans up
 	 */
 	function export() {
-		// Extend PHP execution time to prevent timeouts
-		// Don't apply in test environment to avoid interfering with tests
+		// Extend PHP execution time to prevent timeouts.
+		// Don't apply in test environment to avoid interfering with tests.
 		if ( ! defined( 'WP_TESTS_DOMAIN' ) ) {
-			set_time_limit(0);
+			set_time_limit( 0 );
 		}
 		
 		do_action( 'jekyll_export' );
