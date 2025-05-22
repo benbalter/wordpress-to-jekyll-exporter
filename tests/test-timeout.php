@@ -9,9 +9,6 @@
  * @link       https://github.com/benbalter/wordpress-to-jekyll-exporter/
  */
 
-// Include the plugin file.
-require_once __DIR__ . '../jekyll-exporter.php';
-
 /**
  * Create a mock instance of the class.
  */
