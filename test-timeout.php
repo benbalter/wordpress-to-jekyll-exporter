@@ -4,18 +4,18 @@
  */
 
 // Include the plugin file
-require_once __DIR__ . '/jekyll-exporter.php';
+require_once __DIR__ . '../jekyll-exporter.php';
 
 // Create a mock instance of the class
 class TimeoutTestExporter extends Jekyll_Export {
-    public function test_export() {
-        // Call the export method with output buffering
-        ob_start();
-        $this->export();
-        ob_end_clean();
-        
-        echo "Export completed successfully without timeout.\n";
-    }
+	public function test_export() {
+		// Call the export method with output buffering
+		ob_start();
+		$this->export();
+		ob_end_clean();
+
+		echo "Export completed successfully without timeout.\n";
+	}
 }
 
 // Create an instance and test
