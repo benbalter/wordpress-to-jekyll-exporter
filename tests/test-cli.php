@@ -22,7 +22,7 @@ class CLITest extends WP_UnitTestCase {
 		// The actual CLI class is only defined when WP_CLI is true, not just defined.
 		$cli_file = __DIR__ . '/../lib/cli.php';
 		$this->assertFileExists( $cli_file, 'CLI file should exist' );
-		
+
 		// In the WordPress test environment, WP_CLI may be defined but false.
 		// We can only verify the file structure is valid.
 		$this->assertTrue( true );

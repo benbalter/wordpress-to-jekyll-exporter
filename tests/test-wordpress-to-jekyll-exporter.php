@@ -186,9 +186,9 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 	 */
 	function test_convert_meta() {
 		global $jekyll_export;
-		$post     = get_post( self::$post_id );
-		$meta     = $jekyll_export->convert_meta( $post );
-		
+		$post = get_post( self::$post_id );
+		$meta = $jekyll_export->convert_meta( $post );
+
 		// Use the actual post ID instead of hardcoding.
 		$expected = array(
 			'id'        => $post->ID,
@@ -434,10 +434,10 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 		// properly in the test environment. We'll verify the method exists and is callable.
 		$this->assertTrue( method_exists( $jekyll_export, 'register_menu' ) );
 		$this->assertTrue( is_callable( array( $jekyll_export, 'register_menu' ) ) );
-		
+
 		// Call the method - it should not throw errors.
 		$jekyll_export->register_menu();
-		
+
 		// Verify no errors occurred.
 		$this->assertTrue( true );
 	}
@@ -615,7 +615,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( '# Heading', $content );
 		$this->assertStringContainsString( '[link](http://example.com)', $content );
 		// The HTML-to-Markdown library may use either * or - for lists.
-		$this->assertTrue( 
+		$this->assertTrue(
 			strpos( $content, '* Item 1' ) !== false || strpos( $content, '- Item 1' ) !== false,
 			'Content should contain Item 1 in list format'
 		);
