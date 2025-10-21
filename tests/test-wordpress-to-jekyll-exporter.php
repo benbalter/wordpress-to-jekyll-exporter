@@ -412,4 +412,390 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 		$this->assertTrue( file_exists( $jekyll_export->dir . '/foo.txt' ) );
 		$this->assertTrue( file_exists( $jekyll_export->dir . '/folder/foo.txt' ) );
 	}
+
+	/**
+	 * Test that filesystem_method_filter returns 'direct'
+	 */
+	function test_filesystem_method_filter() {
+		global $jekyll_export;
+		$result = $jekyll_export->filesystem_method_filter();
+		$this->assertEquals( 'direct', $result );
+	}
+
+	/**
+	 * Test that register_menu adds a management page
+	 */
+	function test_register_menu() {
+		global $jekyll_export;
+		global $_wp_submenu_pages;
+
+		// Clear any existing menu items.
+		$_wp_submenu_pages = array();
+
+		// Call register_menu.
+		$jekyll_export->register_menu();
+
+		// Verify the menu was added.
+		$found = false;
+		if ( isset( $_wp_submenu_pages ) && is_array( $_wp_submenu_pages ) ) {
+			foreach ( $_wp_submenu_pages as $parent => $items ) {
+				if ( 'tools.php' === $parent ) {
+					foreach ( $items as $item ) {
+						if ( 'export.php?type=jekyll' === $item[2] ) {
+							$found = true;
+							break 2;
+						}
+					}
+				}
+			}
+		}
+
+		$this->assertTrue( $found, 'Export to Jekyll menu item should be registered' );
+	}
+
+	/**
+	 * Test zip_folder with empty directory
+	 */
+	function test_zip_folder_empty() {
+		global $jekyll_export;
+
+		$empty_dir = $jekyll_export->dir . '/empty';
+		mkdir( $empty_dir );
+		$zip_file = $jekyll_export->dir . '/empty.zip';
+
+		$result = $jekyll_export->zip_folder( $empty_dir, $zip_file );
+
+		$this->assertTrue( $result );
+		$this->assertTrue( file_exists( $zip_file ) );
+	}
+
+	/**
+	 * Test zip_folder with nested directories
+	 */
+	function test_zip_folder_nested() {
+		global $jekyll_export;
+
+		$nested_dir = $jekyll_export->dir . '/nested/deep/path';
+		mkdir( $nested_dir, 0777, true );
+		file_put_contents( $nested_dir . '/test.txt', 'nested content' );
+
+		$zip_file = $jekyll_export->dir . '/nested.zip';
+		$result   = $jekyll_export->zip_folder( $jekyll_export->dir . '/nested', $zip_file );
+
+		$this->assertTrue( $result );
+		$this->assertTrue( file_exists( $zip_file ) );
+
+		// Extract and verify.
+		$extract_dir = $jekyll_export->dir . '/extract';
+		mkdir( $extract_dir );
+		$zip = new ZipArchive();
+		$zip->open( $zip_file );
+		$zip->extractTo( $extract_dir );
+		$zip->close();
+
+		$this->assertTrue( file_exists( $extract_dir . '/deep/path/test.txt' ) );
+		$this->assertEquals( 'nested content', file_get_contents( $extract_dir . '/deep/path/test.txt' ) );
+	}
+
+	/**
+	 * Test that convert_meta handles post with no custom meta
+	 */
+	function test_convert_meta_no_custom_fields() {
+		global $jekyll_export;
+
+		$post_id = wp_insert_post(
+			array(
+				'post_title'   => 'Test Post No Meta',
+				'post_content' => 'Content',
+				'post_status'  => 'publish',
+			)
+		);
+
+		$post = get_post( $post_id );
+		$meta = $jekyll_export->convert_meta( $post );
+
+		$this->assertIsArray( $meta );
+		$this->assertEquals( $post_id, $meta['id'] );
+		$this->assertEquals( 'Test Post No Meta', $meta['title'] );
+		$this->assertEquals( 'post', $meta['layout'] );
+	}
+
+	/**
+	 * Test that convert_meta handles featured image
+	 */
+	function test_convert_meta_with_featured_image() {
+		global $jekyll_export;
+
+		// Create a test image attachment.
+		$upload_dir = wp_upload_dir();
+		$image_path = $upload_dir['basedir'] . '/test-image.jpg';
+		file_put_contents( $image_path, 'fake image content' );
+
+		$attachment_id = wp_insert_attachment(
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_title'     => 'Test Image',
+				'post_content'   => '',
+				'post_status'    => 'inherit',
+			),
+			$image_path
+		);
+
+		$post_id = wp_insert_post(
+			array(
+				'post_title'   => 'Test Post With Image',
+				'post_content' => 'Content',
+				'post_status'  => 'publish',
+			)
+		);
+
+		set_post_thumbnail( $post_id, $attachment_id );
+
+		$post = get_post( $post_id );
+		$meta = $jekyll_export->convert_meta( $post );
+
+		$this->assertArrayHasKey( 'image', $meta );
+		$this->assertStringContainsString( 'test-image', $meta['image'] );
+	}
+
+	/**
+	 * Test that convert_terms handles post without terms
+	 */
+	function test_convert_terms_no_terms() {
+		global $jekyll_export;
+
+		$post_id = wp_insert_post(
+			array(
+				'post_title'   => 'Test Post No Terms',
+				'post_content' => 'Content',
+				'post_status'  => 'publish',
+			)
+		);
+
+		$terms = $jekyll_export->convert_terms( $post_id );
+
+		$this->assertIsArray( $terms );
+		$this->assertArrayNotHasKey( 'categories', $terms );
+		$this->assertArrayNotHasKey( 'tags', $terms );
+	}
+
+	/**
+	 * Test that convert_content handles empty content
+	 */
+	function test_convert_content_empty() {
+		global $jekyll_export;
+
+		$post_id = wp_insert_post(
+			array(
+				'post_title'   => 'Test Post Empty',
+				'post_content' => '',
+				'post_status'  => 'publish',
+			)
+		);
+
+		$post    = get_post( $post_id );
+		$content = $jekyll_export->convert_content( $post );
+
+		$this->assertEquals( '', $content );
+	}
+
+	/**
+	 * Test that convert_content handles complex HTML
+	 */
+	function test_convert_content_complex_html() {
+		global $jekyll_export;
+
+		$html = '<h1>Heading</h1><p>Paragraph with <a href="http://example.com">link</a></p><ul><li>Item 1</li><li>Item 2</li></ul>';
+
+		$post_id = wp_insert_post(
+			array(
+				'post_title'   => 'Test Complex HTML',
+				'post_content' => $html,
+				'post_status'  => 'publish',
+			)
+		);
+
+		$post    = get_post( $post_id );
+		$content = $jekyll_export->convert_content( $post );
+
+		$this->assertStringContainsString( '# Heading', $content );
+		$this->assertStringContainsString( '[link](http://example.com)', $content );
+		$this->assertStringContainsString( '* Item 1', $content );
+	}
+
+	/**
+	 * Test that write handles draft posts
+	 */
+	function test_write_draft() {
+		global $jekyll_export;
+
+		$draft_id = wp_insert_post(
+			array(
+				'post_title'   => 'Test Draft Post',
+				'post_content' => 'Draft content',
+				'post_status'  => 'draft',
+				'post_name'    => 'test-draft-post',
+			)
+		);
+
+		$post = get_post( $draft_id );
+		$jekyll_export->write( 'Draft test content', $post );
+
+		// Check that file was written to _drafts directory.
+		$files = glob( $jekyll_export->dir . '/_drafts/*.md' );
+		$this->assertNotEmpty( $files, 'Draft file should exist' );
+
+		$found = false;
+		foreach ( $files as $file ) {
+			if ( strpos( $file, 'test-draft-post' ) !== false ) {
+				$found = true;
+				$this->assertEquals( 'Draft test content', file_get_contents( $file ) );
+				break;
+			}
+		}
+		$this->assertTrue( $found, 'Draft file with correct name should exist' );
+	}
+
+	/**
+	 * Test that write handles future posts
+	 */
+	function test_write_future() {
+		global $jekyll_export;
+
+		$future_id = wp_insert_post(
+			array(
+				'post_title'   => 'Test Future Post',
+				'post_content' => 'Future content',
+				'post_status'  => 'future',
+				'post_name'    => 'test-future-post',
+				'post_date'    => gmdate( 'Y-m-d H:i:s', strtotime( '+1 week' ) ),
+			)
+		);
+
+		$post = get_post( $future_id );
+		$jekyll_export->write( 'Future test content', $post );
+
+		// Check that file was written to _posts directory (future posts are treated as published).
+		$files = glob( $jekyll_export->dir . '/_posts/*.md' );
+		$found = false;
+		foreach ( $files as $file ) {
+			if ( strpos( $file, 'test-future-post' ) !== false ) {
+				$found = true;
+				break;
+			}
+		}
+		$this->assertTrue( $found, 'Future post file should exist in _posts directory' );
+	}
+
+	/**
+	 * Test that write handles pages with parent pages
+	 */
+	function test_write_subpage() {
+		global $jekyll_export;
+
+		$parent_id = wp_insert_post(
+			array(
+				'post_title'   => 'Parent Page',
+				'post_content' => 'Parent content',
+				'post_status'  => 'publish',
+				'post_type'    => 'page',
+			)
+		);
+
+		$child_id = wp_insert_post(
+			array(
+				'post_title'   => 'Child Page',
+				'post_content' => 'Child content',
+				'post_status'  => 'publish',
+				'post_type'    => 'page',
+				'post_parent'  => $parent_id,
+			)
+		);
+
+		$child_post = get_post( $child_id );
+		$jekyll_export->write( 'Child page content', $child_post );
+
+		// Verify the file exists with correct path.
+		$page_uri = get_page_uri( $child_id );
+		$this->assertTrue( file_exists( $jekyll_export->dir . $page_uri . '.md' ) );
+	}
+
+	/**
+	 * Test that rename_key handles non-existent key
+	 */
+	function test_rename_key_nonexistent() {
+		global $jekyll_export;
+
+		$array = array(
+			'foo'  => 'bar',
+			'foo2' => 'bar2',
+		);
+
+		$jekyll_export->rename_key( $array, 'nonexistent', 'newkey' );
+
+		// Array should remain unchanged.
+		$this->assertEquals(
+			array(
+				'foo'  => 'bar',
+				'foo2' => 'bar2',
+			),
+			$array
+		);
+	}
+
+	/**
+	 * Test that convert_options filters hidden options
+	 */
+	function test_convert_options_filters_hidden() {
+		global $jekyll_export;
+
+		// Add a hidden option.
+		update_option( '_hidden_option', 'should not export' );
+		update_option( 'visible_option', 'should export' );
+
+		$jekyll_export->convert_options();
+
+		$config_file = $jekyll_export->dir . '/_config.yml';
+		$contents    = file_get_contents( $config_file );
+
+		$this->assertStringNotContainsString( '_hidden_option', $contents );
+	}
+
+	/**
+	 * Test that get_posts caches results
+	 */
+	function test_get_posts_caching() {
+		global $jekyll_export;
+
+		// Clear cache.
+		wp_cache_delete( 'jekyll_export_posts' );
+
+		// First call should set cache.
+		$posts1 = $jekyll_export->get_posts();
+
+		// Second call should use cache.
+		$posts2 = $jekyll_export->get_posts();
+
+		$this->assertEquals( $posts1, $posts2 );
+	}
+
+	/**
+	 * Test that copy_recursive skips wp-jekyll directories
+	 */
+	function test_copy_recursive_skips_temp() {
+		global $jekyll_export;
+
+		$test_dir = get_temp_dir() . 'wp-jekyll-test-123/';
+		mkdir( $test_dir );
+		file_put_contents( $test_dir . 'test.txt', 'should not copy' );
+
+		$result = $jekyll_export->copy_recursive( $test_dir, $jekyll_export->dir . '/copied' );
+
+		$this->assertTrue( $result );
+		$this->assertFalse( file_exists( $jekyll_export->dir . '/copied/test.txt' ) );
+
+		// Cleanup.
+		@unlink( $test_dir . 'test.txt' );
+		@rmdir( $test_dir );
+	}
 }
