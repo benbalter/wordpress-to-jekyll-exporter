@@ -3,7 +3,7 @@
         'name' => 'benbalter/wordpress-to-jekyll-exporter',
         'pretty_version' => 'dev-copilot/comprehensive-testing-implementation',
         'version' => 'dev-copilot/comprehensive-testing-implementation',
-        'reference' => '1d045ae3dd1dbaa855cce06108ca05e0e7e9bc2e',
+        'reference' => 'b24590a4f013b121f0f2e57d0366fbb4b180114f',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'benbalter/wordpress-to-jekyll-exporter' => array(
             'pretty_version' => 'dev-copilot/comprehensive-testing-implementation',
             'version' => 'dev-copilot/comprehensive-testing-implementation',
-            'reference' => '1d045ae3dd1dbaa855cce06108ca05e0e7e9bc2e',
+            'reference' => 'b24590a4f013b121f0f2e57d0366fbb4b180114f',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
