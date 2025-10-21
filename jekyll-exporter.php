@@ -124,18 +124,12 @@ class Jekyll_Export {
 			return $posts;
 		}
 
-		$posts      = array();
 		$post_types = apply_filters( 'jekyll_export_post_types', array( 'post', 'page', 'revision' ) );
 
-		/**
-		 * WordPress style rules don't let us interpolate a string before passing it to
-		 * $wpdb->prepare, but I can't find any other way to do an "IN" query
-		 * So query each post_type individually and merge the IDs
-		 */
-		foreach ( $post_types as $post_type ) {
-			$ids   = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_type = %s", $post_type ) );
-			$posts = array_merge( $posts, $ids );
-		}
+		// Use a single query with IN clause for better performance
+		$placeholders = implode( ', ', array_fill( 0, count( $post_types ), '%s' ) );
+		$query        = "SELECT ID FROM {$wpdb->posts} WHERE post_type IN ($placeholders)";
+		$posts        = $wpdb->get_col( $wpdb->prepare( $query, $post_types ) );
 
 		wp_cache_set( 'jekyll_export_posts', $posts );
 		return $posts;
@@ -148,11 +142,18 @@ class Jekyll_Export {
 	 */
 	function convert_meta( $post ) {
 
+		// Cache user data to avoid repeated database queries
+		static $user_cache = array();
+		if ( ! isset( $user_cache[ $post->post_author ] ) ) {
+			$user_data                            = get_userdata( $post->post_author );
+			$user_cache[ $post->post_author ] = $user_data ? $user_data->display_name : '';
+		}
+
 		$output = array(
 			'id'      => $post->ID,
 			'title'   => get_the_title( $post ),
 			'date'    => get_the_date( 'c', $post ),
-			'author'  => get_userdata( $post->post_author )->display_name,
+			'author'  => $user_cache[ $post->post_author ],
 			'excerpt' => $post->post_excerpt,
 			'layout'  => get_post_type( $post ),
 			'guid'    => $post->guid,
@@ -245,10 +246,15 @@ class Jekyll_Export {
 			}
 		}
 
-		$content           = get_the_content( null, false, $post );
-		$converter_options = apply_filters( 'jekyll_export_markdown_converter_options', array( 'header_style' => 'atx' ) );
-		$converter         = new HtmlConverter( $converter_options );
-		$converter->getEnvironment()->addConverter( new TableConverter() );
+		$content = get_the_content( null, false, $post );
+
+		// Reuse converter instance to avoid recreating it for each post
+		static $converter = null;
+		if ( null === $converter ) {
+			$converter_options = apply_filters( 'jekyll_export_markdown_converter_options', array( 'header_style' => 'atx' ) );
+			$converter         = new HtmlConverter( $converter_options );
+			$converter->getEnvironment()->addConverter( new TableConverter() );
+		}
 
 		$markdown = $converter->convert( $content );
 
@@ -499,9 +505,15 @@ class Jekyll_Export {
 	function convert_uploads() {
 		$upload_dir = wp_upload_dir();
 		$source     = $upload_dir['basedir'];
-		$site_url   = trailingslashit( set_url_scheme( get_site_url(), 'http' ) );
-		$base_url   = set_url_scheme( $upload_dir['baseurl'], 'http' );
-		$dest       = $this->dir . str_replace( $site_url, '', $base_url );
+
+		// Allow sites to skip uploads export for very large installations
+		if ( apply_filters( 'jekyll_export_skip_uploads', false ) ) {
+			return;
+		}
+
+		$site_url = trailingslashit( set_url_scheme( get_site_url(), 'http' ) );
+		$base_url = set_url_scheme( $upload_dir['baseurl'], 'http' );
+		$dest     = $this->dir . str_replace( $site_url, '', $base_url );
 		$this->copy_recursive( $source, $dest );
 	}
 
@@ -509,7 +521,7 @@ class Jekyll_Export {
 	 * Copy a file, or recursively copy a folder and its contents
 	 *
 	 * @author      Aidan Lister <aidan@php.net>
-	 * @version     1.0.1
+	 * @version     1.0.2
 	 * @link        http://aidanlister.com/2004/04/recursively-copying-directories-in-php/
 	 * @param       string $source    Source path.
 	 * @param       string $dest      Destination path.
@@ -534,14 +546,26 @@ class Jekyll_Export {
 			return true;
 		}
 
+		// Allow filtering specific directories to skip (e.g., cache directories)
+		$excluded_dirs = apply_filters( 'jekyll_export_excluded_upload_dirs', array() );
+		foreach ( $excluded_dirs as $excluded ) {
+			if ( false !== strpos( $source, $excluded ) ) {
+				return true;
+			}
+		}
+
 		// Make destination directory.
 		if ( ! is_dir( $dest ) ) {
 			$wp_filesystem->mkdir( $dest );
 		}
 
-		// Loop through the folder.
-		$dir = dir( $source );
-		while ( $entry = $dir->read() ) {
+		// Use scandir instead of dir() for better performance
+		$entries = @scandir( $source );
+		if ( false === $entries ) {
+			return false;
+		}
+
+		foreach ( $entries as $entry ) {
 			// Skip pointers.
 			if ( '.' === $entry || '..' === $entry ) {
 				continue;
@@ -551,8 +575,6 @@ class Jekyll_Export {
 			$this->copy_recursive( "$source/$entry", "$dest/$entry" );
 		}
 
-		// Clean up.
-		$dir->close();
 		return true;
 	}
 }
