@@ -14,11 +14,11 @@ jobs:
       TRAVIS_BUILD_DIR: ${{ github.workspace }}
     strategy: 
       matrix:
-        php_version: [8.4]
+        php_version: [8.3]
         wp_version: [latest, '6.7', '6.8']
         wp_multisite: [0]
         include:
-          - php_version: 8.4
+          - php_version: 8.3
             wp_version: latest
             wp_multisite: 1
 
@@ -83,7 +83,7 @@ jobs:
       TRAVIS_BUILD_DIR: ${{ github.workspace }}
     strategy: 
       matrix:
-        php_version: [8.4]
+        php_version: [8.3]
     steps:
       - uses: actions/checkout@v4
 
