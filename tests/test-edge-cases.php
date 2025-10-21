@@ -169,7 +169,10 @@ class EdgeCasesTest extends WP_UnitTestCase {
 		);
 
 		// Add serialized meta data.
-		$array_data = array( 'key1' => 'value1', 'key2' => 'value2' );
+		$array_data = array(
+			'key1' => 'value1',
+			'key2' => 'value2',
+		);
 		add_post_meta( $post_id, 'serialized_field', $array_data );
 
 		$post = get_post( $post_id );

@@ -39,14 +39,14 @@ class IntegrationTest extends WP_UnitTestCase {
 
 		self::$test_post_id = wp_insert_post(
 			array(
-				'post_name'     => 'integration-test-post',
-				'post_title'    => 'Integration Test Post',
-				'post_content'  => '<p>This is an <strong>integration</strong> test post with <a href="http://example.com">a link</a>.</p>',
-				'post_status'   => 'publish',
-				'post_author'   => $author,
-				'post_date'     => '2024-01-01',
-				'post_excerpt'  => 'Test excerpt',
-				'tags_input'    => array( 'integration', 'test' ),
+				'post_name'    => 'integration-test-post',
+				'post_title'   => 'Integration Test Post',
+				'post_content' => '<p>This is an <strong>integration</strong> test post with <a href="http://example.com">a link</a>.</p>',
+				'post_status'  => 'publish',
+				'post_author'  => $author,
+				'post_date'    => '2024-01-01',
+				'post_excerpt' => 'Test excerpt',
+				'tags_input'   => array( 'integration', 'test' ),
 			)
 		);
 
