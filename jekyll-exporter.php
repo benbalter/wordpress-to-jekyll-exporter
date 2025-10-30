@@ -126,8 +126,9 @@ class Jekyll_Export {
 
 		$post_types = apply_filters( 'jekyll_export_post_types', array( 'post', 'page', 'revision' ) );
 
-		// Use a single query with IN clause for better performance
+		// Use a single query with IN clause for better performance.
 		$placeholders = implode( ', ', array_fill( 0, count( $post_types ), '%s' ) );
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $placeholders is properly escaped with array_fill and count.
 		$query        = "SELECT ID FROM {$wpdb->posts} WHERE post_type IN ($placeholders)";
 		$posts        = $wpdb->get_col( $wpdb->prepare( $query, $post_types ) );
 
@@ -142,10 +143,10 @@ class Jekyll_Export {
 	 */
 	function convert_meta( $post ) {
 
-		// Cache user data to avoid repeated database queries
+		// Cache user data to avoid repeated database queries.
 		static $user_cache = array();
 		if ( ! isset( $user_cache[ $post->post_author ] ) ) {
-			$user_data                            = get_userdata( $post->post_author );
+			$user_data                        = get_userdata( $post->post_author );
 			$user_cache[ $post->post_author ] = $user_data ? $user_data->display_name : '';
 		}
 
@@ -248,7 +249,7 @@ class Jekyll_Export {
 
 		$content = get_the_content( null, false, $post );
 
-		// Reuse converter instance to avoid recreating it for each post
+		// Reuse converter instance to avoid recreating it for each post.
 		static $converter = null;
 		if ( null === $converter ) {
 			$converter_options = apply_filters( 'jekyll_export_markdown_converter_options', array( 'header_style' => 'atx' ) );
@@ -506,7 +507,7 @@ class Jekyll_Export {
 		$upload_dir = wp_upload_dir();
 		$source     = $upload_dir['basedir'];
 
-		// Allow sites to skip uploads export for very large installations
+		// Allow sites to skip uploads export for very large installations.
 		if ( apply_filters( 'jekyll_export_skip_uploads', false ) ) {
 			return;
 		}
@@ -546,7 +547,7 @@ class Jekyll_Export {
 			return true;
 		}
 
-		// Allow filtering specific directories to skip (e.g., cache directories)
+		// Allow filtering specific directories to skip (e.g., cache directories).
 		$excluded_dirs = apply_filters( 'jekyll_export_excluded_upload_dirs', array() );
 		foreach ( $excluded_dirs as $excluded ) {
 			if ( false !== strpos( $source, $excluded ) ) {
@@ -559,7 +560,7 @@ class Jekyll_Export {
 			$wp_filesystem->mkdir( $dest );
 		}
 
-		// Use scandir instead of dir() for better performance
+		// Use scandir instead of dir() for better performance.
 		$entries = @scandir( $source );
 		if ( false === $entries ) {
 			return false;
