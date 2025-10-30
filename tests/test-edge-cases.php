@@ -17,6 +17,28 @@ use Symfony\Component\Yaml\Yaml;
 class EdgeCasesTest extends WP_UnitTestCase {
 
 	/**
+	 * ID of test author
+	 *
+	 * @var int
+	 */
+	private static $author_id = 0;
+
+	/**
+	 * Setup the test class
+	 */
+	static function set_up_before_class() {
+		parent::set_up_before_class();
+
+		self::$author_id = wp_insert_user(
+			array(
+				'user_login'   => rand_str(),
+				'user_pass'    => rand_str(),
+				'display_name' => 'Edge Case Tester',
+			)
+		);
+	}
+
+	/**
 	 * Setup each test
 	 */
 	function set_up() {
@@ -50,6 +72,7 @@ class EdgeCasesTest extends WP_UnitTestCase {
 				'post_status'  => 'publish',
 				'post_name'    => 'long-title-post',
 				'post_date'    => '2024-03-01',
+				'post_author'  => self::$author_id,
 			)
 		);
 
@@ -73,6 +96,7 @@ class EdgeCasesTest extends WP_UnitTestCase {
 				'post_content' => 'Content with 中文 and العربية',
 				'post_status'  => 'publish',
 				'post_date'    => '2024-04-01',
+				'post_author'  => self::$author_id,
 			)
 		);
 
@@ -97,6 +121,7 @@ class EdgeCasesTest extends WP_UnitTestCase {
 				'post_title'   => 'Test <strong>Bold</strong> Title',
 				'post_content' => 'Content',
 				'post_status'  => 'publish',
+				'post_author'  => self::$author_id,
 			)
 		);
 
@@ -120,6 +145,7 @@ class EdgeCasesTest extends WP_UnitTestCase {
 				'post_title'   => 'Post with Table',
 				'post_content' => $table_html,
 				'post_status'  => 'publish',
+				'post_author'  => self::$author_id,
 			)
 		);
 
@@ -144,6 +170,7 @@ class EdgeCasesTest extends WP_UnitTestCase {
 				'post_title'   => 'Post with Shortcode',
 				'post_content' => $content_with_shortcode,
 				'post_status'  => 'publish',
+				'post_author'  => self::$author_id,
 			)
 		);
 
@@ -165,6 +192,7 @@ class EdgeCasesTest extends WP_UnitTestCase {
 				'post_title'   => 'Post with Serialized Meta',
 				'post_content' => 'Content',
 				'post_status'  => 'publish',
+				'post_author'  => self::$author_id,
 			)
 		);
 
@@ -196,6 +224,7 @@ class EdgeCasesTest extends WP_UnitTestCase {
 				'post_status'  => 'publish',
 				'post_name'    => '',
 				'post_date'    => '2024-05-01',
+				'post_author'  => self::$author_id,
 			)
 		);
 
@@ -222,6 +251,7 @@ class EdgeCasesTest extends WP_UnitTestCase {
 				'post_title'   => 'Post with Format',
 				'post_content' => 'Content',
 				'post_status'  => 'publish',
+				'post_author'  => self::$author_id,
 			)
 		);
 
@@ -315,6 +345,7 @@ class EdgeCasesTest extends WP_UnitTestCase {
 				'post_content' => 'Content',
 				'post_status'  => 'publish',
 				'post_date'    => '0000-00-00 00:00:00',
+				'post_author'  => self::$author_id,
 			)
 		);
 
