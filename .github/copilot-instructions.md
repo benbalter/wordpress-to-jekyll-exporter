@@ -159,8 +159,8 @@ script/fmt
 
 The project uses GitHub Actions with the following jobs:
 
-1. **phpunit**: Runs PHPUnit tests across multiple PHP (8.4) and WordPress versions (latest, 6.7, 6.8)
-2. **phpcs**: Runs PHP CodeSniffer for code style compliance
+1. **phpunit**: Runs PHPUnit tests on PHP 8.4 across multiple WordPress versions (latest, 6.7, 6.8)
+2. **phpcs**: Runs PHP CodeSniffer for code style compliance on PHP 8.4
 
 Tests run against MySQL 5.7 and both single-site and multisite WordPress installations.
 
