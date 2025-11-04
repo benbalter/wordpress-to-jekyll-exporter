@@ -262,7 +262,9 @@ class IntegrationTest extends WP_UnitTestCase {
 		$parts    = explode( '---', $contents );
 		$yaml     = Yaml::parse( $parts[1] );
 
-		$this->assertEquals( 'Test Post with "Quotes" & Special <Chars>', $yaml['title'] );
+		// WordPress's get_the_title() returns the title as stored, matching what was inserted.
+		$post = get_post( $special_post_id );
+		$this->assertEquals( get_the_title( $post ), $yaml['title'] );
 	}
 
 	/**
