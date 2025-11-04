@@ -51,7 +51,7 @@
 	// "shutdownAction": "none",
 
 	// Run commands after the container is created - install dependencies
-	"postCreateCommand": "composer install --prefer-dist --no-progress",
+	"postCreateCommand": "chmod +x .devcontainer/welcome.sh && composer install --prefer-dist --no-progress",
 
 	// Display helpful information when attaching to the container
 	"postAttachCommand": ".devcontainer/welcome.sh",
