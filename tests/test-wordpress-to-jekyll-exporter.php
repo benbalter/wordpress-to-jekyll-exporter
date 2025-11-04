@@ -52,12 +52,19 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 	private static $sub_page_id = 0;
 
 	/**
+	 * ID of test author
+	 *
+	 * @var int
+	 */
+	private static $author_id = 0;
+
+	/**
 	 * Setup the test class
 	 */
 	static function set_up_before_class() {
 		parent::set_up_before_class();
 
-		$author = wp_insert_user(
+		self::$author_id = wp_insert_user(
 			array(
 				'user_login'   => rand_str(),
 				'user_pass'    => rand_str(),
@@ -77,7 +84,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 				'post_title'    => 'Test Post',
 				'post_content'  => 'This is a test <strong>post</strong>.',
 				'post_status'   => 'publish',
-				'post_author'   => $author,
+				'post_author'   => self::$author_id,
 				'post_category' => array( $category_id ),
 				'tags_input'    => array( 'tag1', 'tag2' ),
 				'post_date'     => '2014-01-01',
@@ -90,7 +97,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 				'post_title'    => 'Test Future Post',
 				'post_content'  => 'This is a test <strong>future post</strong>.',
 				'post_status'   => 'future',
-				'post_author'   => $author,
+				'post_author'   => self::$author_id,
 				'post_category' => array( $category_id ),
 				'tags_input'    => array( 'tag1', 'tag2' ),
 				'post_date'     => '3014-01-01',
@@ -103,7 +110,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 				'post_title'    => 'Test Draft',
 				'post_content'  => 'This is a test <strong>draft</strong>.',
 				'post_status'   => 'draft',
-				'post_author'   => $author,
+				'post_author'   => self::$author_id,
 				'post_category' => array( $category_id ),
 				'tags_input'    => array( 'tag1', 'tag2' ),
 				'post_date'     => '2014-01-01',
@@ -117,7 +124,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 				'post_content' => 'This is a test <strong>page</strong>.',
 				'post_status'  => 'publish',
 				'post_type'    => 'page',
-				'post_author'  => $author,
+				'post_author'  => self::$author_id,
 			)
 		);
 
@@ -129,7 +136,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 				'post_status'  => 'publish',
 				'post_type'    => 'page',
 				'post_parent'  => self::$page_id,
-				'post_author'  => $author,
+				'post_author'  => self::$author_id,
 			)
 		);
 	}
@@ -501,6 +508,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 				'post_title'   => 'Test Post No Meta',
 				'post_content' => 'Content',
 				'post_status'  => 'publish',
+				'post_author'  => self::$author_id,
 			)
 		);
 
@@ -539,6 +547,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 				'post_title'   => 'Test Post With Image',
 				'post_content' => 'Content',
 				'post_status'  => 'publish',
+				'post_author'  => self::$author_id,
 			)
 		);
 
@@ -562,6 +571,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 				'post_title'   => 'Test Post No Terms',
 				'post_content' => 'Content',
 				'post_status'  => 'publish',
+				'post_author'  => self::$author_id,
 			)
 		);
 
@@ -584,6 +594,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 				'post_title'   => 'Test Post Empty',
 				'post_content' => '',
 				'post_status'  => 'publish',
+				'post_author'  => self::$author_id,
 			)
 		);
 
@@ -606,6 +617,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 				'post_title'   => 'Test Complex HTML',
 				'post_content' => $html,
 				'post_status'  => 'publish',
+				'post_author'  => self::$author_id,
 			)
 		);
 
@@ -633,6 +645,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 				'post_content' => 'Draft content',
 				'post_status'  => 'draft',
 				'post_name'    => 'test-draft-post',
+				'post_author'  => self::$author_id,
 			)
 		);
 
@@ -667,6 +680,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 				'post_status'  => 'future',
 				'post_name'    => 'test-future-post',
 				'post_date'    => gmdate( 'Y-m-d H:i:s', strtotime( '+1 week' ) ),
+				'post_author'  => self::$author_id,
 			)
 		);
 
@@ -697,6 +711,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 				'post_content' => 'Parent content',
 				'post_status'  => 'publish',
 				'post_type'    => 'page',
+				'post_author'  => self::$author_id,
 			)
 		);
 
@@ -707,6 +722,7 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 				'post_status'  => 'publish',
 				'post_type'    => 'page',
 				'post_parent'  => $parent_id,
+				'post_author'  => self::$author_id,
 			)
 		);
 

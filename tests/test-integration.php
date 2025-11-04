@@ -247,6 +247,7 @@ class IntegrationTest extends WP_UnitTestCase {
 				'post_status'  => 'publish',
 				'post_name'    => 'test-post-special',
 				'post_date'    => '2024-02-01',
+				'post_author'  => self::$author_id,
 			)
 		);
 
