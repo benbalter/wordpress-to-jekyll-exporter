@@ -297,8 +297,8 @@ class EdgeCasesTest extends WP_UnitTestCase {
 
 		file_put_contents( $target_dir . '/target.txt', 'target content' );
 
-		// Create a symlink.
-		if ( function_exists( 'symlink' ) && ! is_windows() ) {
+		// Create a symlink (skip on Windows).
+		if ( function_exists( 'symlink' ) && DIRECTORY_SEPARATOR !== '\\' ) {
 			symlink( $target_dir . '/target.txt', $temp_dir . '/link.txt' );
 
 			$result = $jekyll_export->copy_recursive( $temp_dir, $jekyll_export->dir . '/symlink-test' );

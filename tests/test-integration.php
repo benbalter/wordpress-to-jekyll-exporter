@@ -24,12 +24,19 @@ class IntegrationTest extends WP_UnitTestCase {
 	private static $test_post_id = 0;
 
 	/**
+	 * ID of test author
+	 *
+	 * @var int
+	 */
+	private static $author_id = 0;
+
+	/**
 	 * Setup the test class
 	 */
 	static function set_up_before_class() {
 		parent::set_up_before_class();
 
-		$author = wp_insert_user(
+		self::$author_id = wp_insert_user(
 			array(
 				'user_login'   => rand_str(),
 				'user_pass'    => rand_str(),
@@ -43,7 +50,7 @@ class IntegrationTest extends WP_UnitTestCase {
 				'post_title'   => 'Integration Test Post',
 				'post_content' => '<p>This is an <strong>integration</strong> test post with <a href="http://example.com">a link</a>.</p>',
 				'post_status'  => 'publish',
-				'post_author'  => $author,
+				'post_author'  => self::$author_id,
 				'post_date'    => '2024-01-01',
 				'post_excerpt' => 'Test excerpt',
 				'tags_input'   => array( 'integration', 'test' ),
@@ -190,6 +197,7 @@ class IntegrationTest extends WP_UnitTestCase {
 				'post_content' => 'Page content',
 				'post_status'  => 'publish',
 				'post_type'    => 'page',
+				'post_author'  => self::$author_id,
 			)
 		);
 
@@ -199,6 +207,7 @@ class IntegrationTest extends WP_UnitTestCase {
 				'post_content' => 'Draft content',
 				'post_status'  => 'draft',
 				'post_name'    => 'test-draft-export',
+				'post_author'  => self::$author_id,
 			)
 		);
 
