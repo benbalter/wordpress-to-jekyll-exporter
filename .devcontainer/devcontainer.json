@@ -53,6 +53,12 @@
 	// Run commands after the container is created - install dependencies
 	"postCreateCommand": "composer install --prefer-dist --no-progress",
 
+	// Display helpful information when attaching to the container
+	"postAttachCommand": ".devcontainer/welcome.sh",
+
+	// Wait for services to be ready
+	"waitFor": "postCreateCommand",
+
 	// Configure tool-specific properties.
 	"customizations": {
 		"vscode": {
