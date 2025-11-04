@@ -129,8 +129,8 @@ class Jekyll_Export {
 		// Use a single query with IN clause for better performance.
 		$placeholders = implode( ', ', array_fill( 0, count( $post_types ), '%s' ) );
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $placeholders is properly escaped with array_fill and count.
-		$query        = "SELECT ID FROM {$wpdb->posts} WHERE post_type IN ($placeholders)";
-		$posts        = $wpdb->get_col( $wpdb->prepare( $query, $post_types ) );
+		$query = "SELECT ID FROM {$wpdb->posts} WHERE post_type IN ($placeholders)";
+		$posts = $wpdb->get_col( $wpdb->prepare( $query, $post_types ) );
 
 		wp_cache_set( 'jekyll_export_posts', $posts );
 		return $posts;
