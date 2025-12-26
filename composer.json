@@ -3,7 +3,8 @@
   "description": "One-click WordPress plugin that converts all posts, pages, taxonomies, metadata, and settings to Markdown and YAML which can be dropped into Jekyll.",
   "require": {
     "league/html-to-markdown": "^5.0",
-    "symfony/yaml": "^5.4"
+    "symfony/yaml": "^5.4",
+    "composer-phar/phpcbf": "^3.12"
   },
   "license": "GPLv3 or later",
   "authors": [{
@@ -15,7 +16,8 @@
     "wp-cli/wp-cli": "~2.4",
     "wp-coding-standards/wpcs": "^3.0",
     "php-coveralls/php-coveralls": "*",
-    "yoast/phpunit-polyfills": "^4.0"
+    "yoast/phpunit-polyfills": "^4.0",
+    "squizlabs/php_codesniffer": "^3.13"
   },
   "config": {
     "bin-dir": "bin",
