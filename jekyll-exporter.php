@@ -9,9 +9,9 @@
  * @link       https://github.com/benbalter/wordpress-to-jekyll-exporter/
  *
  * @wordpress-plugin
- * Plugin Name: WordPress to Jekyll Exporter
+ * Plugin Name: Static Site Exporter
  * Plugin URI:  https://github.com/benbalter/wordpress-to-jekyll-exporter/
- * Description: Exports WordPress posts, pages, and options as YAML files parsable by Jekyll
+ * Description: One-click plugin that converts all posts, pages, taxonomies, metadata, and settings to Markdown and YAML for Jekyll, Hugo, or other static site generators.
  * Version:     2.4.2
  * Author:      Ben Balter
  * Author URI:  https://ben.balter.com
