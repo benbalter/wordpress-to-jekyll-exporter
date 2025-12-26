@@ -4,12 +4,94 @@
 	"name": "PHP",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	"image": "mcr.microsoft.com/devcontainers/php:1-8.2-bullseye",
+	"name": "WordPress to Jekyll Exporter",
+
+	// Update the 'dockerComposeFile' list if you have more compose files or use different names.
+	// The .devcontainer/docker-compose.yml file contains any overrides you need/want to make.
+	"dockerComposeFile": [
+		"../docker-compose.yml",
+		"docker-compose.yml"
+	],
+
+	// The 'service' property is the name of the service for the container that VS Code should
+	// use. Update this value and .devcontainer/docker-compose.yml to the real service name.
+	"service": "wordpress",
+
+	// The optional 'workspaceFolder' property is the path VS Code should open by default when
+	// connected. This is typically a file mount in .devcontainer/docker-compose.yml
+	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
-	// "features": {},
+	"features": {
+		"ghcr.io/devcontainers/features/git:1": {
+			"version": "latest",
+			"ppa": true
+		},
+		"ghcr.io/devcontainers/features/github-cli:1": {
+			"version": "latest"
+		}
+	},
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	"forwardPorts": [8088, 3306],
+
+	// Port attributes for forwarded ports
+	"portsAttributes": {
+		"8088": {
+			"label": "WordPress",
+			"onAutoForward": "notify"
+		},
+		"3306": {
+			"label": "MySQL",
+			"onAutoForward": "silent"
+		}
+	},
+
+	// Uncomment the next line if you want start specific services in your Docker Compose config.
+	// "runServices": [],
+
+	// Uncomment the next line if you want to keep your containers running after VS Code shuts down.
+	// "shutdownAction": "none",
+
+	// Run commands after the container is created - install dependencies
+	"postCreateCommand": "chmod +x .devcontainer/welcome.sh && composer install --prefer-dist --no-progress",
+
+	// Display helpful information when attaching to the container
+	"postAttachCommand": ".devcontainer/welcome.sh",
+
+	// Wait for services to be ready
+	"waitFor": "postCreateCommand",
 
 	// Configure tool-specific properties.
-	// "customizations": {},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"bmewburn.vscode-intelephense-client",
+				"xdebug.php-debug",
+				"wongjn.php-sniffer",
+				"recca0120.vscode-phpunit",
+				"EditorConfig.EditorConfig",
+				"GitHub.copilot",
+				"GitHub.vscode-pull-request-github"
+			],
+			"settings": {
+				"php.validate.executablePath": "/usr/local/bin/php",
+				"phpSniffer.executablesFolder": "/workspaces/${localWorkspaceFolderBasename}/vendor/bin/",
+				"phpSniffer.standard": "WordPress",
+				"editor.formatOnSave": false,
+				"files.exclude": {
+					"**/vendor": true,
+					"**/node_modules": true
+				},
+				"[php]": {
+					"editor.tabSize": 4,
+					"editor.insertSpaces": false
+				},
+				"files.insertFinalNewline": true,
+				"files.trimTrailingWhitespace": true
+			}
+		}
+	}
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	"forwardPorts": [
@@ -24,4 +106,6 @@
 
 	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
 	// "remoteUser": "root"
+	// Uncomment to connect as an existing user other than the container default. More info: https://aka.ms/dev-containers-non-root.
+	// "remoteUser": "www-data"
 }
