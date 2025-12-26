@@ -13,6 +13,7 @@ vendor/**/*.md
 vendor/**/*.js
 vendor/**/*.css
 vendor/**/*.zip~
+vendor/**/*.zip*
 bin/*
 coverage.xml
 composer.lock
