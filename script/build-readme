@@ -13,6 +13,7 @@ docs = Dir["./docs/*"]
 
 docs.each do |file|
   next if exclude.include?(File.basename(file,".md"))
+  next if File.directory?(file)
   output << "\n\n"
   output << File.open(file).read
 end
