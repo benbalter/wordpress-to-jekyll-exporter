@@ -13,10 +13,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Docker compose
-        uses: isbang/compose-action@v2.3.0
+        uses: isbang/compose-action@v2.4.1
         with:
           compose-file: './docker-compose.yml'
 

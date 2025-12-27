@@ -1,4 +1,4 @@
-=== Jekyll Exporter ===
+=== Static Site Exporter ===
 Contributors: benbalter
 Tags: jekyll, github, github pages, yaml, export, markdown
 Requires at least: 4.4
