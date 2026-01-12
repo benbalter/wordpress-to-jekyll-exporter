@@ -533,7 +533,7 @@ add_filter( 'jekyll_export_post_types', function() {
 Schedule the export using WP-CLI and cron during low-traffic periods:
 
 ```bash
-=== Add to crontab to run at 3 AM ===
+# Add to crontab to run at 3 AM
 0 3 * * 0 cd /path/to/wordpress && wp jekyll-export > /path/to/backups/jekyll-$(date +\%Y\%m\%d).zip
 ```
 
