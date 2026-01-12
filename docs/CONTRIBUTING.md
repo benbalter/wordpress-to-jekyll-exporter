@@ -1,8 +1,8 @@
-# Contributing to WordPress To Jekyll Exporter
+# Contributing to Static Site Exporter
 
-Hi there! We're thrilled that you'd like to contribute to WordPress To Jekyll Exporter. Your help is essential for keeping it great.
+Hi there! We're thrilled that you'd like to contribute to Static Site Exporter. Your help is essential for keeping it great.
 
-WordPress To Jekyll Exporter is an open source project supported by the efforts of an entire community and built one contribution at a time by users like you. We'd love for you to get involved. Whatever your level of skill or however much time you can give, your contribution is greatly appreciated. There are many ways to contribute, from writing tutorials or blog posts, improving the documentation, submitting bug reports and feature requests, helping other users by commenting on issues, or writing code which can be incorporated into WordPress To Jekyll Exporter itself.
+Static Site Exporter is an open source project supported by the efforts of an entire community and built one contribution at a time by users like you. We'd love for you to get involved. Whatever your level of skill or however much time you can give, your contribution is greatly appreciated. There are many ways to contribute, from writing tutorials or blog posts, improving the documentation, submitting bug reports and feature requests, helping other users by commenting on issues, or writing code which can be incorporated into Static Site Exporter itself.
 
 Following these guidelines helps to communicate that you respect the time of the developers managing and developing this open source project. In return, they should reciprocate that respect in addressing your issue, assessing changes, and helping you finalize your pull requests.
 
@@ -29,7 +29,7 @@ Here are a few tips for writing *great* bug reports:
 
 ## How to suggest a feature or enhancement
 
-If you find yourself wishing for a feature that doesn't exist in WordPress To Jekyll Exporter, you are probably not alone. There are bound to be others out there with similar needs. Many of the features that WordPress To Jekyll Exporter has today have been added because our users saw the need.
+If you find yourself wishing for a feature that doesn't exist in Static Site Exporter, you are probably not alone. There are bound to be others out there with similar needs. Many of the features that Static Site Exporter has today have been added because our users saw the need.
 
 Feature requests are welcome. But take a moment to find out whether your idea fits with the scope and goals of the project. It's up to you to make a strong case to convince the project's developers of the merits of this feature. Please provide as much detail and context as possible, including describing the problem you're trying to solve.
 
@@ -37,14 +37,14 @@ Feature requests are welcome. But take a moment to find out whether your idea fi
 
 ## Minimum PHP version
 
-Many shared hosts may use an outdated version of PHP by default. WordPress to Jekyll Export requires PHP 5.6 or greater.
+Many shared hosts may use an outdated version of PHP by default. Static Site Exporter requires PHP 5.6 or greater.
 
 See [this document](required-php-version.md) for example error messages, instructions on how to determine your PHP version, and how to update to a newer version of PHP.
 
 
 ## Your first contribution
 
-We'd love for you to contribute to the project. Unsure where to begin contributing to WordPress To Jekyll Exporter? You can start by looking through these "good first issue" and "help wanted" issues:
+We'd love for you to contribute to the project. Unsure where to begin contributing to Static Site Exporter? You can start by looking through these "good first issue" and "help wanted" issues:
 
 * [Good first issues](https://github.com/benbalter/wordpress-to-jekyll-exporter/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) - issues which should only require a few lines of code and a test or two
 * [Help wanted issues](https://github.com/benbalter/wordpress-to-jekyll-exporter/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) - issues which may be a bit more involved, but are specifically seeking community contributions

@@ -66,8 +66,8 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 
 		self::$author_id = wp_insert_user(
 			array(
-				'user_login'   => rand_str(),
-				'user_pass'    => rand_str(),
+				'user_login'   => wp_generate_password( 12, false ),
+				'user_pass'    => wp_generate_password( 12, false ),
 				'display_name' => 'Tester',
 			)
 		);

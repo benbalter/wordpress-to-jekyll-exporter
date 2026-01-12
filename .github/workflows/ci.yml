@@ -15,7 +15,7 @@ jobs:
     strategy: 
       matrix:
         php_version: [8.3]
-        wp_version: [latest, '6.7', '6.8']
+        wp_version: [latest, '6.7', '6.9']
         wp_multisite: [0]
         include:
           - php_version: 8.3
@@ -32,7 +32,7 @@ jobs:
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
         
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
@@ -44,7 +44,7 @@ jobs:
 
     - name: Cache Composer packages
       id: composer-cache
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: vendor
         key: ${{ runner.os }}-php-${{ matrix.php_version }}-${{ hashFiles('**/composer.json') }}
@@ -85,7 +85,7 @@ jobs:
       matrix:
         php_version: [8.3]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -95,7 +95,7 @@ jobs:
 
       - name: Cache Composer packages
         id: composer-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: vendor
           key: ${{ runner.os }}-php-${{ matrix.php_version }}-${{ hashFiles('**/composer.json') }}
