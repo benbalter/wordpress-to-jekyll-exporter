@@ -155,7 +155,7 @@ function test_jekyll_export_config() {
     }
     
     echo '<pre>';
-    echo "WordPress to Jekyll Exporter Configuration Test\n";
+    echo "Static Site Exporter Configuration Test\n";
     echo "==============================================\n\n";
     
     // Check post types

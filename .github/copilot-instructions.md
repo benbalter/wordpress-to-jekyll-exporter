@@ -1,4 +1,4 @@
-# Copilot Instructions for WordPress to Jekyll Exporter
+# Copilot Instructions for Static Site Exporter
 
 ## Project Overview
 

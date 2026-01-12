@@ -1,6 +1,6 @@
 # Development Container
 
-This directory contains the development container configuration for the WordPress to Jekyll Exporter plugin.
+This directory contains the development container configuration for the Static Site Exporter plugin.
 
 ## What's Included
 
