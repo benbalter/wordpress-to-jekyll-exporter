@@ -195,7 +195,7 @@ See [.devcontainer/README.md](https://ben.balter.com/wordpress-to-jekyll-exporte
 
 = Option 2: Manual Setup =
 
-= # Prerequisites =
+= Prerequisites =
 
 1. `sudo apt-get update`
 1. `sudo apt-get install composer`
@@ -208,7 +208,7 @@ See [.devcontainer/README.md](https://ben.balter.com/wordpress-to-jekyll-exporte
 1. `sudo apt-get install php-pear`
 1. `sudo pear install PHP_CodeSniffer`
 
-= # Bootstrap & Setup =
+= Bootstrap & Setup =
 
 1. `git clone https://github.com/benbalter/wordpress-to-jekyll-exporter`
 2. `cd wordpress-to-jekyll-exporter`
@@ -227,7 +227,7 @@ See [.devcontainer/README.md](https://ben.balter.com/wordpress-to-jekyll-exporte
 
 === Performance Optimizations ===
 
-This document describes the performance optimizations implemented in WordPress to Jekyll Exporter to improve export speed and reduce resource usage, especially for large WordPress sites.
+This document describes the performance optimizations implemented in Static Site Exporter to improve export speed and reduce resource usage, especially for large WordPress sites.
 
 == Overview ==
 
@@ -599,7 +599,7 @@ Include in your report:
 
 == Minimum required PHP version ==
 
-Many shared hosts may use an outdated version of PHP by default. **WordPress to Jekyll Export requires PHP 5.6 or greater.**
+Many shared hosts may use an outdated version of PHP by default. **Static Site Exporter requires PHP 5.6 or greater.**
 
 If you get an error message that looks like `unexpected T_STRING`, `unexpected '['` or `expecting T_CONSTANT_ENCAPSED_STRING`, you need to update your PHP version. In a shared hosting environment, you should be able to change the version of PHP used by simply toggling the setting in the host's control panel.
 

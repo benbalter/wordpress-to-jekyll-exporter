@@ -1,6 +1,6 @@
-![WordPress to Jekyll Exporter logo header](https://user-images.githubusercontent.com/282759/120906741-fae1e880-c629-11eb-81df-201a3a749d75.png)
+![Static Site Exporter logo header](https://user-images.githubusercontent.com/282759/120906741-fae1e880-c629-11eb-81df-201a3a749d75.png)
   
-# WordPress to Jekyll Exporter
+# Static Site Exporter
 
 One-click WordPress plugin that converts all posts, pages, taxonomies, metadata, and settings to Markdown and YAML which can be dropped into Jekyll (or Hugo or any other Markdown and YAML based site engine).
 
