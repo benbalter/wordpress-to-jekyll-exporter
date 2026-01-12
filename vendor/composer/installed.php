@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'benbalter/wordpress-to-jekyll-exporter',
-        'pretty_version' => 'dev-copilot/fix-failing-tests-main-again',
-        'version' => 'dev-copilot/fix-failing-tests-main-again',
-        'reference' => '2b7a8d5c1679188f09c526b138ff2c4c4fe06997',
+        'pretty_version' => 'dev-copilot/update-plugin-display-name',
+        'version' => 'dev-copilot/update-plugin-display-name',
+        'reference' => '2513bb33245d59e6eb926191ce449f354f1261e1',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         'benbalter/wordpress-to-jekyll-exporter' => array(
-            'pretty_version' => 'dev-copilot/fix-failing-tests-main-again',
-            'version' => 'dev-copilot/fix-failing-tests-main-again',
-            'reference' => '2b7a8d5c1679188f09c526b138ff2c4c4fe06997',
+            'pretty_version' => 'dev-copilot/update-plugin-display-name',
+            'version' => 'dev-copilot/update-plugin-display-name',
+            'reference' => '2513bb33245d59e6eb926191ce449f354f1261e1',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
