@@ -1,7 +1,7 @@
 # Performance Optimization Summary
 
 ## Overview
-This PR implements significant performance improvements to WordPress to Jekyll Exporter, addressing inefficient code patterns that caused slow exports on large WordPress sites.
+This PR implements significant performance improvements to Static Site Exporter, addressing inefficient code patterns that caused slow exports on large WordPress sites.
 
 ## Key Improvements
 

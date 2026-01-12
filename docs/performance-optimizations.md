@@ -1,6 +1,6 @@
 # Performance Optimizations
 
-This document describes the performance optimizations implemented in WordPress to Jekyll Exporter to improve export speed and reduce resource usage, especially for large WordPress sites.
+This document describes the performance optimizations implemented in Static Site Exporter to improve export speed and reduce resource usage, especially for large WordPress sites.
 
 ## Overview
 
