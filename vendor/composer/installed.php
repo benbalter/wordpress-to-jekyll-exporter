@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'benbalter/wordpress-to-jekyll-exporter',
-        'pretty_version' => 'dev-copilot/fix-333',
-        'version' => 'dev-copilot/fix-333',
-        'reference' => 'b184fb2a27af728fd5c61f3fd0ac0b1a5d2b5644',
+        'pretty_version' => 'dev-copilot/fix-integration-test-workflow',
+        'version' => 'dev-copilot/fix-integration-test-workflow',
+        'reference' => '047c427b01dec8707117f3241a8f7a0699a31eee',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         'benbalter/wordpress-to-jekyll-exporter' => array(
-            'pretty_version' => 'dev-copilot/fix-333',
-            'version' => 'dev-copilot/fix-333',
-            'reference' => 'b184fb2a27af728fd5c61f3fd0ac0b1a5d2b5644',
+            'pretty_version' => 'dev-copilot/fix-integration-test-workflow',
+            'version' => 'dev-copilot/fix-integration-test-workflow',
+            'reference' => '047c427b01dec8707117f3241a8f7a0699a31eee',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -296,8 +296,8 @@
             'dev_requirement' => true,
         ),
         'symfony/polyfill-ctype' => array(
-            'pretty_version' => 'v1.32.0',
-            'version' => '1.32.0.0',
+            'pretty_version' => 'v1.33.0',
+            'version' => '1.33.0.0',
             'reference' => 'a3cc8b044a6ea513310cbd48ef7333b384945638',
             'type' => 'library',
             'install_path' => __DIR__ . '/../symfony/polyfill-ctype',
