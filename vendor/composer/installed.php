@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'benbalter/wordpress-to-jekyll-exporter',
-        'pretty_version' => 'dev-copilot/fix-integration-test-workflow',
-        'version' => 'dev-copilot/fix-integration-test-workflow',
-        'reference' => '047c427b01dec8707117f3241a8f7a0699a31eee',
+        'pretty_version' => 'dev-copilot/fix-wordpress-compatibility',
+        'version' => 'dev-copilot/fix-wordpress-compatibility',
+        'reference' => '848375ada290b0f45c79d79a8203d61c5976516e',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         'benbalter/wordpress-to-jekyll-exporter' => array(
-            'pretty_version' => 'dev-copilot/fix-integration-test-workflow',
-            'version' => 'dev-copilot/fix-integration-test-workflow',
-            'reference' => '047c427b01dec8707117f3241a8f7a0699a31eee',
+            'pretty_version' => 'dev-copilot/fix-wordpress-compatibility',
+            'version' => 'dev-copilot/fix-wordpress-compatibility',
+            'reference' => '848375ada290b0f45c79d79a8203d61c5976516e',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

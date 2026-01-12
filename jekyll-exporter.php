@@ -334,6 +334,9 @@ class Jekyll_Export {
 	 * Main function, bootstraps, converts, and cleans up
 	 */
 	function export() {
+		// Disable PHP time limit to prevent timeout during large exports.
+		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Silenced because set_time_limit may be disabled on some hosts.
+		@set_time_limit( 0 );
 		do_action( 'jekyll_export' );
 		ob_start();
 		$this->init_temp_dir();
