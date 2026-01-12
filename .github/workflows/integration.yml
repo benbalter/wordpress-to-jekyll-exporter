@@ -15,6 +15,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Install Composer dependencies
+        run: composer install --no-dev --no-interaction
+
       - name: Docker compose
         uses: isbang/compose-action@v2.4.2
         with:
