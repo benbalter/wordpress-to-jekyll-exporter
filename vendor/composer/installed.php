@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'benbalter/wordpress-to-jekyll-exporter',
-        'pretty_version' => 'dev-copilot/comprehensive-testing-implementation',
-        'version' => 'dev-copilot/comprehensive-testing-implementation',
-        'reference' => '0f0d80d6119b099ce57873c92dd72a4de3b429c3',
+        'pretty_version' => 'dev-master',
+        'version' => 'dev-master',
+        'reference' => 'dc8e0d0b2c0d168e2eba181b89204b9c242a57c7',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         'benbalter/wordpress-to-jekyll-exporter' => array(
-            'pretty_version' => 'dev-copilot/comprehensive-testing-implementation',
-            'version' => 'dev-copilot/comprehensive-testing-implementation',
-            'reference' => '0f0d80d6119b099ce57873c92dd72a4de3b429c3',
+            'pretty_version' => 'dev-master',
+            'version' => 'dev-master',
+            'reference' => 'dc8e0d0b2c0d168e2eba181b89204b9c242a57c7',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
