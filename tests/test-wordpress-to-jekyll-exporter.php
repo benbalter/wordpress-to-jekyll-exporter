@@ -812,4 +812,86 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 		@unlink( $test_dir . 'test.txt' );
 		@rmdir( $test_dir );
 	}
+
+	/**
+	 * Test that convert_content handles tables with colspan
+	 */
+	function test_convert_content_table_with_colspan() {
+		global $jekyll_export;
+
+		$html = '<table><tr><th colspan="2">Presence</th></tr><tr><td>The campaign showed a range of women from all walks of life</td><td>36%</td></tr><tr><td>The women in the campaign felt authentic and a realistic portrayal</td><td>63%</td></tr></table>';
+
+		$post_id = wp_insert_post(
+			array(
+				'post_title'   => 'Test Colspan Table',
+				'post_content' => $html,
+				'post_status'  => 'publish',
+				'post_author'  => self::$author_id,
+			)
+		);
+
+		$post    = get_post( $post_id );
+		$content = $jekyll_export->convert_content( $post );
+
+		// Verify that the table has proper structure.
+		// With colspan=2, we expect two columns to be present.
+		$this->assertStringContainsString( '| Presence |  |', $content, 'Table should have empty cell for colspan' );
+		$this->assertStringContainsString( '|---|---|', $content, 'Table should have two column separators' );
+		$this->assertStringContainsString( '36%', $content, 'Table should contain the second column content' );
+		$this->assertStringContainsString( '63%', $content, 'Table should contain the second column content' );
+	}
+
+	/**
+	 * Test that convert_content handles tables with multiple colspan values
+	 */
+	function test_convert_content_table_with_multiple_colspan() {
+		global $jekyll_export;
+
+		$html = '<table><tr><th colspan="3">Header Spanning 3 Columns</th></tr><tr><td>Column 1</td><td>Column 2</td><td>Column 3</td></tr></table>';
+
+		$post_id = wp_insert_post(
+			array(
+				'post_title'   => 'Test Multiple Colspan',
+				'post_content' => $html,
+				'post_status'  => 'publish',
+				'post_author'  => self::$author_id,
+			)
+		);
+
+		$post    = get_post( $post_id );
+		$content = $jekyll_export->convert_content( $post );
+
+		// Verify that the table has proper structure with 3 columns.
+		$this->assertStringContainsString( '| Header Spanning 3 Columns |  |  |', $content, 'Table should have two empty cells for colspan=3' );
+		$this->assertStringContainsString( '|---|---|---|', $content, 'Table should have three column separators' );
+		$this->assertStringContainsString( 'Column 1', $content );
+		$this->assertStringContainsString( 'Column 2', $content );
+		$this->assertStringContainsString( 'Column 3', $content );
+	}
+
+	/**
+	 * Test that convert_content handles tables without colspan
+	 */
+	function test_convert_content_table_without_colspan() {
+		global $jekyll_export;
+
+		$html = '<table><tr><th>Header 1</th><th>Header 2</th></tr><tr><td>Cell 1</td><td>Cell 2</td></tr></table>';
+
+		$post_id = wp_insert_post(
+			array(
+				'post_title'   => 'Test Normal Table',
+				'post_content' => $html,
+				'post_status'  => 'publish',
+				'post_author'  => self::$author_id,
+			)
+		);
+
+		$post    = get_post( $post_id );
+		$content = $jekyll_export->convert_content( $post );
+
+		// Verify normal table structure is preserved.
+		$this->assertStringContainsString( '| Header 1 | Header 2 |', $content );
+		$this->assertStringContainsString( '| Cell 1 | Cell 2 |', $content );
+		$this->assertStringContainsString( '|---|---|', $content, 'Table should have two column separators' );
+	}
 }

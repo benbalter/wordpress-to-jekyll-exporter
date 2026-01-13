@@ -41,9 +41,9 @@ if ( version_compare( PHP_VERSION, '5.3.0', '<' ) ) {
 
 require_once __DIR__ . '/lib/cli.php';
 require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__ . '/lib/ColspanTableConverter.php';
 
 use League\HTMLToMarkdown\HtmlConverter;
-use League\HTMLToMarkdown\Converter\TableConverter;
 use Symfony\Component\Yaml\Yaml;
 
 /**
@@ -254,7 +254,7 @@ class Jekyll_Export {
 		if ( null === $converter ) {
 			$converter_options = apply_filters( 'jekyll_export_markdown_converter_options', array( 'header_style' => 'atx' ) );
 			$converter         = new HtmlConverter( $converter_options );
-			$converter->getEnvironment()->addConverter( new TableConverter() );
+			$converter->getEnvironment()->addConverter( new ColspanTableConverter() );
 		}
 
 		$markdown = $converter->convert( $content );
