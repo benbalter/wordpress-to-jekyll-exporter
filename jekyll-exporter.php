@@ -12,10 +12,10 @@
  * Plugin Name: Static Site Exporter
  * Plugin URI:  https://github.com/benbalter/wordpress-to-jekyll-exporter/
  * Description: One-click plugin that converts all posts, pages, taxonomies, metadata, and settings to Markdown and YAML for Jekyll, Hugo, or other static site generators.
- * Version:     3.0.1
+ * Version:     3.0.2
  * Author:      Ben Balter
  * Author URI:  https://ben.balter.com
- * Text Domain: jekyll-export
+ * Text Domain: jekyll-exporter
  * License:     GPL-3.0+
  * License URI: http://www.gnu.org/licenses/gpl-3.0.txt
  *
@@ -108,7 +108,7 @@ class Jekyll_Export {
 	 * Add menu option to tools list
 	 */
 	function register_menu() {
-		add_management_page( __( 'Export to Jekyll', 'jekyll-export' ), __( 'Export to Jekyll', 'jekyll-export' ), 'manage_options', 'export.php?type=jekyll' );
+		add_management_page( __( 'Export to Jekyll', 'jekyll-exporter' ), __( 'Export to Jekyll', 'jekyll-exporter' ), 'manage_options', 'export.php?type=jekyll' );
 	}
 
 

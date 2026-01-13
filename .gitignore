@@ -17,3 +17,9 @@ vendor/**/*.zip*
 bin/*
 coverage.xml
 composer.lock
+
+# Files not permitted in WP plugin directory
+.devcontainer/welcome.sh
+TESTING_SUMMARY.md
+PR_REVIEW_GUIDE.md
+PERFORMANCE_IMPROVEMENTS.md
