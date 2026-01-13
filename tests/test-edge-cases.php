@@ -372,7 +372,7 @@ class EdgeCasesTest extends WP_UnitTestCase {
 
 		// Verify that dir was set properly (not false or empty).
 		$this->assertNotEmpty( $test_export->dir );
-		$this->assertNotFalse( strpos( $test_export->dir, 'wp-jekyll-' ) );
+		$this->assertStringContainsString( 'wp-jekyll-', $test_export->dir );
 		$this->assertTrue( file_exists( $test_export->dir ) );
 		$this->assertTrue( file_exists( $test_export->dir . '_posts/' ) );
 
