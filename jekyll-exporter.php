@@ -546,14 +546,25 @@ class Jekyll_Export {
 			// Security: Validate that the resolved path is within ABSPATH or the uploads directory.
 			// This prevents symlinks from being used to access files outside the WordPress installation.
 			$upload_dir    = wp_upload_dir();
-			$allowed_paths = array(
-				realpath( ABSPATH ),
-				realpath( $upload_dir['basedir'] ),
+			$allowed_bases = array(
+				ABSPATH,
+				$upload_dir['basedir'],
 			);
 
+			// Normalize all paths for comparison.
 			$is_allowed = false;
-			foreach ( $allowed_paths as $allowed_path ) {
-				if ( false !== $allowed_path && 0 === strpos( $resolved_source, trailingslashit( $allowed_path ) ) ) {
+			foreach ( $allowed_bases as $base ) {
+				$base_real = realpath( $base );
+				if ( false === $base_real ) {
+					continue;
+				}
+
+				// Ensure both paths have trailing slashes for accurate prefix matching.
+				$base_real_with_slash = trailingslashit( $base_real );
+				$source_with_slash    = trailingslashit( $resolved_source );
+
+				// Check if the resolved path is within the allowed base.
+				if ( 0 === strpos( $source_with_slash, $base_real_with_slash ) || $resolved_source === $base_real ) {
 					$is_allowed = true;
 					break;
 				}
