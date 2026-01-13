@@ -812,4 +812,147 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 		@unlink( $test_dir . 'test.txt' );
 		@rmdir( $test_dir );
 	}
+
+	/**
+	 * Test that it filters posts by category
+	 */
+	function test_filter_posts_by_category() {
+		global $jekyll_export;
+
+		// Clear cache to ensure fresh query.
+		wp_cache_delete( 'jekyll_export_posts' );
+
+		// Create a new category.
+		$tech_cat_id = wp_insert_category( array( 'cat_name' => 'Technology', 'category_nicename' => 'technology' ) );
+
+		// Create a post in the Technology category.
+		$tech_post_id = wp_insert_post(
+			array(
+				'post_title'    => 'Tech Post',
+				'post_content'  => 'This is a tech post.',
+				'post_status'   => 'publish',
+				'post_category' => array( $tech_cat_id ),
+			)
+		);
+
+		// Apply category filter.
+		add_filter(
+			'jekyll_export_taxonomy_filters',
+			function() {
+				return array( 'category' => array( 'technology' ) );
+			}
+		);
+
+		// Clear cache again to force new query with filter.
+		wp_cache_delete( 'jekyll_export_posts' );
+
+		$posts = $jekyll_export->get_posts();
+
+		// Verify that only the tech post is returned.
+		$this->assertContains( $tech_post_id, $posts );
+		$this->assertNotContains( self::$page_id, $posts );
+
+		// Clean up.
+		wp_delete_post( $tech_post_id, true );
+		wp_delete_category( $tech_cat_id );
+		remove_all_filters( 'jekyll_export_taxonomy_filters' );
+	}
+
+	/**
+	 * Test that it filters posts by tag
+	 */
+	function test_filter_posts_by_tag() {
+		global $jekyll_export;
+
+		// Clear cache to ensure fresh query.
+		wp_cache_delete( 'jekyll_export_posts' );
+
+		// Create a post with a specific tag.
+		$featured_post_id = wp_insert_post(
+			array(
+				'post_title'   => 'Featured Post',
+				'post_content' => 'This is a featured post.',
+				'post_status'  => 'publish',
+				'tags_input'   => array( 'featured' ),
+			)
+		);
+
+		// Apply tag filter.
+		add_filter(
+			'jekyll_export_taxonomy_filters',
+			function() {
+				return array( 'post_tag' => array( 'featured' ) );
+			}
+		);
+
+		// Clear cache again to force new query with filter.
+		wp_cache_delete( 'jekyll_export_posts' );
+
+		$posts = $jekyll_export->get_posts();
+
+		// Verify that only the featured post is returned.
+		$this->assertContains( $featured_post_id, $posts );
+		$this->assertNotContains( self::$page_id, $posts );
+
+		// Clean up.
+		wp_delete_post( $featured_post_id, true );
+		remove_all_filters( 'jekyll_export_taxonomy_filters' );
+	}
+
+	/**
+	 * Test that it filters posts by multiple categories
+	 */
+	function test_filter_posts_by_multiple_categories() {
+		global $jekyll_export;
+
+		// Clear cache to ensure fresh query.
+		wp_cache_delete( 'jekyll_export_posts' );
+
+		// Create two categories.
+		$cat1_id = wp_insert_category( array( 'cat_name' => 'Category1', 'category_nicename' => 'category1' ) );
+		$cat2_id = wp_insert_category( array( 'cat_name' => 'Category2', 'category_nicename' => 'category2' ) );
+
+		// Create posts in different categories.
+		$post1_id = wp_insert_post(
+			array(
+				'post_title'    => 'Cat1 Post',
+				'post_content'  => 'This is a category1 post.',
+				'post_status'   => 'publish',
+				'post_category' => array( $cat1_id ),
+			)
+		);
+
+		$post2_id = wp_insert_post(
+			array(
+				'post_title'    => 'Cat2 Post',
+				'post_content'  => 'This is a category2 post.',
+				'post_status'   => 'publish',
+				'post_category' => array( $cat2_id ),
+			)
+		);
+
+		// Apply multiple category filter.
+		add_filter(
+			'jekyll_export_taxonomy_filters',
+			function() {
+				return array( 'category' => array( 'category1', 'category2' ) );
+			}
+		);
+
+		// Clear cache again to force new query with filter.
+		wp_cache_delete( 'jekyll_export_posts' );
+
+		$posts = $jekyll_export->get_posts();
+
+		// Verify that both posts are returned.
+		$this->assertContains( $post1_id, $posts );
+		$this->assertContains( $post2_id, $posts );
+
+		// Clean up.
+		wp_delete_post( $post1_id, true );
+		wp_delete_post( $post2_id, true );
+		wp_delete_category( $cat1_id );
+		wp_delete_category( $cat2_id );
+		remove_all_filters( 'jekyll_export_taxonomy_filters' );
+	}
 }
