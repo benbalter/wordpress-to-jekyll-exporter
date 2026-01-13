@@ -20,8 +20,31 @@ use League\HTMLToMarkdown\ElementInterface;
  * to add support for colspan attributes in table cells. When a cell has a
  * colspan attribute, it adds the appropriate number of empty cells to maintain
  * the table structure in Markdown.
+ *
+ * Note: This class uses reflection to access the private $columnAlignments
+ * property from the parent class. While not ideal, this is necessary because
+ * the parent class doesn't provide accessor methods for this property, and
+ * proper colspan support requires tracking multiple column alignments per cell.
  */
 class ColspanTableConverter extends TableConverter {
+
+	/**
+	 * Alignment mapping for table columns
+	 *
+	 * @var array<string, string>
+	 */
+	private static $alignments_map = array(
+		'left'   => ':--',
+		'right'  => '--:',
+		'center' => ':-:',
+	);
+
+	/**
+	 * Cached reflection property for columnAlignments
+	 *
+	 * @var ReflectionProperty|null
+	 */
+	private $column_alignments_property = null;
 
 	/**
 	 * Convert HTML table elements to Markdown
@@ -34,20 +57,21 @@ class ColspanTableConverter extends TableConverter {
 	 * @return string The Markdown representation
 	 */
 	public function convert( ElementInterface $element ): string {
-		$value = $element->getValue();
-		$tag   = $element->getTagName();
+		$tag = $element->getTagName();
 
 		// Handle th and td elements with colspan support.
 		if ( 'th' === $tag || 'td' === $tag ) {
 			$align             = $element->getAttribute( 'align' );
-			$column_alignments = $this->getColumnAlignments();
+			$column_alignments = $this->get_column_alignments();
 
+			// Add alignment for the main cell.
 			if ( null !== $column_alignments ) {
-				$this->addColumnAlignment( $align );
+				$this->add_column_alignment( $align );
 			}
 
+			$value = $element->getValue();
 			$value = str_replace( "\n", ' ', $value );
-			$value = str_replace( '|', Coerce::toString( $this->getConfig()->getOption( 'table_pipe_escape' ) ?? '\|' ), $value );
+			$value = str_replace( '|', Coerce::toString( $this->config->getOption( 'table_pipe_escape' ) ?? '\|' ), $value );
 
 			$result = '| ' . trim( $value ) . ' ';
 
@@ -60,7 +84,7 @@ class ColspanTableConverter extends TableConverter {
 				for ( $i = 1; $i < $colspan; $i++ ) {
 					// Add alignment for additional columns if we're tracking alignments.
 					if ( null !== $column_alignments ) {
-						$this->addColumnAlignment( $align );
+						$this->add_column_alignment( $align );
 					}
 					$result .= '|  ';
 				}
@@ -74,53 +98,39 @@ class ColspanTableConverter extends TableConverter {
 	}
 
 	/**
-	 * Get the column alignments array
+	 * Get the column alignments array from parent class
 	 *
 	 * Uses reflection to access the private property from the parent class.
+	 * The property is cached to avoid repeated reflection lookups.
 	 *
 	 * @return array|null The column alignments array or null
 	 */
-	private function getColumnAlignments() {
-		$reflection = new ReflectionClass( parent::class );
-		$property   = $reflection->getProperty( 'columnAlignments' );
-		$property->setAccessible( true );
-		return $property->getValue( $this );
+	private function get_column_alignments() {
+		if ( null === $this->column_alignments_property ) {
+			$reflection                       = new ReflectionClass( parent::class );
+			$this->column_alignments_property = $reflection->getProperty( 'columnAlignments' );
+			$this->column_alignments_property->setAccessible( true );
+		}
+
+		return $this->column_alignments_property->getValue( $this );
 	}
 
 	/**
-	 * Add a column alignment
+	 * Add a column alignment to parent class array
 	 *
 	 * Uses reflection to modify the private property from the parent class.
 	 *
 	 * @param string $align The alignment value (left, right, center, or empty).
 	 */
-	private function addColumnAlignment( $align ) {
-		$alignments_map = array(
-			'left'   => ':--',
-			'right'  => '--:',
-			'center' => ':-:',
-		);
+	private function add_column_alignment( $align ) {
+		if ( null === $this->column_alignments_property ) {
+			$reflection                       = new ReflectionClass( parent::class );
+			$this->column_alignments_property = $reflection->getProperty( 'columnAlignments' );
+			$this->column_alignments_property->setAccessible( true );
+		}
 
-		$reflection = new ReflectionClass( parent::class );
-		$property   = $reflection->getProperty( 'columnAlignments' );
-		$property->setAccessible( true );
-
-		$current   = $property->getValue( $this );
-		$current[] = $alignments_map[ $align ] ?? '---';
-		$property->setValue( $this, $current );
-	}
-
-	/**
-	 * Get the configuration object
-	 *
-	 * Uses reflection to access the protected property from the parent class.
-	 *
-	 * @return \League\HTMLToMarkdown\Configuration The configuration object
-	 */
-	private function getConfig() {
-		$reflection = new ReflectionClass( parent::class );
-		$property   = $reflection->getProperty( 'config' );
-		$property->setAccessible( true );
-		return $property->getValue( $this );
+		$current   = $this->column_alignments_property->getValue( $this );
+		$current[] = self::$alignments_map[ $align ] ?? '---';
+		$this->column_alignments_property->setValue( $this, $current );
 	}
 }
