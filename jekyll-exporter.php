@@ -228,6 +228,30 @@ class Jekyll_Export {
 	}
 
 	/**
+	 * Localize URLs in content to use relative paths instead of absolute URLs.
+	 *
+	 * @param String $content the content to localize.
+	 * @return String the content with localized URLs
+	 */
+	function localize_urls( $content ) {
+		// Get the site URL with both http and https versions.
+		$site_url_http  = trailingslashit( set_url_scheme( get_site_url(), 'http' ) );
+		$site_url_https = trailingslashit( set_url_scheme( get_site_url(), 'https' ) );
+
+		// Replace absolute URLs with relative paths for both http and https.
+		$content = str_replace( $site_url_https, '/', $content );
+		$content = str_replace( $site_url_http, '/', $content );
+
+		// Also handle URLs without trailing slash.
+		$site_url_http_no_slash  = rtrim( $site_url_http, '/' );
+		$site_url_https_no_slash = rtrim( $site_url_https, '/' );
+		$content                 = str_replace( $site_url_https_no_slash, '', $content );
+		$content                 = str_replace( $site_url_http_no_slash, '', $content );
+
+		return apply_filters( 'jekyll_export_localized_urls', $content );
+	}
+
+	/**
 	 * Convert the main post content to Markdown.
 	 *
 	 * @param Post $post the post to Convert.
@@ -242,12 +266,16 @@ class Jekyll_Export {
 			if ( $wpcom_markdown_instance && $wpcom_markdown_instance->is_posting_enabled() ) {
 				// jetpack markdown is available so just return it.
 				$content = apply_filters( 'edit_post_content', $post->post_content, $post->ID );
+				// Localize URLs in Jetpack markdown content.
+				$content = $this->localize_urls( $content );
 
 				return $content;
 			}
 		}
 
 		$content = get_the_content( null, false, $post );
+		// Localize URLs before converting to Markdown.
+		$content = $this->localize_urls( $content );
 
 		// Reuse converter instance to avoid recreating it for each post.
 		static $converter = null;

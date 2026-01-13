@@ -812,4 +812,103 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 		@unlink( $test_dir . 'test.txt' );
 		@rmdir( $test_dir );
 	}
+
+	/**
+	 * Test that localize_urls replaces absolute URLs with relative paths
+	 */
+	function test_localize_urls() {
+		global $jekyll_export;
+
+		$site_url = get_site_url();
+
+		// Test with http URL.
+		$content = '<img src="http://example.org/wp-content/uploads/image.jpg" alt="test">';
+		$result  = $jekyll_export->localize_urls( $content );
+		$this->assertStringNotContainsString( 'http://example.org', $result );
+		$this->assertStringContainsString( '/wp-content/uploads/image.jpg', $result );
+
+		// Test with https URL.
+		$content = '<img src="https://example.org/wp-content/uploads/image.jpg" alt="test">';
+		$result  = $jekyll_export->localize_urls( $content );
+		$this->assertStringNotContainsString( 'https://example.org', $result );
+		$this->assertStringContainsString( '/wp-content/uploads/image.jpg', $result );
+
+		// Test with multiple images.
+		$content = '<img src="http://example.org/wp-content/uploads/image1.jpg"><img src="https://example.org/wp-content/uploads/image2.jpg">';
+		$result  = $jekyll_export->localize_urls( $content );
+		$this->assertStringNotContainsString( 'http://example.org', $result );
+		$this->assertStringNotContainsString( 'https://example.org', $result );
+		$this->assertStringContainsString( '/wp-content/uploads/image1.jpg', $result );
+		$this->assertStringContainsString( '/wp-content/uploads/image2.jpg', $result );
+	}
+
+	/**
+	 * Test that localize_urls handles links and other elements
+	 */
+	function test_localize_urls_handles_links() {
+		global $jekyll_export;
+
+		$content = '<a href="http://example.org/wp-content/uploads/document.pdf">Download</a>';
+		$result  = $jekyll_export->localize_urls( $content );
+		$this->assertStringNotContainsString( 'http://example.org', $result );
+		$this->assertStringContainsString( '/wp-content/uploads/document.pdf', $result );
+	}
+
+	/**
+	 * Test that localize_urls preserves external URLs
+	 */
+	function test_localize_urls_preserves_external() {
+		global $jekyll_export;
+
+		$content = '<img src="https://external-site.com/image.jpg" alt="external">';
+		$result  = $jekyll_export->localize_urls( $content );
+		$this->assertStringContainsString( 'https://external-site.com/image.jpg', $result );
+	}
+
+	/**
+	 * Test that convert_content localizes URLs in HTML
+	 */
+	function test_convert_content_localizes_urls() {
+		global $jekyll_export;
+
+		$post_id = wp_insert_post(
+			array(
+				'post_title'   => 'Test Post With Image',
+				'post_content' => '<p>Text with image: <img src="http://example.org/wp-content/uploads/test-image.jpg" alt="Test"></p>',
+				'post_status'  => 'publish',
+				'post_author'  => self::$author_id,
+			)
+		);
+
+		$post    = get_post( $post_id );
+		$content = $jekyll_export->convert_content( $post );
+
+		// Check that the URL was localized (should not contain the full site URL).
+		$this->assertStringNotContainsString( 'http://example.org', $content );
+		$this->assertStringContainsString( '/wp-content/uploads/test-image.jpg', $content );
+	}
+
+	/**
+	 * Test that convert_content handles multiple images
+	 */
+	function test_convert_content_multiple_images() {
+		global $jekyll_export;
+
+		$post_id = wp_insert_post(
+			array(
+				'post_title'   => 'Test Post With Multiple Images',
+				'post_content' => '<p>Image 1: <img src="http://example.org/wp-content/uploads/image1.jpg"></p><p>Image 2: <img src="https://example.org/wp-content/uploads/image2.jpg"></p>',
+				'post_status'  => 'publish',
+				'post_author'  => self::$author_id,
+			)
+		);
+
+		$post    = get_post( $post_id );
+		$content = $jekyll_export->convert_content( $post );
+
+		// Check that both URLs were localized.
+		$this->assertStringNotContainsString( '://example.org', $content );
+		$this->assertStringContainsString( '/wp-content/uploads/image1.jpg', $content );
+		$this->assertStringContainsString( '/wp-content/uploads/image2.jpg', $content );
+	}
 }
