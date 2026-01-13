@@ -337,6 +337,15 @@ class EdgeCasesTest extends WP_UnitTestCase {
 		mkdir( $source_dir );
 		symlink( $target_dir, $source_dir . '/uploads' );
 
+		// Allow temp directory for this test.
+		add_filter(
+			'jekyll_export_allowed_symlink_bases',
+			function( $bases ) {
+				$bases[] = get_temp_dir();
+				return $bases;
+			}
+		);
+
 		// Copy the directory structure (which includes the symlink).
 		$result = $jekyll_export->copy_recursive( $source_dir, $jekyll_export->dir . '/wp-content-test' );
 
