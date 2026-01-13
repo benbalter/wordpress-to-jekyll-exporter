@@ -319,7 +319,7 @@ class Jekyll_Export {
 		// For more information see https://github.com/projectkudu/kudu/wiki/Understanding-the-Azure-App-Service-file-system.
 		$temp_dir = ( getenv( 'WEBSITE_SITE_NAME' ) !== false ) ? ( getenv( 'HOME' ) . DIRECTORY_SEPARATOR . 'temp' ) : get_temp_dir();
 		$wp_filesystem->mkdir( $temp_dir );
-		
+
 		// realpath() returns false if the directory doesn't exist, so we need to check.
 		$real_temp_dir = realpath( $temp_dir );
 		if ( false !== $real_temp_dir ) {
