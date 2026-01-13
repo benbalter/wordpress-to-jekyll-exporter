@@ -955,4 +955,74 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 		wp_delete_category( $cat2_id );
 		remove_all_filters( 'jekyll_export_taxonomy_filters' );
 	}
+
+	/**
+	 * Test that it uses AND logic across different taxonomies
+	 */
+	function test_filter_posts_with_category_and_tag() {
+		global $jekyll_export;
+
+		// Clear cache to ensure fresh query.
+		wp_cache_delete( 'jekyll_export_posts' );
+
+		// Create a category.
+		$tech_cat_id = wp_insert_category( array( 'cat_name' => 'Technology', 'category_nicename' => 'technology' ) );
+
+		// Create posts with different combinations.
+		$post_with_both = wp_insert_post(
+			array(
+				'post_title'    => 'Tech Featured Post',
+				'post_content'  => 'This post has both category and tag.',
+				'post_status'   => 'publish',
+				'post_category' => array( $tech_cat_id ),
+				'tags_input'    => array( 'featured' ),
+			)
+		);
+
+		$post_with_category_only = wp_insert_post(
+			array(
+				'post_title'    => 'Tech Post',
+				'post_content'  => 'This post has only category.',
+				'post_status'   => 'publish',
+				'post_category' => array( $tech_cat_id ),
+			)
+		);
+
+		$post_with_tag_only = wp_insert_post(
+			array(
+				'post_title'    => 'Featured Post',
+				'post_content'  => 'This post has only tag.',
+				'post_status'   => 'publish',
+				'tags_input'    => array( 'featured' ),
+			)
+		);
+
+		// Apply both category and tag filters (AND logic).
+		add_filter(
+			'jekyll_export_taxonomy_filters',
+			function() {
+				return array(
+					'category' => array( 'technology' ),
+					'post_tag' => array( 'featured' ),
+				);
+			}
+		);
+
+		// Clear cache again to force new query with filter.
+		wp_cache_delete( 'jekyll_export_posts' );
+
+		$posts = $jekyll_export->get_posts();
+
+		// Verify that only the post with both category and tag is returned.
+		$this->assertContains( $post_with_both, $posts, 'Post with both category and tag should be included' );
+		$this->assertNotContains( $post_with_category_only, $posts, 'Post with only category should not be included' );
+		$this->assertNotContains( $post_with_tag_only, $posts, 'Post with only tag should not be included' );
+
+		// Clean up.
+		wp_delete_post( $post_with_both, true );
+		wp_delete_post( $post_with_category_only, true );
+		wp_delete_post( $post_with_tag_only, true );
+		wp_delete_category( $tech_cat_id );
+		remove_all_filters( 'jekyll_export_taxonomy_filters' );
+	}
 }

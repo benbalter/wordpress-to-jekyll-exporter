@@ -146,6 +146,7 @@ class Jekyll_Export {
 				$terms = (array) $terms;
 				$term_placeholders = implode( ', ', array_fill( 0, count( $terms ), '%s' ) );
 
+				// Use AND logic between taxonomies, OR logic within taxonomy.
 				$tax_conditions[] = "ID IN (
 					SELECT object_id FROM {$wpdb->term_relationships} tr
 					INNER JOIN {$wpdb->term_taxonomy} tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
@@ -158,7 +159,7 @@ class Jekyll_Export {
 			}
 
 			if ( ! empty( $tax_conditions ) ) {
-				$query .= ' AND (' . implode( ' OR ', $tax_conditions ) . ')';
+				$query .= ' AND (' . implode( ' AND ', $tax_conditions ) . ')';
 			}
 
 			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $query uses placeholders and is passed to $wpdb->prepare().
