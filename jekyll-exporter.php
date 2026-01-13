@@ -320,12 +320,8 @@ class Jekyll_Export {
 
 			$meta = array_merge( $this->convert_meta( $post ), $this->convert_terms( $post ) );
 
-			// remove falsy values, which just add clutter.
-			foreach ( $meta as $key => $value ) {
-				if ( ! is_numeric( $value ) && ! $value ) {
-					unset( $meta[ $key ] );
-				}
-			}
+			// Allow users to customize the post metadata before it's written.
+			$meta = apply_filters( 'jekyll_export_post_meta', $meta, $post );
 
 			$output  = "---\n";
 			$output .= Yaml::dump( $meta );
@@ -356,9 +352,15 @@ class Jekyll_Export {
 		// For more information see https://github.com/projectkudu/kudu/wiki/Understanding-the-Azure-App-Service-file-system.
 		$temp_dir = ( getenv( 'WEBSITE_SITE_NAME' ) !== false ) ? ( getenv( 'HOME' ) . DIRECTORY_SEPARATOR . 'temp' ) : get_temp_dir();
 		$wp_filesystem->mkdir( $temp_dir );
-		$temp_dir = realpath( $temp_dir ) . DIRECTORY_SEPARATOR;
 
-		$this->dir = $temp_dir . 'wp-jekyll-' . md5( time() ) . DIRECTORY_SEPARATOR;
+		// realpath() returns false if the directory doesn't exist, so we need to check.
+		$real_temp_dir = realpath( $temp_dir );
+		if ( false !== $real_temp_dir ) {
+			$temp_dir = $real_temp_dir;
+		}
+		$temp_dir = trailingslashit( $temp_dir );
+
+		$this->dir = trailingslashit( $temp_dir . 'wp-jekyll-' . md5( time() ) );
 		$this->zip = $temp_dir . 'wp-jekyll.zip';
 
 		$wp_filesystem->mkdir( $this->dir );

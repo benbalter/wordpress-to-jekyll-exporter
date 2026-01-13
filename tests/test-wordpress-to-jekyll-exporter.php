@@ -307,6 +307,115 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that empty and falsy values are preserved in frontmatter
+	 */
+	function test_preserves_empty_values_in_frontmatter() {
+		global $jekyll_export;
+
+		// Create a post and add custom meta with various empty/falsy values.
+		$post_id = wp_insert_post(
+			array(
+				'post_title'   => 'Test Empty Values',
+				'post_content' => 'Content',
+				'post_status'  => 'publish',
+				'post_author'  => self::$author_id,
+			)
+		);
+
+		// Add custom meta fields with empty/falsy values.
+		update_post_meta( $post_id, 'empty_string', '' );
+		update_post_meta( $post_id, 'false_value', false );
+		update_post_meta( $post_id, 'zero_value', 0 );
+		update_post_meta( $post_id, 'null_value', null );
+		update_post_meta( $post_id, 'non_empty_value', 'test' );
+
+		// Hook into jekyll_export_meta to add our custom meta to the export.
+		add_filter(
+			'jekyll_export_meta',
+			function ( $meta ) use ( $post_id ) {
+				$meta['empty_string']    = get_post_meta( $post_id, 'empty_string', true );
+				$meta['false_value']     = get_post_meta( $post_id, 'false_value', true );
+				$meta['zero_value']      = get_post_meta( $post_id, 'zero_value', true );
+				$meta['null_value']      = get_post_meta( $post_id, 'null_value', true );
+				$meta['non_empty_value'] = get_post_meta( $post_id, 'non_empty_value', true );
+				return $meta;
+			}
+		);
+
+		// Export the post.
+		$jekyll_export->convert_posts();
+
+		// Read the exported file.
+		$post      = get_post( $post_id );
+		$file_path = $jekyll_export->dir . '/_posts/' . gmdate( 'Y-m-d', strtotime( $post->post_date ) ) . '-' . $post->post_name . '.md';
+		$this->assertFileExists( $file_path );
+
+		$contents = file_get_contents( $file_path );
+		$parts    = explode( '---', $contents );
+		$yaml     = Yaml::parse( $parts[1] );
+
+		// Verify that all fields are present in the YAML, even with empty/falsy values.
+		$this->assertArrayHasKey( 'empty_string', $yaml, 'Empty string should be present' );
+		$this->assertArrayHasKey( 'false_value', $yaml, 'False value should be present' );
+		$this->assertArrayHasKey( 'zero_value', $yaml, 'Zero value should be present' );
+		$this->assertArrayHasKey( 'null_value', $yaml, 'Null value should be present' );
+		$this->assertArrayHasKey( 'non_empty_value', $yaml, 'Non-empty value should be present' );
+
+		// Verify the values are correct.
+		$this->assertEquals( '', $yaml['empty_string'], 'Empty string should be empty' );
+		$this->assertEquals( false, $yaml['false_value'], 'False value should be false' );
+		$this->assertEquals( 0, $yaml['zero_value'], 'Zero value should be 0' );
+		$this->assertEquals( null, $yaml['null_value'], 'Null value should be null' );
+		$this->assertEquals( 'test', $yaml['non_empty_value'], 'Non-empty value should be "test"' );
+	}
+
+	/**
+	 * Test that jekyll_export_post_meta filter works correctly
+	 */
+	function test_post_meta_filter() {
+		global $jekyll_export;
+
+		$post_id = wp_insert_post(
+			array(
+				'post_title'   => 'Test Filter',
+				'post_content' => 'Content',
+				'post_status'  => 'publish',
+				'post_author'  => self::$author_id,
+			)
+		);
+
+		// Add a filter to customize the metadata.
+		add_filter(
+			'jekyll_export_post_meta',
+			function ( $meta, $post ) {
+				$meta['custom_field'] = 'custom_value';
+				// Remove a field if needed.
+				unset( $meta['excerpt'] );
+				return $meta;
+			},
+			10,
+			2
+		);
+
+		// Export the post.
+		$jekyll_export->convert_posts();
+
+		// Read the exported file.
+		$post      = get_post( $post_id );
+		$file_path = $jekyll_export->dir . '/_posts/' . gmdate( 'Y-m-d', strtotime( $post->post_date ) ) . '-' . $post->post_name . '.md';
+		$this->assertFileExists( $file_path );
+
+		$contents = file_get_contents( $file_path );
+		$parts    = explode( '---', $contents );
+		$yaml     = Yaml::parse( $parts[1] );
+
+		// Verify the filter worked.
+		$this->assertArrayHasKey( 'custom_field', $yaml );
+		$this->assertEquals( 'custom_value', $yaml['custom_field'] );
+		$this->assertArrayNotHasKey( 'excerpt', $yaml );
+	}
+
+	/**
 	 * Test that it exports site options to the site config
 	 */
 	function test_export_options() {
