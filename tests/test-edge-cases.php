@@ -359,6 +359,28 @@ class EdgeCasesTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that init_temp_dir handles non-existent temp directories gracefully
+	 */
+	function test_init_temp_dir_with_nonexistent_path() {
+		global $jekyll_export;
+
+		// Create a new instance to avoid reusing existing state.
+		$test_export = new Jekyll_Export();
+
+		// Initialize temp dir (should handle realpath returning false).
+		$test_export->init_temp_dir();
+
+		// Verify that dir was set properly (not false or empty).
+		$this->assertNotEmpty( $test_export->dir );
+		$this->assertNotFalse( strpos( $test_export->dir, 'wp-jekyll-' ) );
+		$this->assertTrue( file_exists( $test_export->dir ) );
+		$this->assertTrue( file_exists( $test_export->dir . '_posts/' ) );
+
+		// Cleanup.
+		$test_export->cleanup();
+	}
+
+	/**
 	 * Helper function to check if running on Windows
 	 */
 	private function is_windows() {
