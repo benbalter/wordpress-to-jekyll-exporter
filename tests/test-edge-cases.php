@@ -289,8 +289,8 @@ class EdgeCasesTest extends WP_UnitTestCase {
 	function test_copy_recursive_with_symlink() {
 		global $jekyll_export;
 
-		$temp_dir   = get_temp_dir() . 'symlink-test-' . time();
-		$target_dir = get_temp_dir() . 'symlink-target-' . time();
+		$temp_dir   = get_temp_dir() . 'symlink-test-' . uniqid();
+		$target_dir = get_temp_dir() . 'symlink-target-' . uniqid();
 
 		mkdir( $temp_dir );
 		mkdir( $target_dir );
@@ -327,13 +327,13 @@ class EdgeCasesTest extends WP_UnitTestCase {
 		}
 
 		// Create a target directory with actual files.
-		$target_dir = get_temp_dir() . 'uploads-target-' . time();
+		$target_dir = get_temp_dir() . 'uploads-target-' . uniqid();
 		mkdir( $target_dir );
 		file_put_contents( $target_dir . '/file1.txt', 'content 1' );
 		file_put_contents( $target_dir . '/file2.txt', 'content 2' );
 
 		// Create a directory with a symlink to the target.
-		$source_dir = get_temp_dir() . 'wp-content-' . time();
+		$source_dir = get_temp_dir() . 'wp-content-' . uniqid();
 		mkdir( $source_dir );
 		symlink( $target_dir, $source_dir . '/uploads' );
 
