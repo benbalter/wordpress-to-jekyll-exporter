@@ -235,18 +235,14 @@ class Jekyll_Export {
 	 */
 	function localize_urls( $content ) {
 		// Get the site URL with both http and https versions.
-		$site_url_http  = trailingslashit( set_url_scheme( get_site_url(), 'http' ) );
-		$site_url_https = trailingslashit( set_url_scheme( get_site_url(), 'https' ) );
+		$site_url_http  = set_url_scheme( get_site_url(), 'http' );
+		$site_url_https = set_url_scheme( get_site_url(), 'https' );
 
 		// Replace absolute URLs with relative paths for both http and https.
-		$content = str_replace( $site_url_https, '/', $content );
-		$content = str_replace( $site_url_http, '/', $content );
-
-		// Also handle URLs without trailing slash.
-		$site_url_http_no_slash  = rtrim( $site_url_http, '/' );
-		$site_url_https_no_slash = rtrim( $site_url_https, '/' );
-		$content                 = str_replace( $site_url_https_no_slash, '', $content );
-		$content                 = str_replace( $site_url_http_no_slash, '', $content );
+		// This handles URLs like: http://example.org/wp-content/uploads/image.jpg
+		// Result: /wp-content/uploads/image.jpg
+		$content = str_replace( $site_url_https, '', $content );
+		$content = str_replace( $site_url_http, '', $content );
 
 		return apply_filters( 'jekyll_export_localized_urls', $content );
 	}

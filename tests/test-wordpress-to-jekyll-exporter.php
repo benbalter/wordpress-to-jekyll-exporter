@@ -819,8 +819,6 @@ class WordPressToJekyllExporterTest extends WP_UnitTestCase {
 	function test_localize_urls() {
 		global $jekyll_export;
 
-		$site_url = get_site_url();
-
 		// Test with http URL.
 		$content = '<img src="http://example.org/wp-content/uploads/image.jpg" alt="test">';
 		$result  = $jekyll_export->localize_urls( $content );
