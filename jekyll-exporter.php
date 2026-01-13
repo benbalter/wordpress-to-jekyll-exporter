@@ -283,12 +283,8 @@ class Jekyll_Export {
 
 			$meta = array_merge( $this->convert_meta( $post ), $this->convert_terms( $post ) );
 
-			// remove falsy values, which just add clutter.
-			foreach ( $meta as $key => $value ) {
-				if ( ! is_numeric( $value ) && ! $value ) {
-					unset( $meta[ $key ] );
-				}
-			}
+			// Allow users to customize the post metadata before it's written.
+			$meta = apply_filters( 'jekyll_export_post_meta', $meta, $post );
 
 			$output  = "---\n";
 			$output .= Yaml::dump( $meta );
