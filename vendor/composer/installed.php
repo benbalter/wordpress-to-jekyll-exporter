@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'benbalter/wordpress-to-jekyll-exporter',
-        'pretty_version' => 'dev-copilot/fix-integration-test-workflow',
-        'version' => 'dev-copilot/fix-integration-test-workflow',
-        'reference' => '047c427b01dec8707117f3241a8f7a0699a31eee',
+        'pretty_version' => 'dev-copilot/fix-upload-files-deletion',
+        'version' => 'dev-copilot/fix-upload-files-deletion',
+        'reference' => '6c806f6494e4e82317c0f7e446d714513796ef4d',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         'benbalter/wordpress-to-jekyll-exporter' => array(
-            'pretty_version' => 'dev-copilot/fix-integration-test-workflow',
-            'version' => 'dev-copilot/fix-integration-test-workflow',
-            'reference' => '047c427b01dec8707117f3241a8f7a0699a31eee',
+            'pretty_version' => 'dev-copilot/fix-upload-files-deletion',
+            'version' => 'dev-copilot/fix-upload-files-deletion',
+            'reference' => '6c806f6494e4e82317c0f7e446d714513796ef4d',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

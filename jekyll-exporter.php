@@ -535,9 +535,13 @@ class Jekyll_Export {
 
 		global $wp_filesystem;
 
-		// Check for symlinks.
+		// Check for symlinks and resolve them instead of creating new symlinks.
+		// This prevents cleanup from following symlinks and deleting the original files.
 		if ( is_link( $source ) ) {
-			return symlink( readlink( $source ), $dest );
+			$source = realpath( $source );
+			if ( false === $source ) {
+				return false;
+			}
 		}
 
 		// Simple copy for a file.
