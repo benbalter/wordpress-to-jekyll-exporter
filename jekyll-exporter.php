@@ -327,7 +327,7 @@ class Jekyll_Export {
 		}
 		$temp_dir = trailingslashit( $temp_dir );
 
-		$this->dir = $temp_dir . 'wp-jekyll-' . md5( time() ) . '/';
+		$this->dir = trailingslashit( $temp_dir . 'wp-jekyll-' . md5( time() ) );
 		$this->zip = $temp_dir . 'wp-jekyll.zip';
 
 		$wp_filesystem->mkdir( $this->dir );
