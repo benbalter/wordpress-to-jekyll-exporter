@@ -64,11 +64,6 @@ class ColspanTableConverter extends TableConverter {
 			$align             = $element->getAttribute( 'align' );
 			$column_alignments = $this->get_column_alignments();
 
-			// Add alignment for the main cell.
-			if ( null !== $column_alignments ) {
-				$this->add_column_alignment( $align );
-			}
-
 			$value = $element->getValue();
 			$value = str_replace( "\n", ' ', $value );
 			$value = str_replace( '|', Coerce::toString( $this->config->getOption( 'table_pipe_escape' ) ?? '\|' ), $value );
@@ -79,13 +74,16 @@ class ColspanTableConverter extends TableConverter {
 			$colspan_attr = $element->getAttribute( 'colspan' );
 			$colspan      = $colspan_attr ? intval( $colspan_attr ) : 1;
 
+			// Add alignment entries for all columns spanned by this cell.
+			if ( null !== $column_alignments ) {
+				for ( $i = 0; $i < $colspan; $i++ ) {
+					$this->add_column_alignment( $align );
+				}
+			}
+
 			// Add empty cells for colspan > 1.
 			if ( $colspan > 1 ) {
 				for ( $i = 1; $i < $colspan; $i++ ) {
-					// Add alignment for additional columns if we're tracking alignments.
-					if ( null !== $column_alignments ) {
-						$this->add_column_alignment( $align );
-					}
 					$result .= '|  ';
 				}
 			}
@@ -104,12 +102,20 @@ class ColspanTableConverter extends TableConverter {
 	 * The property is cached to avoid repeated reflection lookups.
 	 *
 	 * @return array|null The column alignments array or null
+	 * @throws ReflectionException If the parent class structure has changed.
 	 */
 	private function get_column_alignments() {
 		if ( null === $this->column_alignments_property ) {
-			$reflection                       = new ReflectionClass( parent::class );
-			$this->column_alignments_property = $reflection->getProperty( 'columnAlignments' );
-			$this->column_alignments_property->setAccessible( true );
+			try {
+				$reflection                       = new ReflectionClass( parent::class );
+				$this->column_alignments_property = $reflection->getProperty( 'columnAlignments' );
+				$this->column_alignments_property->setAccessible( true );
+			} catch ( ReflectionException $e ) {
+				// If reflection fails, the parent library structure has changed.
+				// Log the error and return null to disable alignment tracking.
+				error_log( 'ColspanTableConverter: Failed to access parent columnAlignments property: ' . $e->getMessage() );
+				return null;
+			}
 		}
 
 		return $this->column_alignments_property->getValue( $this );
@@ -124,13 +130,19 @@ class ColspanTableConverter extends TableConverter {
 	 */
 	private function add_column_alignment( $align ) {
 		if ( null === $this->column_alignments_property ) {
-			$reflection                       = new ReflectionClass( parent::class );
-			$this->column_alignments_property = $reflection->getProperty( 'columnAlignments' );
-			$this->column_alignments_property->setAccessible( true );
+			try {
+				$reflection                       = new ReflectionClass( parent::class );
+				$this->column_alignments_property = $reflection->getProperty( 'columnAlignments' );
+				$this->column_alignments_property->setAccessible( true );
+			} catch ( ReflectionException $e ) {
+				// If reflection fails, silently return to allow conversion to continue.
+				error_log( 'ColspanTableConverter: Failed to access parent columnAlignments property: ' . $e->getMessage() );
+				return;
+			}
 		}
 
-		$current   = $this->column_alignments_property->getValue( $this );
-		$current[] = self::$alignments_map[ $align ] ?? '---';
-		$this->column_alignments_property->setValue( $this, $current );
+		$column_alignments   = $this->column_alignments_property->getValue( $this );
+		$column_alignments[] = self::$alignments_map[ $align ] ?? '---';
+		$this->column_alignments_property->setValue( $this, $column_alignments );
 	}
 }
