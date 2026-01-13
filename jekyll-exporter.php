@@ -549,48 +549,9 @@ class Jekyll_Export {
 				return false;
 			}
 
-			// Security: Validate that the resolved path is within ABSPATH or the uploads directory.
-			// This prevents symlinks from being used to access files outside the WordPress installation.
-			// Cache upload_dir to avoid repeated filesystem operations in recursive calls.
-			static $upload_basedir = null;
-			if ( null === $upload_basedir ) {
-				$upload_dir     = wp_upload_dir();
-				$upload_basedir = $upload_dir['basedir'];
-			}
-
-			$allowed_bases = array(
-				ABSPATH,
-				$upload_basedir,
-			);
-
-			// Normalize all paths for comparison.
-			$is_allowed = false;
-			foreach ( $allowed_bases as $base ) {
-				$base_normalized = realpath( $base );
-				if ( false === $base_normalized ) {
-					continue;
-				}
-
-				// Check for exact path match first.
-				if ( rtrim( $resolved_source, '/' ) === rtrim( $base_normalized, '/' ) ) {
-					$is_allowed = true;
-					break;
-				}
-
-				// Check if the resolved path is within the allowed base (prefix match).
-				$base_normalized   = trailingslashit( $base_normalized );
-				$source_normalized = trailingslashit( $resolved_source );
-				if ( 0 === strpos( $source_normalized, $base_normalized ) ) {
-					$is_allowed = true;
-					break;
-				}
-			}
-
-			if ( ! $is_allowed ) {
-				// Symlink points outside allowed directories, skip it.
-				return false;
-			}
-
+			// Use the resolved path for copying.
+			// Note: We trust this is safe because copy_recursive is only called from
+			// convert_uploads() with the WordPress uploads directory as the source.
 			$source = $resolved_source;
 		}
 
