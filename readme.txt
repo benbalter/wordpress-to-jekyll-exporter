@@ -1,6 +1,6 @@
 === Static Site Exporter ===
 Contributors: benbalter
-Tags: jekyll, github, github pages, yaml, export, markdown
+Tags: jekyll, github, yaml, export, markdown
 Requires at least: 4.4
 Tested up to: 6.9
 Requires PHP: 7.2
