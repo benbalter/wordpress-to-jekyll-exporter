@@ -538,10 +538,33 @@ class Jekyll_Export {
 		// Check for symlinks and resolve them instead of creating new symlinks.
 		// This prevents cleanup from following symlinks and deleting the original files.
 		if ( is_link( $source ) ) {
-			$source = realpath( $source );
-			if ( false === $source ) {
+			$resolved_source = realpath( $source );
+			if ( false === $resolved_source ) {
 				return false;
 			}
+
+			// Security: Validate that the resolved path is within ABSPATH or the uploads directory.
+			// This prevents symlinks from being used to access files outside the WordPress installation.
+			$upload_dir    = wp_upload_dir();
+			$allowed_paths = array(
+				realpath( ABSPATH ),
+				realpath( $upload_dir['basedir'] ),
+			);
+
+			$is_allowed = false;
+			foreach ( $allowed_paths as $allowed_path ) {
+				if ( false !== $allowed_path && 0 === strpos( $resolved_source, trailingslashit( $allowed_path ) ) ) {
+					$is_allowed = true;
+					break;
+				}
+			}
+
+			if ( ! $is_allowed ) {
+				// Symlink points outside allowed directories, skip it.
+				return false;
+			}
+
+			$source = $resolved_source;
 		}
 
 		// Simple copy for a file.
