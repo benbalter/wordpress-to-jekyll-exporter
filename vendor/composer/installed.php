@@ -3,7 +3,7 @@
         'name' => 'benbalter/wordpress-to-jekyll-exporter',
         'pretty_version' => 'dev-copilot/fix-upload-files-deletion',
         'version' => 'dev-copilot/fix-upload-files-deletion',
-        'reference' => '6c806f6494e4e82317c0f7e446d714513796ef4d',
+        'reference' => 'c4bb3f4fa356bc1096505d8ad702dce88a8e280e',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'benbalter/wordpress-to-jekyll-exporter' => array(
             'pretty_version' => 'dev-copilot/fix-upload-files-deletion',
             'version' => 'dev-copilot/fix-upload-files-deletion',
-            'reference' => '6c806f6494e4e82317c0f7e446d714513796ef4d',
+            'reference' => 'c4bb3f4fa356bc1096505d8ad702dce88a8e280e',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
