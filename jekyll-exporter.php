@@ -15,7 +15,7 @@
  * Version:     3.0.1
  * Author:      Ben Balter
  * Author URI:  https://ben.balter.com
- * Text Domain: jekyll-export
+ * Text Domain: jekyll-exporter
  * License:     GPL-3.0+
  * License URI: http://www.gnu.org/licenses/gpl-3.0.txt
  *
@@ -108,7 +108,7 @@ class Jekyll_Export {
 	 * Add menu option to tools list
 	 */
 	function register_menu() {
-		add_management_page( __( 'Export to Jekyll', 'jekyll-export' ), __( 'Export to Jekyll', 'jekyll-export' ), 'manage_options', 'export.php?type=jekyll' );
+		add_management_page( __( 'Export to Jekyll', 'jekyll-exporter' ), __( 'Export to Jekyll', 'jekyll-exporter' ), 'manage_options', 'export.php?type=jekyll' );
 	}
 
 
