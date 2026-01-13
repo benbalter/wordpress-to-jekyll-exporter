@@ -292,10 +292,18 @@ class IntegrationTest extends WP_UnitTestCase {
 		$post_file = $jekyll_export->dir . '/_posts/2024-03-01-post-with-images.md';
 		$this->assertTrue( file_exists( $post_file ), 'Post file should exist' );
 
-		// Check that URLs are localized.
+		// Check that URLs are localized in the post body (not the YAML front matter).
 		$contents = file_get_contents( $post_file );
-		$this->assertStringNotContainsString( 'http://example.org', $contents, 'Absolute URL should be replaced' );
-		$this->assertStringContainsString( '/wp-content/uploads/test.jpg', $contents, 'Relative URL should be present' );
+		
+		// Split content into YAML front matter and body.
+		$parts = explode( '---', $contents );
+		$this->assertCount( 3, $parts, 'Post should have YAML front matter' );
+		
+		$body = $parts[2]; // The content after the second '---'
+		
+		// Check that inline image URLs in the body are localized.
+		$this->assertStringNotContainsString( 'http://example.org/wp-content/uploads', $body, 'Absolute image URL should be replaced in post body' );
+		$this->assertStringContainsString( '/wp-content/uploads/test.jpg', $body, 'Relative URL should be present in post body' );
 	}
 
 	/**
