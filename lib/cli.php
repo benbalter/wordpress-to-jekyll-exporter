@@ -74,7 +74,7 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			if ( ! empty( $taxonomy_filters ) ) {
 				add_filter(
 					'jekyll_export_taxonomy_filters',
-					function() use ( $taxonomy_filters ) {
+					function () use ( $taxonomy_filters ) {
 						return $taxonomy_filters;
 					}
 				);
@@ -86,7 +86,7 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
 				if ( ! empty( $post_types ) ) {
 					add_filter(
 						'jekyll_export_post_types',
-						function() use ( $post_types ) {
+						function () use ( $post_types ) {
 							return $post_types;
 						}
 					);

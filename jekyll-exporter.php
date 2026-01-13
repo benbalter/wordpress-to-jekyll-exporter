@@ -143,7 +143,7 @@ class Jekyll_Export {
 					continue;
 				}
 
-				$terms = (array) $terms;
+				$terms             = (array) $terms;
 				$term_placeholders = implode( ', ', array_fill( 0, count( $terms ), '%s' ) );
 
 				// Use AND logic between taxonomies, OR logic within taxonomy.
