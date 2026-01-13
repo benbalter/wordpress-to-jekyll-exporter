@@ -268,6 +268,37 @@ class IntegrationTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that exported posts have localized image URLs
+	 */
+	function test_export_localizes_inline_images() {
+		global $jekyll_export;
+
+		// Create a post with inline images.
+		$post_id = wp_insert_post(
+			array(
+				'post_title'   => 'Post with Images',
+				'post_content' => '<p>Image: <img src="http://example.org/wp-content/uploads/test.jpg" alt="Test"></p>',
+				'post_status'  => 'publish',
+				'post_name'    => 'post-with-images',
+				'post_date'    => '2024-03-01',
+				'post_author'  => self::$author_id,
+			)
+		);
+
+		// Run export.
+		$jekyll_export->convert_posts();
+
+		// Verify the exported file.
+		$post_file = $jekyll_export->dir . '/_posts/2024-03-01-post-with-images.md';
+		$this->assertTrue( file_exists( $post_file ), 'Post file should exist' );
+
+		// Check that URLs are localized.
+		$contents = file_get_contents( $post_file );
+		$this->assertStringNotContainsString( 'http://example.org', $contents, 'Absolute URL should be replaced' );
+		$this->assertStringContainsString( '/wp-content/uploads/test.jpg', $contents, 'Relative URL should be present' );
+	}
+
+	/**
 	 * Recursively remove directory
 	 *
 	 * @param string $dir Directory to remove.
