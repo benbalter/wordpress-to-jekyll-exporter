@@ -39,7 +39,7 @@ class ColspanTableConverter extends TableConverter {
 
 		// Handle th and td elements with colspan support.
 		if ( 'th' === $tag || 'td' === $tag ) {
-			$align            = $element->getAttribute( 'align' );
+			$align             = $element->getAttribute( 'align' );
 			$column_alignments = $this->getColumnAlignments();
 
 			if ( null !== $column_alignments ) {

@@ -41,7 +41,7 @@ if ( version_compare( PHP_VERSION, '5.3.0', '<' ) ) {
 
 require_once __DIR__ . '/lib/cli.php';
 require_once __DIR__ . '/vendor/autoload.php';
-require_once __DIR__ . '/lib/ColspanTableConverter.php';
+require_once __DIR__ . '/lib/colspan-table-converter.php';
 
 use League\HTMLToMarkdown\HtmlConverter;
 use Symfony\Component\Yaml\Yaml;
