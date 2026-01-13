@@ -57,11 +57,17 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			$taxonomy_filters = array();
 
 			if ( ! empty( $assoc_args['category'] ) ) {
-				$taxonomy_filters['category'] = array_map( 'trim', explode( ',', $assoc_args['category'] ) );
+				$categories = array_filter( array_map( 'trim', explode( ',', $assoc_args['category'] ) ) );
+				if ( ! empty( $categories ) ) {
+					$taxonomy_filters['category'] = $categories;
+				}
 			}
 
 			if ( ! empty( $assoc_args['tag'] ) ) {
-				$taxonomy_filters['post_tag'] = array_map( 'trim', explode( ',', $assoc_args['tag'] ) );
+				$tags = array_filter( array_map( 'trim', explode( ',', $assoc_args['tag'] ) ) );
+				if ( ! empty( $tags ) ) {
+					$taxonomy_filters['post_tag'] = $tags;
+				}
 			}
 
 			// Apply taxonomy filters.
@@ -76,13 +82,15 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
 
 			// Set up post type filter if specified.
 			if ( ! empty( $assoc_args['post_type'] ) ) {
-				$post_types = array_map( 'trim', explode( ',', $assoc_args['post_type'] ) );
-				add_filter(
-					'jekyll_export_post_types',
-					function() use ( $post_types ) {
-						return $post_types;
-					}
-				);
+				$post_types = array_filter( array_map( 'trim', explode( ',', $assoc_args['post_type'] ) ) );
+				if ( ! empty( $post_types ) ) {
+					add_filter(
+						'jekyll_export_post_types',
+						function() use ( $post_types ) {
+							return $post_types;
+						}
+					);
+				}
 			}
 
 			$jekyll_export->export();
