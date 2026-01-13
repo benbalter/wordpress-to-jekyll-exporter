@@ -241,8 +241,14 @@ class Jekyll_Export {
 		// Replace absolute URLs with relative paths for both http and https.
 		// This handles URLs like: http://example.org/wp-content/uploads/image.jpg
 		// Result: /wp-content/uploads/image.jpg
-		$content = str_replace( $site_url_https, '', $content );
-		$content = str_replace( $site_url_http, '', $content );
+		// Process the longer URL first to avoid partial replacements.
+		if ( strlen( $site_url_https ) >= strlen( $site_url_http ) ) {
+			$content = str_replace( $site_url_https, '', $content );
+			$content = str_replace( $site_url_http, '', $content );
+		} else {
+			$content = str_replace( $site_url_http, '', $content );
+			$content = str_replace( $site_url_https, '', $content );
+		}
 
 		return apply_filters( 'jekyll_export_localized_urls', $content );
 	}
