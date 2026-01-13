@@ -46,6 +46,6 @@ class CLITest extends WP_UnitTestCase {
 		// Verify the CLI file contains the expected class and method signatures.
 		$cli_content = file_get_contents( __DIR__ . '/../lib/cli.php' );
 		$this->assertStringContainsString( 'extends WP_CLI_Command', $cli_content );
-		$this->assertStringContainsString( 'function __invoke()', $cli_content );
+		$this->assertStringContainsString( 'function __invoke(', $cli_content );
 	}
 }

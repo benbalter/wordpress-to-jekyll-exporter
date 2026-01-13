@@ -16,6 +16,7 @@ View plugin in [the WordPress plugin directory](https://wordpress.org/plugins/je
 * Converts all `post_meta` and fields within the `wp_posts` table to YAML front matter for parsing by Jekyll
 * Generates a `_config.yml` with all settings in the `wp_options` table
 * Outputs a single zip file with `_config.yml`, pages, and `_posts` folder containing `.md` files for each post in the proper Jekyll naming convention
+* **Selective export**: Export only specific categories, tags, or post types using WP-CLI
 * No settings. Just a single click.
 
 ## Usage
@@ -30,6 +31,7 @@ See [the full documentation](https://ben.balter.com/wordpress-to-jekyll-exporter
 
 * [Changelog](../docs/changelog.md)
 * [Command-line-usage](../docs/command-line-usage.md)
+* [Selective export by category or tag](../docs/selective-export.md)
 * [Custom post types](../docs/custom-post-types.md)
 * [Custom fields](../docs/custom-fields.md)
 * [Developing locally](../docs/developing-locally.md)
