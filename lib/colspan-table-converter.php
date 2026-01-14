@@ -112,8 +112,8 @@ class ColspanTableConverter extends TableConverter {
 				$this->column_alignments_property->setAccessible( true );
 			} catch ( ReflectionException $e ) {
 				// If reflection fails, the parent library structure has changed.
-				// Log the error and return null to disable alignment tracking.
-				error_log( 'ColspanTableConverter: Failed to access parent columnAlignments property: ' . $e->getMessage() );
+				// Return null to disable alignment tracking and allow conversion to continue.
+				// The table will still be converted correctly, just without column alignment markers.
 				return null;
 			}
 		}
@@ -136,7 +136,7 @@ class ColspanTableConverter extends TableConverter {
 				$this->column_alignments_property->setAccessible( true );
 			} catch ( ReflectionException $e ) {
 				// If reflection fails, silently return to allow conversion to continue.
-				error_log( 'ColspanTableConverter: Failed to access parent columnAlignments property: ' . $e->getMessage() );
+				// The table will still be converted correctly, just without column alignment markers.
 				return;
 			}
 		}
