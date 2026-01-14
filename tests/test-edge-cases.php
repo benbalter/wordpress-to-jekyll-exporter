@@ -289,8 +289,8 @@ class EdgeCasesTest extends WP_UnitTestCase {
 	function test_copy_recursive_with_symlink() {
 		global $jekyll_export;
 
-		$temp_dir   = get_temp_dir() . 'symlink-test-' . time();
-		$target_dir = get_temp_dir() . 'symlink-target-' . time();
+		$temp_dir   = get_temp_dir() . 'symlink-test-' . uniqid();
+		$target_dir = get_temp_dir() . 'symlink-target-' . uniqid();
 
 		mkdir( $temp_dir );
 		mkdir( $target_dir );
@@ -313,6 +313,72 @@ class EdgeCasesTest extends WP_UnitTestCase {
 		@unlink( $target_dir . '/target.txt' );
 		@rmdir( $target_dir );
 		@rmdir( $temp_dir );
+	}
+
+	/**
+	 * Test handling of symlinked directory (reproduces issue where cleanup deletes original files)
+	 */
+	function test_copy_recursive_with_symlinked_directory() {
+		global $jekyll_export;
+
+		// Skip on Windows where symlinks work differently.
+		if ( DIRECTORY_SEPARATOR === '\\' ) {
+			$this->markTestSkipped( 'Symlink test skipped on Windows' );
+		}
+
+		// Create a target directory with actual files.
+		$target_dir = get_temp_dir() . 'uploads-target-' . uniqid();
+		mkdir( $target_dir );
+		file_put_contents( $target_dir . '/file1.txt', 'content 1' );
+		file_put_contents( $target_dir . '/file2.txt', 'content 2' );
+
+		// Create a directory with a symlink to the target.
+		$source_dir = get_temp_dir() . 'wp-content-' . uniqid();
+		mkdir( $source_dir );
+		symlink( $target_dir, $source_dir . '/uploads' );
+
+		// Allow temp directory for this test.
+		add_filter(
+			'jekyll_export_allowed_symlink_bases',
+			function( $bases ) {
+				$bases[] = get_temp_dir();
+				return $bases;
+			}
+		);
+
+		// Copy the directory structure (which includes the symlink).
+		$result = $jekyll_export->copy_recursive( $source_dir, $jekyll_export->dir . '/wp-content-test' );
+
+		$this->assertTrue( $result );
+
+		// Verify files were copied, not symlinked.
+		$this->assertTrue( file_exists( $jekyll_export->dir . '/wp-content-test/uploads/file1.txt' ) );
+		$this->assertTrue( file_exists( $jekyll_export->dir . '/wp-content-test/uploads/file2.txt' ) );
+
+		// Verify it's NOT a symlink in the destination.
+		$this->assertFalse( is_link( $jekyll_export->dir . '/wp-content-test/uploads' ) );
+
+		// Verify content is correct.
+		$this->assertEquals( 'content 1', file_get_contents( $jekyll_export->dir . '/wp-content-test/uploads/file1.txt' ) );
+		$this->assertEquals( 'content 2', file_get_contents( $jekyll_export->dir . '/wp-content-test/uploads/file2.txt' ) );
+
+		// Most importantly: Verify original files still exist after cleanup.
+		$jekyll_export->cleanup();
+
+		$this->assertTrue( file_exists( $target_dir . '/file1.txt' ), 'Original file1.txt should still exist after cleanup' );
+		$this->assertTrue( file_exists( $target_dir . '/file2.txt' ), 'Original file2.txt should still exist after cleanup' );
+		$this->assertEquals( 'content 1', file_get_contents( $target_dir . '/file1.txt' ) );
+		$this->assertEquals( 'content 2', file_get_contents( $target_dir . '/file2.txt' ) );
+
+		// Cleanup test directories.
+		@unlink( $target_dir . '/file1.txt' );
+		@unlink( $target_dir . '/file2.txt' );
+		@rmdir( $target_dir );
+		@unlink( $source_dir . '/uploads' );
+		@rmdir( $source_dir );
+
+		// Reinitialize temp dir for other tests.
+		$jekyll_export->init_temp_dir();
 	}
 
 	/**
