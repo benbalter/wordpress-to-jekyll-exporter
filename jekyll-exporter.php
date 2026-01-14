@@ -265,6 +265,32 @@ class Jekyll_Export {
 	}
 
 	/**
+	 * Localize URLs in content to use relative paths instead of absolute URLs.
+	 *
+	 * @param String $content the content to localize.
+	 * @return String the content with localized URLs
+	 */
+	function localize_urls( $content ) {
+		// Get the site URL with both http and https versions.
+		$site_url_http  = set_url_scheme( get_site_url(), 'http' );
+		$site_url_https = set_url_scheme( get_site_url(), 'https' );
+
+		// Replace absolute URLs with relative paths for both http and https.
+		// This handles URLs like: http://example.org/wp-content/uploads/image.jpg
+		// Result: /wp-content/uploads/image.jpg
+		// Process the longer URL first to avoid partial replacements.
+		if ( strlen( $site_url_https ) >= strlen( $site_url_http ) ) {
+			$content = str_replace( $site_url_https, '', $content );
+			$content = str_replace( $site_url_http, '', $content );
+		} else {
+			$content = str_replace( $site_url_http, '', $content );
+			$content = str_replace( $site_url_https, '', $content );
+		}
+
+		return apply_filters( 'jekyll_export_localized_urls', $content );
+	}
+
+	/**
 	 * Convert the main post content to Markdown.
 	 *
 	 * @param Post $post the post to Convert.
@@ -279,12 +305,16 @@ class Jekyll_Export {
 			if ( $wpcom_markdown_instance && $wpcom_markdown_instance->is_posting_enabled() ) {
 				// jetpack markdown is available so just return it.
 				$content = apply_filters( 'edit_post_content', $post->post_content, $post->ID );
+				// Localize URLs in Jetpack markdown content.
+				$content = $this->localize_urls( $content );
 
 				return $content;
 			}
 		}
 
 		$content = get_the_content( null, false, $post );
+		// Localize URLs before converting to Markdown.
+		$content = $this->localize_urls( $content );
 
 		// Reuse converter instance to avoid recreating it for each post.
 		static $converter = null;
@@ -574,9 +604,65 @@ class Jekyll_Export {
 
 		global $wp_filesystem;
 
-		// Check for symlinks.
+		// Check for symlinks and resolve them instead of creating new symlinks.
+		// This prevents cleanup from following symlinks and deleting the original files.
 		if ( is_link( $source ) ) {
-			return symlink( readlink( $source ), $dest );
+			$resolved_source = realpath( $source );
+			if ( false === $resolved_source ) {
+				return false;
+			}
+
+			// Security: Validate that the resolved path is within ABSPATH or the uploads directory.
+			// This prevents symlinks from being used to access files outside the WordPress installation.
+			// Cache upload_dir to avoid repeated filesystem operations in recursive calls.
+			static $upload_basedir = null;
+			if ( null === $upload_basedir ) {
+				$upload_dir = wp_upload_dir();
+				// Validate that basedir key exists and is not empty.
+				if ( empty( $upload_dir['basedir'] ) ) {
+					return false;
+				}
+				$upload_basedir = $upload_dir['basedir'];
+			}
+
+			$allowed_bases = array(
+				ABSPATH,
+				$upload_basedir,
+			);
+
+			// Allow tests to add additional allowed paths.
+			$allowed_bases = apply_filters( 'jekyll_export_allowed_symlink_bases', $allowed_bases );
+
+			// Normalize all paths for comparison.
+			$is_allowed = false;
+			foreach ( $allowed_bases as $base ) {
+				$base_normalized = realpath( $base );
+				if ( false === $base_normalized ) {
+					continue;
+				}
+
+				// Check for exact path match first.
+				if ( rtrim( $resolved_source, '/' ) === rtrim( $base_normalized, '/' ) ) {
+					$is_allowed = true;
+					break;
+				}
+
+				// Check if the resolved path is within the allowed base (prefix match).
+				// Ensure we're checking at directory boundaries to prevent /var/www2 matching /var/www.
+				$base_with_sep     = trailingslashit( $base_normalized );
+				$resolved_with_sep = trailingslashit( $resolved_source );
+				if ( 0 === strpos( $resolved_with_sep, $base_with_sep ) ) {
+					$is_allowed = true;
+					break;
+				}
+			}
+
+			if ( ! $is_allowed ) {
+				// Symlink points outside allowed directories, skip it.
+				return false;
+			}
+
+			$source = $resolved_source;
 		}
 
 		// Simple copy for a file.
